@@ -1,0 +1,28 @@
+{
+  "name": "projs",
+  "title": "Pro.js",
+  "description": "TODO",
+  "version": "0.0.0",
+  "author": "meddle0x53",
+  "devDependencies": {
+    "grunt": "~0.4.2",
+    "grunt-cli": "0.1.11",
+    "grunt-contrib-jshint": "~0.1.1",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-copy": "~0.5.0",
+    "grunt-contrib-uglify": "~0.3.0",
+    "grunt-wrap": "~0.3.0",
+    "grunt-todo": "~0.1.0",
+    "load-grunt-tasks": "~0.1.0",
+    "phantomjs": "~1.9.1-0",
+    "grunt-karma": "~0.5",
+    "karma": "~0.9",
+    "karma-chrome-launcher": "0.0.2",
+    "karma-script-launcher": "0.0.1",
+    "karma-firefox-launcher": "0.0.2",
+    "karma-jasmine": "0.0.1",
+    "karma-phantomjs-launcher": "0.0.2",
+    "grunt-jsdoc": "~0.5.1"
+  }
+}

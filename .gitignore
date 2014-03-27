@@ -1,0 +1,5 @@
+*.diff
+*.patch
+
+/bower_components
+/node_modules
