@@ -9,12 +9,7 @@ Pro.Property = function (proObject, property, getter, setter) {
   this.proObject['__pro__'].properties[property] = this;
 
   this.get = getter || function () {
-    var caller = _this.proObject['__pro__'].currentCaller;
-    if (caller) {
-      _this.addListener(function () {
-        _this.proObject[caller] = _this.proObject.__pro__.originals[caller].call(_this.proObject);
-      });
-    }
+    _this.addCaller();
 
     return _this.val;
   };
@@ -53,6 +48,17 @@ Pro.Property.prototype.init = function () {
   });
 
   this.state = Pro.States.ready;
+};
+
+Pro.Property.prototype.addCaller = function () {
+    var _this = this,
+        caller = this.proObject['__pro__'].currentCaller;
+    if (caller && caller != this.property) {
+      this.addListener(function () {
+        // TODO Implement Pro.Listener
+        _this.proObject[caller] = _this.proObject['__pro__'].originals[caller].call(_this.proObject);
+      });
+    }
 };
 
 Pro.Property.prototype.destroy = function () {
