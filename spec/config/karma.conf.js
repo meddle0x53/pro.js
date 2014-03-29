@@ -4,13 +4,15 @@ module.exports = function(karma) {
     frameworks: ['jasmine'],
 
     files: [
-      'src/js/properties/*.js',
+      'src/js/pro.js',
+      'src/js/properties/property.js',
+      'src/js/properties/auto_property.js',
       'src/js/start.js',
       'spec/spec_helper.js',
       'spec/**/*.spec.js'
     ],
 
-    browsers: ['PhantomJS', 'Firefox'],
+    browsers: ['PhantomJS'],
     captureTimeout: 5000,
     singleRun: true,
     reportSlowerThan: 500,

@@ -1,11 +1,3 @@
-var Pro = {};
-
-Pro.States = {
-  init: 1,
-  ready: 2,
-  destroyed: 3
-};
-
 Pro.Property = function (proObject, property, getter, setter) {
   var _this = this;
 
