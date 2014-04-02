@@ -90,6 +90,7 @@ module.exports = function(grunt) {
         ]
       },
       src : [
+        'src/properties/property.js',
         'src/js/start.js'
       ]
     },
@@ -105,7 +106,7 @@ module.exports = function(grunt) {
   grunt.registerTask('setup', 'build task', function() {
 
     var defaultFiles = [
-          'properties/property'
+          'properties/property',
           'start'
         ],
         args = this.args, customFiles = [], index, i = -1;

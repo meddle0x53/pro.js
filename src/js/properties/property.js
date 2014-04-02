@@ -51,14 +51,14 @@ Pro.Property.prototype.init = function () {
 };
 
 Pro.Property.prototype.addCaller = function () {
-    var _this = this,
-        caller = this.proObject['__pro__'].currentCaller;
-    if (caller && caller != this.property) {
-      this.addListener(function () {
-        // TODO Implement Pro.Listener
-        _this.proObject[caller] = _this.proObject['__pro__'].originals[caller].call(_this.proObject);
-      });
-    }
+  var _this = this,
+      caller = this.proObject['__pro__'].currentCaller;
+  if (caller && caller != this.property) {
+    this.addListener(function () {
+      // TODO Implement Pro.Listener
+      _this.proObject[caller] = _this.proObject['__pro__'].originals[caller].call(_this.proObject);
+    });
+  }
 };
 
 Pro.Property.prototype.destroy = function () {
