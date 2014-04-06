@@ -49,7 +49,7 @@ Pro.Queue.prototype.pushOnce = function (obj, method, args) {
   this.push(obj, method, args);
 };
 
-Pro.Queue.prototype.go = function () {
+Pro.Queue.prototype.go = function (once) {
   var queue = this._queue,
       options = this.options,
       length = queue.length,
@@ -110,7 +110,10 @@ Pro.Queue.prototype.go = function () {
 
   if (queue.length > length) {
     this._queue = queue.slice(length);
-    this.go();
+
+    if (!once) {
+      this.go();
+    }
   } else {
     this._queue.length = 0;
   }
