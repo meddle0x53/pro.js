@@ -5,6 +5,7 @@ module.exports = function(karma) {
 
     files: [
       'src/js/pro.js',
+      'src/js/flow/queue.js',
       'src/js/properties/property.js',
       'src/js/properties/auto_property.js',
       'src/js/start.js',

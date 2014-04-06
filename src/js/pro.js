@@ -11,3 +11,7 @@ Pro.Utils = {};
 Pro.Utils.isFunction = function (property) {
   return typeof(property) === 'function';
 };
+
+Pro.Utils.isString = function (property) {
+  return typeof(property) === 'string';
+};
