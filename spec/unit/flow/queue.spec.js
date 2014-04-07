@@ -183,17 +183,5 @@ describe('Pro.Queue', function () {
       expect(fnOrder[0]).toBe(obj.f3);
       expect(fnOrder[1]).toBe(testFunc);
     });
-
-    it('executes functions added to the queue by other functions.', function () {
-      queue.push(obj, obj.f3);
-      expect(queue.length()).toBe(1);
-
-      queue.go();
-
-      expect(resArray[0]).not.toBe(undefined);
-      expect(resArray[0]).toEqual('5');
-      expect(fnOrder[0]).toBe(obj.f3);
-      expect(fnOrder[1]).toBe(testFunc);
-    });
   });
 });

@@ -10,11 +10,29 @@ Pro.Queues = function (queueNames, options) {
 
   var i, length = this.queueNames.length;
   for (i = 0; i < length; i++) {
-    this._queues[this.queueNames[i]] = new Pro.Queue(this.queueNames[i], options.queue);
+    this._queues[this.queueNames[i]] = new Pro.Queue(this.queueNames[i], this.options.queue);
   }
 };
 
 Pro.Queues.prototype = {};
+
+Pro.Queues.prototype.isEmpty = function () {
+  var queues = this._queues,
+      names = this.queueNames,
+      length = names.length,
+      i, currentQueueName, currentQueue;
+
+  for (i = 0; i < length; i++) {
+    currentQueueName = names[i];
+    currentQueue = queues[currentQueueName];
+
+    if (!currentQueue.isEmpty()) {
+      return false;
+    }
+  }
+
+  return true;
+};
 
 Pro.Queues.prototype.push = function (queueName, obj, method, args) {
   var queue = this._queues[queueName];
@@ -53,7 +71,7 @@ Pro.Queues.prototype.go = function (queueName) {
 
     currentQueue.go(true);
 
-    if ((prevQueueIndex = this.probePrevIndex(queueNameIndex)) !== -1) {
+    if ((prevQueueIndex = this.probePrevIndex(currentQueueIndex)) !== -1) {
       currentQueueIndex = prevQueueIndex;
       continue goloop;
     }
