@@ -53,8 +53,7 @@ Pro.Queues.prototype.go = function (queueName) {
 
     currentQueue.go(true);
 
-    // TODO Implement, because tanya is stopping me again.
-    if ((prevQueueIndex = todo(this, queueNameIndex)) !== -1) {
+    if ((prevQueueIndex = this.probePrevIndex(queueNameIndex)) !== -1) {
       currentQueueIndex = prevQueueIndex;
       continue goloop;
     }
@@ -62,4 +61,21 @@ Pro.Queues.prototype.go = function (queueName) {
     currentQueueIndex = currentQueueIndex + 1;
   }
 
+};
+
+Pro.Queues.prototype.probePrevIndex = function (startIndex) {
+  var queues = this._queues,
+      names = this.queueNames,
+      i, currentQueueName, currentQueue;
+
+  for (i = 0; i <= startIndex; i++) {
+    currentQueueName = names[i];
+    currentQueue = queues[currentQueueName];
+
+    if (!currentQueue.isEmpty()) {
+      return i;
+    }
+  }
+
+  return -1;
 };
