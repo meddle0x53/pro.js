@@ -6,7 +6,7 @@ describe('Pro.Queue', function () {
   beforeEach(function () {
     queue = new Pro.Queue('pro');
     resArray = [];
-    fnOrder = []
+    fnOrder = [];
     testFunc = function () {
       resArray[0] = '5';
       fnOrder.push(testFunc);

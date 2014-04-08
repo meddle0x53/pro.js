@@ -186,10 +186,10 @@ describe('Pro.Queues', function () {
   });
 
   describe('Handles multiple queues.', function () {
-    var queue, testFunc, resArray, obj, fnOrder;
+    var queues, testFunc, resArray, obj, fnOrder;
 
     beforeEach(function () {
-      queue = new Pro.Queues(['pro', 'model', 'controller', 'view']);
+      queues = new Pro.Queues(['pro', 'model', 'controller', 'view']);
       resArray = [];
       fnOrder = []
       testFunc = function () {
@@ -208,10 +208,40 @@ describe('Pro.Queues', function () {
           fnOrder.push(obj.f2);
         },
         f3: function () {
-          queue.pushOnce('pro', testFunc);
+          queues.pushOnce('pro', testFunc);
           fnOrder.push(obj.f3);
         }
       };
+    });
+
+    describe('#go', function () {
+      it('runs the stored methods in order of queues', function () {
+        queues.pushOnce('controller', obj, obj.f3);
+        queues.pushOnce('model', testFunc);
+        queues.pushOnce('controller', obj, obj.f1);
+        queues.pushOnce('view', obj, obj.f2, [2, 3]);
+
+        expect(fnOrder[0]).toBe(undefined);
+        expect(resArray[0]).toBe(undefined);
+        expect(fnOrder[1]).toBe(undefined);
+        expect(fnOrder[2]).toBe(undefined);
+        expect(resArray[1]).toBe(undefined);
+        expect(fnOrder[3]).toBe(undefined);
+        expect(fnOrder[4]).toBe(undefined);
+        expect(resArray[2]).toBe(undefined);
+
+        queues.go();
+
+        expect(fnOrder[0]).toBe(testFunc);
+        expect(resArray[0]).toEqual('5');
+        expect(fnOrder[1]).toBe(obj.f3);
+        expect(fnOrder[2]).toBe(obj.f1);
+        expect(resArray[1]).toBe(5);
+        expect(fnOrder[3]).toBe(testFunc);
+        expect(fnOrder[4]).toBe(obj.f2);
+        expect(resArray[2]).not.toBe(undefined);
+        expect(resArray[2][0]).toBe(5);
+      });
     });
 
   });
