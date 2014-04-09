@@ -35,6 +35,12 @@ Pro.Queues.prototype.isEmpty = function () {
 };
 
 Pro.Queues.prototype.push = function (queueName, obj, method, args) {
+  if (queueName && !Pro.Utils.isString(queueName)) {
+    args = method;
+    method = obj;
+    obj = queueName;
+    queueName = this.queueNames[0];
+  }
   if (!queueName) {
     queueName = this.queueNames[0];
   }
@@ -46,6 +52,12 @@ Pro.Queues.prototype.push = function (queueName, obj, method, args) {
 };
 
 Pro.Queues.prototype.pushOnce = function (queueName, obj, method, args) {
+  if (queueName && !Pro.Utils.isString(queueName)) {
+    args = method;
+    method = obj;
+    obj = queueName;
+    queueName = this.queueNames[0];
+  }
   if (!queueName) {
     queueName = this.queueNames[0];
   }

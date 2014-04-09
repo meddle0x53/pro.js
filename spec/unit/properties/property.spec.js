@@ -59,12 +59,10 @@ describe('Pro.Property', function () {
 
     it('adds listener for the current caller', function () {
       var property = new Pro.Property(obj, 'a');
-      obj.__pro__.currentCaller = 'b';
-      obj.__pro__.originals = {
-        b: function () {
-          return this.a + ' is cool';
-        }
+      obj.b = function () {
+        return this.a + ' is cool';
       };
+      obj.__pro__.currentCaller = [obj, obj.b, new Pro.Property(obj, 'b')];
       property.get();
       obj.__pro__.currentCaller = null;
       expect(property.listeners.length).toBe(1);
@@ -88,10 +86,10 @@ describe('Pro.Property', function () {
 
     it('notifies the listeners of the property', function () {
       var property = new Pro.Property(obj, 'a');
-      spyOn(property, 'notifyAll');
+      spyOn(property, 'willUpdate');
       property.set(3);
 
-      expect(property.notifyAll).toHaveBeenCalled();
+      expect(property.willUpdate).toHaveBeenCalled();
     });
   });
 });

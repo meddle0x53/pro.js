@@ -90,8 +90,8 @@ module.exports = function(grunt) {
         ]
       },
       src : [
+        'spec/unit/flow/flow.spec.js',
         'src/properties/property.js',
-        'src/js/start.js'
       ]
     },
 

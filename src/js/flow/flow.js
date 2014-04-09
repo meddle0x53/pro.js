@@ -18,7 +18,7 @@ Pro.Flow.prototype.start = function () {
       queueNames = this.queueNames;
 
   if (!queues) {
-    queues = new Pro.Queues(queueNames, options.queues);
+    queues = this.flowInstance = new Pro.Queues(queueNames, options.flowInstance);
     if (start) {
       start(queues);
     }
@@ -47,6 +47,10 @@ Pro.Flow.prototype.run = function (obj, method) {
   var options = this.options,
       onError = options.onError;
 
+  if (this.isRunning()) {
+    return;
+  }
+
   this.start();
   if (!method) {
     method = obj;
@@ -68,6 +72,10 @@ Pro.Flow.prototype.run = function (obj, method) {
   }
 };
 
+Pro.Flow.prototype.isRunning = function () {
+  return this.flowInstance !== null && this.flowInstance !== undefined;
+};
+
 Pro.Flow.prototype.push = function (queueName, obj, method, args) {
   if (!this.flowInstance) {
     throw new Error('Not in running flow!');
@@ -83,3 +91,5 @@ Pro.Flow.prototype.pushOnce = function (queueName, obj, method, args) {
 
   this.flowInstance.pushOnce(queueName, obj, method, args);
 };
+
+Pro.flow = new Pro.Flow(['proq']);

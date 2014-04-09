@@ -21,7 +21,10 @@ Pro.Property = function (proObject, property, getter, setter) {
     _this.oldVal = _this.val;
     _this.val = newVal;
 
-    _this.notifyAll();
+    Pro.flow.run(function () {
+      _this.willUpdate();
+    });
+
   };
 
   this.oldVal = null;
@@ -53,10 +56,12 @@ Pro.Property.prototype.init = function () {
 Pro.Property.prototype.addCaller = function () {
   var _this = this,
       caller = this.proObject['__pro__'].currentCaller;
-  if (caller && caller != this.property) {
-    this.addListener(function () {
-      // TODO Implement Pro.Listener
-      _this.proObject[caller] = _this.proObject['__pro__'].originals[caller].call(_this.proObject);
+  if (caller && caller[2].property != this.property) {
+    this.addListener({
+      property: caller[2],
+      call: function () {
+        caller[0][caller[2].property] = caller[1].call(caller[0]);
+      }
     });
   }
 };
@@ -99,5 +104,17 @@ Pro.Property.prototype.notifyAll = function () {
   var i;
   for (i = 0; i < this.listeners.length; i++) {
     this.listeners[i].call(this.proObject);
+  }
+};
+
+Pro.Property.prototype.willUpdate = function () {
+  var i, listener,
+      listeners = this.listeners,
+      length = listeners.length;
+  for (i = 0; i < length; i++) {
+    listener = listeners[i];
+
+    Pro.flow.pushOnce(listener, listener.call);
+    listener.property.willUpdate();
   }
 };

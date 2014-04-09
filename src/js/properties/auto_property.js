@@ -5,7 +5,7 @@ Pro.AutoProperty = function (proObject, property) {
       getter = function () {
     _this.addCaller();
 
-    _this.proObject['__pro__'].currentCaller = _this.property;
+    _this.proObject['__pro__'].currentCaller = [proObject, _this.func, _this];
     _this.val = _this.func.apply(_this.proObject, arguments);
     _this.proObject['__pro__'].currentCaller = null;
 
@@ -21,7 +21,9 @@ Pro.AutoProperty = function (proObject, property) {
         _this.oldVal = _this.val;
         _this.val = newVal;
 
-        _this.notifyAll();
+        Pro.flow.run(function () {
+          _this.willUpdate();
+        });
       },
       enumerable: true,
       configurable: true

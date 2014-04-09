@@ -1,0 +1,7 @@
+[4mRunning "todo:src" (todo) task[24m
+
+spec/unit/flow/flow.spec.js
+
+	line 191  TODO  For the real diamond test - c should be before b, thanks to Tanya
+
+[32mDone, without errors.[39m
