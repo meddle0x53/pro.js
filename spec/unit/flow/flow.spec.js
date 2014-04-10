@@ -188,8 +188,6 @@ describe('Pro.Flow', function () {
           hash['a'] += 1;
           a = n;
 
-          // TODO For the real diamond test - c should be before b, thanks to Tanya
-          // a -> c(a+b) <- b(a+5) <-a
           flow.pushOnce(obj, obj.b, [4]);
           flow.pushOnce(obj, obj.c, [1]);
           flow.pushOnce(obj, obj.sum, [a, b, c]);

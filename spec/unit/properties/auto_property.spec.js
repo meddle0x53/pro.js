@@ -49,4 +49,39 @@ describe('Pro.AutoProperty', function () {
     expect(obj.a).toEqual(obj.ap);
     expect(obj.ap + 1).toEqual(obj.app);
   });
+
+  it('beats the diamond problem', function () {
+    var counterHash = {},
+        object = {
+          a: 0,
+          c: function () {
+            counterHash['c'] = counterHash['c'] || 0;
+            counterHash['c'] += 1;
+
+            return this.b + this.a;
+          },
+          b: function () {
+            counterHash['b'] = counterHash['b'] || 0;
+            counterHash['b'] += 1;
+
+            return this.a + 5;
+          }
+        },
+        propertyA = new Pro.Property(object, 'a'),
+        propertyB = new Pro.AutoProperty(object, 'b'),
+        propertyC = new Pro.AutoProperty(object, 'c');
+
+    expect(object.a).toEqual(0);
+    expect(object.c).toEqual(5);
+    expect(object.b).toEqual(5);
+    expect(counterHash['b']).toBe(1);
+    expect(counterHash['c']).toBe(1);
+
+    object.a = 4;
+    expect(object.c).toEqual(13);
+    expect(object.b).toEqual(9);
+    expect(counterHash['b']).toBe(2);
+    expect(counterHash['c']).toBe(2);
+
+  });
 });

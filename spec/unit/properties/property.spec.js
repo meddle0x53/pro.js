@@ -58,11 +58,17 @@ describe('Pro.Property', function () {
     });
 
     it('adds listener for the current caller', function () {
-      var property = new Pro.Property(obj, 'a');
+      var property = new Pro.Property(obj, 'a'), func;
       obj.b = function () {
         return this.a + ' is cool';
       };
-      obj.__pro__.currentCaller = [obj, obj.b, new Pro.Property(obj, 'b')];
+      func = obj.b;
+      obj.__pro__.currentCaller = {
+        property: new Pro.Property(obj, 'b'),
+        call: function () {
+          obj.b = func.call(obj);
+        }
+      };
       property.get();
       obj.__pro__.currentCaller = null;
       expect(property.listeners.length).toBe(1);
