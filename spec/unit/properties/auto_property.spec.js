@@ -58,30 +58,50 @@ describe('Pro.AutoProperty', function () {
             counterHash['c'] = counterHash['c'] || 0;
             counterHash['c'] += 1;
 
-            return this.b + this.a;
+            return this.b + this.a + this.d;
           },
           b: function () {
             counterHash['b'] = counterHash['b'] || 0;
             counterHash['b'] += 1;
 
             return this.a + 5;
-          }
+          },
+          d: 1
+
         },
         propertyA = new Pro.Property(object, 'a'),
         propertyB = new Pro.AutoProperty(object, 'b'),
-        propertyC = new Pro.AutoProperty(object, 'c');
+        propertyC = new Pro.AutoProperty(object, 'c'),
+        propertyD = new Pro.Property(object, 'd');
 
     expect(object.a).toEqual(0);
-    expect(object.c).toEqual(5);
+    expect(object.c).toEqual(6);
     expect(object.b).toEqual(5);
     expect(counterHash['b']).toBe(1);
     expect(counterHash['c']).toBe(1);
 
     object.a = 4;
-    expect(object.c).toEqual(13);
+    expect(object.c).toEqual(14);
     expect(object.b).toEqual(9);
     expect(counterHash['b']).toBe(2);
     expect(counterHash['c']).toBe(2);
 
+    object.d = 2;
+    expect(object.c).toEqual(15);
+    expect(object.b).toEqual(9);
+    expect(counterHash['b']).toBe(2);
+    expect(counterHash['c']).toBe(3);
+
+    object.b = 0;
+    expect(object.c).toEqual(6);
+    expect(object.b).toEqual(0);
+    expect(counterHash['b']).toBe(2);
+    expect(counterHash['c']).toBe(4);
+
+    object.a = 0;
+    expect(object.c).toEqual(7);
+    expect(object.b).toEqual(5);
+    expect(counterHash['b']).toBe(3);
+    expect(counterHash['c']).toBe(5);
   });
 });

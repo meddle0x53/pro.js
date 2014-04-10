@@ -14,7 +14,7 @@ Pro.Property = function (proObject, property, getter, setter) {
     return _this.val;
   };
   this.set = setter || function (newVal) {
-    if (_this.oldVal === newVal) {
+    if (_this.val === newVal) {
       return;
     }
 

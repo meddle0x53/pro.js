@@ -24,6 +24,10 @@ Pro.AutoProperty = function (proObject, property) {
         return _this.val;
       },
       set: function (newVal) {
+        if (_this.val === newVal) {
+          return;
+        }
+
         _this.oldVal = _this.val;
         _this.val = newVal;
 
