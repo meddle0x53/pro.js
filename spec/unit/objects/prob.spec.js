@@ -33,4 +33,25 @@ describe('Pro.prob', function () {
     }
   });
 
+  it('throws an error if there is object with keywprop property', function () {
+    Pro.Configuration = {
+      keyprops: true,
+      keypropList: ['c']
+    };
+
+    var obj = {
+      a: 1,
+      b: '2',
+      c: true,
+      d: 2.3
+    }, proObject;
+
+    expect(function () {
+      Pro.prob(obj);
+    }).toThrow(new Error('The property name c is a key word for pro objects! Objects passed to Pro.prob can not contain properties named as keyword properties.'));
+
+    expect(obj.__pro__).not.toBe(undefined);
+    expect(obj.__pro__.state).toBe(Pro.States.error);
+  });
+
 });
