@@ -4,7 +4,9 @@ Pro.Property = function (proObject, property, getter, setter) {
   this.proObject = proObject;
   this.property = property;
 
-  this.proObject['__pro__'] = this.proObject['__pro__'] || {};
+  if (!this.proObject['__pro__']) {
+    this.proObject['__pro__'] = {};
+  }
   this.proObject['__pro__'].properties = this.proObject['__pro__'].properties || {};
   this.proObject['__pro__'].properties[property] = this;
 

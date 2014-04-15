@@ -12,6 +12,7 @@
 //      a2: function () {return this.a*this.a}
 //    }
 //
+//
 //    prob(obj);
 //    //obj.x = 17;
 //
