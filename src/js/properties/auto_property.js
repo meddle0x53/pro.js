@@ -4,16 +4,16 @@ Pro.AutoProperty = function (proObject, property) {
   var _this = this,
       getter = function () {
     _this.addCaller();
-    var oldCaller = _this.proObject['__pro__'].currentCaller;
+    var oldCaller = Pro.currentCaller;
 
-    _this.proObject['__pro__'].currentCaller = {
+    Pro.currentCaller = {
       property: _this,
       call: function () {
         proObject[property] = _this.func.call(proObject);
       }
     };
     _this.val = _this.func.apply(_this.proObject, arguments);
-    _this.proObject['__pro__'].currentCaller = oldCaller;
+    Pro.currentCaller = oldCaller;
 
     _this.proObject['__pro__'].originals = _this.proObject['__pro__'].originals || [];
     _this.proObject['__pro__'].originals[property] = _this.func;

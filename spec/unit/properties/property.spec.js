@@ -63,14 +63,14 @@ describe('Pro.Property', function () {
         return this.a + ' is cool';
       };
       func = obj.b;
-      obj.__pro__.currentCaller = {
+      Pro.currentCaller = {
         property: new Pro.Property(obj, 'b'),
         call: function () {
           obj.b = func.call(obj);
         }
       };
       property.get();
-      obj.__pro__.currentCaller = null;
+      Pro.currentCaller = null;
       expect(property.listeners.length).toBe(1);
 
       property.notifyAll();

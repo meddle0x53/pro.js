@@ -28,6 +28,8 @@ Pro.prob = function (object, meta) {
 
       if (object.hasOwnProperty(property) && !isF(object[property])) {
         new Pro.Property(object, property);
+      } else if (object.hasOwnProperty(property) && isF(object[property])) {
+        new Pro.AutoProperty(object, property);
       }
     }
 

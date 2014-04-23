@@ -21,3 +21,5 @@ Pro.Configuration = {
   keyprops: true,
   keypropList: ['p']
 };
+
+Pro.currentCaller = null;

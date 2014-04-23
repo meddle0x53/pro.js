@@ -57,7 +57,8 @@ Pro.Property.prototype.init = function () {
 
 Pro.Property.prototype.addCaller = function () {
   var _this = this,
-      caller = this.proObject['__pro__'].currentCaller;
+      caller = Pro.currentCaller;
+
   if (caller && caller.property.property != this.property) {
     this.addListener(caller);
   }
