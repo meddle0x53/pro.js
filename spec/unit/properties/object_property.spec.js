@@ -40,4 +40,45 @@ describe('Pro.ObjectProperty', function () {
     expect(obj.ap).toEqual(obj.a + obj.op.b);
   });
 
+  it('setting an object property updates the properties dependent on it sub-properties', function () {
+    var property = new Pro.Property(obj, 'a'),
+        autoProperty = new Pro.AutoProperty(obj, 'ap'),
+        objectProperty = new Pro.ObjectProperty(obj, 'op');
+
+    expect(obj.ap).toEqual(obj.a + obj.op.b);
+
+    obj.op = {
+      b: 3
+    };
+    expect(obj.ap).toEqual(obj.a + obj.op.b);
+
+    obj.op.b = 5;
+    expect(obj.ap).toEqual(obj.a + obj.op.b);
+
+    obj.a = 2;
+    expect(obj.ap).toEqual(obj.a + obj.op.b);
+  });
+
+  it('old values\' subprop changes doesn\'t affect pro object auto properties', function () {
+    var property = new Pro.Property(obj, 'a'),
+        autoProperty = new Pro.AutoProperty(obj, 'ap'),
+        objectProperty = new Pro.ObjectProperty(obj, 'op'),
+        oldValue;
+
+    expect(obj.ap).toEqual(obj.a + obj.op.b);
+
+    oldValue = obj.op;
+    obj.op = {
+      b: 3
+    };
+    expect(obj.ap).toEqual(obj.a + obj.op.b);
+
+    obj.op.b = 5;
+    expect(obj.ap).toEqual(obj.a + obj.op.b);
+
+    oldValue.b = 10;
+    expect(obj.op.b).not.toEqual(oldValue.b);
+    expect(obj.ap).toEqual(obj.a + obj.op.b);
+  });
+
 });
