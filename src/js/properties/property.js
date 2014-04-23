@@ -10,24 +10,8 @@ Pro.Property = function (proObject, property, getter, setter) {
   this.proObject['__pro__'].properties = this.proObject['__pro__'].properties || {};
   this.proObject['__pro__'].properties[property] = this;
 
-  this.get = getter || function () {
-    _this.addCaller();
-
-    return _this.val;
-  };
-  this.set = setter || function (newVal) {
-    if (_this.val === newVal) {
-      return;
-    }
-
-    _this.oldVal = _this.val;
-    _this.val = newVal;
-
-    Pro.flow.run(function () {
-      _this.willUpdate();
-    });
-
-  };
+  this.get = getter || Pro.Property.DEFAULT_GETTER(this);
+  this.set = setter || Pro.Property.DEFAULT_SETTER(this);
 
   this.oldVal = null;
   this.val = proObject[property];
@@ -40,18 +24,44 @@ Pro.Property = function (proObject, property, getter, setter) {
   this.init();
 };
 
+Pro.Property.DEFAULT_GETTER = function (property) {
+  return function () {
+    property.addCaller();
+
+    return property.val;
+  };
+};
+
+Pro.Property.DEFAULT_SETTER = function (property) {
+  return function (newVal) {
+    if (property.val === newVal) {
+      return;
+    }
+
+    property.oldVal = property.val;
+    property.val = newVal;
+
+    Pro.flow.run(function () {
+      property.willUpdate();
+    });
+  };
+};
+
+Pro.Property.defineProp = function (obj, prop, get, set) {
+  Object.defineProperty(obj, prop, {
+    get: get,
+    set: set,
+    enumerable: true,
+    configurable: true
+  });
+};
+
 Pro.Property.prototype.init = function () {
   if (this.state !== Pro.States.init) {
     return;
   }
 
-  Object.defineProperty(this.proObject, this.property, {
-    get: this.get,
-    set: this.set,
-    enumerable: true,
-    configurable: true
-  });
-
+  Pro.Property.defineProp(this.proObject, this.property, this.get, this.set);
   this.state = Pro.States.ready;
 };
 

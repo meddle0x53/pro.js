@@ -4,7 +4,9 @@ Pro.AutoProperty = function (proObject, property) {
   var _this = this,
       getter = function () {
     _this.addCaller();
-    var oldCaller = Pro.currentCaller;
+    var oldCaller = Pro.currentCaller,
+        get = Pro.Property.DEFAULT_GETTER(_this),
+        set = Pro.Property.DEFAULT_SETTER(_this);
 
     Pro.currentCaller = {
       property: _this,
@@ -15,30 +17,7 @@ Pro.AutoProperty = function (proObject, property) {
     _this.val = _this.func.apply(_this.proObject, arguments);
     Pro.currentCaller = oldCaller;
 
-    _this.proObject['__pro__'].originals = _this.proObject['__pro__'].originals || [];
-    _this.proObject['__pro__'].originals[property] = _this.func;
-
-    Object.defineProperty(_this.proObject, _this.property, {
-      get: function () {
-        _this.addCaller();
-        return _this.val;
-      },
-      set: function (newVal) {
-        if (_this.val === newVal) {
-          return;
-        }
-
-        _this.oldVal = _this.val;
-        _this.val = newVal;
-
-        Pro.flow.run(function () {
-          _this.willUpdate();
-        });
-      },
-      enumerable: true,
-      configurable: true
-    });
-
+    Pro.Property.defineProp(_this.proObject, _this.property, get, set);
     return _this.val;
   };
 

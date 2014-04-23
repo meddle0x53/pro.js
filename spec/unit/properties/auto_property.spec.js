@@ -15,14 +15,10 @@ describe('Pro.AutoProperty', function () {
         property = new Pro.AutoProperty(obj, 'ap'),
         value = null;
 
-    expect(obj.__pro__.originals).toBe(undefined);
     expect(typeof(property.val)).toBe('function');
     expect(property.val).toBe(original);
 
     value = obj.ap;
-    expect(obj.__pro__.originals).not.toBe(undefined);
-    expect(obj.__pro__.originals.ap).not.toBe(undefined);
-    expect(obj.__pro__.originals.ap).toBe(original);
     expect(typeof(property.val)).not.toBe('function');
     expect(property.val).toEqual(obj.a);
   });
