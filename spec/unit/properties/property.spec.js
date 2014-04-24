@@ -10,6 +10,7 @@ describe('Pro.Property', function () {
 
     it('initializes the property', function () {
       var property = new Pro.Property(obj, 'a');
+      expect(property.type()).toEqual(Pro.Property.Types.simple);
       expect(property.state).toEqual(Pro.States.ready);
     });
 

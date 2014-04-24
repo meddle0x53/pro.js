@@ -64,6 +64,8 @@ Pro.ObjectProperty = function (proObject, property) {
         };
 
     Pro.Property.defineProp(_this.proObject, _this.property, get, set);
+
+    _this.state = Pro.States.ready;
     return _this.val;
   };
 
@@ -73,3 +75,9 @@ Pro.ObjectProperty = function (proObject, property) {
 
 Pro.ObjectProperty.prototype = Object.create(Pro.Property.prototype);;
 Pro.ObjectProperty.constructor = Pro.ObjectProperty;
+
+Pro.ObjectProperty.prototype.type = function () {
+  return Pro.Property.Types.object;
+};
+
+Pro.ObjectProperty.prototype.afterInit = function () {};

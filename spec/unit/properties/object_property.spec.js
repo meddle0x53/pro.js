@@ -19,9 +19,12 @@ describe('Pro.ObjectProperty', function () {
         property = new Pro.ObjectProperty(obj, 'op');
 
     expect(property.val.__pro__).toBe(undefined);
+    expect(property.type()).toBe(Pro.Property.Types.object);
+    expect(property.state).toBe(Pro.States.init);
     expect(property.val).toBe(original);
 
     obj.op;
+    expect(property.state).toBe(Pro.States.ready);
     expect(property.val.__pro__).not.toBe(undefined);
     expect(property.val).toEqual(obj.op);
   });

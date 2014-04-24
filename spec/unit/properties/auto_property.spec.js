@@ -17,9 +17,12 @@ describe('Pro.AutoProperty', function () {
 
     expect(typeof(property.val)).toBe('function');
     expect(property.val).toBe(original);
+    expect(property.state).toBe(Pro.States.init);
 
     value = obj.ap;
+    expect(property.state).toBe(Pro.States.ready);
     expect(typeof(property.val)).not.toBe('function');
+    expect(property.type()).toBe(Pro.Property.Types.auto);
     expect(property.val).toEqual(obj.a);
   });
 

@@ -24,6 +24,13 @@ Pro.Property = function (proObject, property, getter, setter) {
   this.init();
 };
 
+Pro.Property.Types = {
+  simple: 0, // strings, booleans and numbers
+  auto: 1, // functions - dependent
+  object: 2, // references Pro objects
+  array: 3 // arrays
+};
+
 Pro.Property.DEFAULT_GETTER = function (property) {
   return function () {
     property.addCaller();
@@ -56,12 +63,21 @@ Pro.Property.defineProp = function (obj, prop, get, set) {
   });
 };
 
+Pro.Property.prototype.type = function () {
+  return Pro.Property.Types.simple;
+};
+
 Pro.Property.prototype.init = function () {
   if (this.state !== Pro.States.init) {
     return;
   }
 
   Pro.Property.defineProp(this.proObject, this.property, this.get, this.set);
+
+  this.afterInit();
+};
+
+Pro.Property.prototype.afterInit = function () {
   this.state = Pro.States.ready;
 };
 

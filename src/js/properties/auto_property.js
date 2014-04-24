@@ -18,6 +18,8 @@ Pro.AutoProperty = function (proObject, property) {
     Pro.currentCaller = oldCaller;
 
     Pro.Property.defineProp(_this.proObject, _this.property, get, set);
+
+    _this.state = Pro.States.ready;
     return _this.val;
   };
 
@@ -26,3 +28,9 @@ Pro.AutoProperty = function (proObject, property) {
 
 Pro.AutoProperty.prototype = Object.create(Pro.Property.prototype);;
 Pro.AutoProperty.constructor = Pro.AutoProperty;
+
+Pro.AutoProperty.prototype.type = function () {
+  return Pro.Property.Types.auto;
+};
+
+Pro.AutoProperty.prototype.afterInit = function () {};
