@@ -5,7 +5,22 @@ var Pro = {},
     filter = array_proto.filter,
     forEach = array_proto.forEach,
     indexOf = array_proto.indexOf,
-    slice = array_proto.slice;
+    join = array_proto.join,
+    lastIndexOf = array_proto.lastIndexOf,
+    map = array_proto.map,
+    pop = array_proto.pop,
+    push = array_proto.push,
+    reduce = array_proto.reduce,
+    reduceRight = array_proto.reduceRight,
+    reverse = array_proto.reverse,
+    shift = array_proto.shift,
+    slice = array_proto.slice,
+    some = array_proto.some,
+    sort = array_proto.sort,
+    splice = array_proto.splice,
+    toLocaleString = array_proto.toLocaleString,
+    toString = array_proto.toString,
+    unshift = array_proto.unshift;
 
 Pro.States = {
   init: 1,
@@ -26,6 +41,10 @@ Pro.Utils.isString = function (property) {
 
 Pro.Utils.isArray = function (property) {
   return typeof(property) === 'object' && Object.prototype.toString.call(property) === '[object Array]';
+};
+
+Pro.Utils.isProArray = function (property) {
+  return typeof(property) === 'object' && Pro.Utils.isArray(property._array) && property.length !== undefined;
 };
 
 Pro.Configuration = {
