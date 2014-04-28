@@ -74,7 +74,7 @@ Pro.ObjectProperty = function (proObject, property) {
 
 
 Pro.ObjectProperty.prototype = Object.create(Pro.Property.prototype);;
-Pro.ObjectProperty.constructor = Pro.ObjectProperty;
+Pro.ObjectProperty.prototype.constructor = Pro.ObjectProperty;
 
 Pro.ObjectProperty.prototype.type = function () {
   return Pro.Property.Types.object;

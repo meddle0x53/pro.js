@@ -27,7 +27,7 @@ Pro.AutoProperty = function (proObject, property) {
 };
 
 Pro.AutoProperty.prototype = Object.create(Pro.Property.prototype);;
-Pro.AutoProperty.constructor = Pro.AutoProperty;
+Pro.AutoProperty.prototype.constructor = Pro.AutoProperty;
 
 Pro.AutoProperty.prototype.type = function () {
   return Pro.Property.Types.auto;

@@ -47,6 +47,21 @@ Pro.Utils.isProArray = function (property) {
   return typeof(property) === 'object' && Pro.Utils.isArray(property._array) && property.length !== undefined;
 };
 
+Pro.Utils.isArrayObject = function (property) {
+  return Pro.Utils.isArray(property) || Pro.Utils.isProArray(property);
+};
+
+Pro.Utils.contains = function (array, value) {
+  var i = array.length;
+  while (i--) {
+    if (array[i] === value) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 Pro.Configuration = {
   keyprops: true,
   keypropList: ['p']

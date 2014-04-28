@@ -7,6 +7,10 @@ Pro.Array = function () {
     this._array = slice.call(arguments);
   }
 
+  this.indexListeners = [];
+  this.lastIndexCaller = null;
+  this.lengthListeners = [];
+
   var _this = this, getLength, setLength, i;
 
   getLength = function () {
@@ -35,19 +39,7 @@ Pro.Array = function () {
 
   try {
     for (i = 0; i < this._array.length; i++) {
-      // TODO To defining function!
-      (function (i) {
-        Object.defineProperty(_this, i, {
-          enumerable: true,
-          configurable: true,
-          get: function () {
-            return _this._array[i];
-          },
-          set: function (newValue) {
-            _this._array[i] = newValue;
-          }
-        });
-      })(i);
+      this.defineIndexProp(i);
     }
 
     this.__pro__.state = Pro.States.ready;
@@ -55,12 +47,77 @@ Pro.Array = function () {
     this.__pro__.state = Pro.States.error;
     throw e;
   }
-
-
 };
 
 Pro.Array.prototype = Object.create(array_proto);
-Pro.Array.constructor = Pro.Array;
+Pro.Array.prototype.constructor = Pro.Array;
+
+Pro.Array.Operations = {
+  set: 0,
+  add: 1,
+  remove: 2
+};
+
+Pro.Array.prototype.addIndexListener = function (listener) {
+  this.indexListeners.push(listener);
+};
+
+Pro.Array.prototype.addIndexCaller = function () {
+  var caller = Pro.currentCaller;
+
+  if (caller && this.lastIndexCaller !== caller) {
+    this.addIndexListener(caller);
+    this.lastIndexCaller = caller;
+  }
+};
+
+Pro.Array.prototype.defineIndexProp = function (i) {
+  var proArray = this,
+      array = proArray._array,
+      oldVal;
+
+  Object.defineProperty(this, i, {
+    enumerable: true,
+    configurable: true,
+    get: function () {
+      proArray.addIndexCaller();
+
+      return array[i];
+    },
+    set: function (newVal) {
+      if (array[i] === newVal) {
+        return;
+      }
+
+      oldVal = array[i];
+      array[i] = newVal;
+
+      Pro.flow.run(function () {
+        proArray.willUpdate(Pro.Array.Operations.set, i, oldVal, newVal);
+      });
+    }
+  });
+};
+
+Pro.Array.prototype.willUpdate = function (op, ind, oldVal, newVal) {
+  var i, listener,
+      listeners = (op === Pro.Array.Operations.set) ? this.indexListeners : this.lengthListeners,
+      length = listeners.length;
+
+  for (i = 0; i < length; i++) {
+    listener = listeners[i];
+
+    if (Pro.Utils.isFunction(listener)) {
+      Pro.flow.pushOnce(listener, [op, ind, oldVal, newVal]);
+    } else {
+      Pro.flow.pushOnce(listener, listener.call, [op, ind, oldVal, newVal]);
+    }
+
+    if (listener.property) {
+      listener.property.willUpdate();
+    }
+  }
+};
 
 Pro.Array.prototype.concat = function () {
   return new Pro.Array(concat.apply(this._array, arguments));

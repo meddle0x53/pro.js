@@ -138,7 +138,14 @@ Pro.Property.prototype.willUpdate = function () {
   for (i = 0; i < length; i++) {
     listener = listeners[i];
 
-    Pro.flow.pushOnce(listener, listener.call);
-    listener.property.willUpdate();
+    if (Pro.Utils.isFunction(listener)) {
+      Pro.flow.pushOnce(listener);
+    } else {
+      Pro.flow.pushOnce(listener, listener.call);
+    }
+
+    if (listener.property) {
+      listener.property.willUpdate();
+    }
   }
 };

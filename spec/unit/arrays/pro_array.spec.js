@@ -103,6 +103,97 @@ describe('Pro.Array', function () {
     expect(result.indexOf(4)).toBe(0);
     expect(result.lastIndexOf(4)).toBe(1);
 
+    expect(array instanceof Array).toBe(true);
+    expect(Pro.Utils.isArrayObject(array)).toBe(true);
+    expect(Pro.Utils.isProArray(array)).toBe(true);
+    expect(Pro.Utils.isArray(array)).toBe(false);
+  });
+
+  it('is observable by index', function () {
+    var array = new Pro.Array(1, 2, 3, 4, 5),
+        op, i, ov, nv;
+
+    array.addIndexListener(function (operation, index, oldValue, newValue) {
+      op = operation;
+      i = index;
+      ov = oldValue;
+      nv = newValue;
+    });
+
+    array[0] = 33;
+    expect(array[0]).toBe(33);
+    expect(op).toBe(Pro.Array.Operations.set);
+    expect(i).toBe(0);
+    expect(ov).toBe(1);
+    expect(nv).toBe(33);
+
+    array[2] = 35;
+    expect(array[2]).toBe(35);
+    expect(op).toBe(Pro.Array.Operations.set);
+    expect(i).toBe(2);
+    expect(ov).toBe(3);
+    expect(nv).toBe(35);
+
+  });
+
+  it('it adds index listener on index get', function () {
+    var array = new Pro.Array(1, 2, 3, 4, 5),
+        op, i, ov, nv,
+        callTimes = 0;
+
+    Pro.currentCaller = function (operation, index, oldValue, newValue) {
+      op = operation;
+      i = index;
+      ov = oldValue;
+      nv = newValue;
+
+      callTimes = callTimes + 1;
+    };
+    array[0];
+    array[1];
+    array[2];
+    Pro.currentCaller = null;
+
+    array[0] = 33;
+    expect(array[0]).toBe(33);
+    expect(op).toBe(Pro.Array.Operations.set);
+    expect(i).toBe(0);
+    expect(ov).toBe(1);
+    expect(nv).toBe(33);
+
+    array[1] = 43;
+    expect(array[1]).toBe(43);
+    expect(op).toBe(Pro.Array.Operations.set);
+    expect(i).toBe(1);
+    expect(ov).toBe(2);
+    expect(nv).toBe(43);
+
+    array[2] = 35;
+    expect(array[2]).toBe(35);
+    expect(op).toBe(Pro.Array.Operations.set);
+    expect(i).toBe(2);
+    expect(ov).toBe(3);
+    expect(nv).toBe(35);
+
+    expect(callTimes).toBe(3);
+  });
+
+  it('updates properties depending on it by index', function () {
+    var array = new Pro.Array(1, 2, 3, 4, 5),
+        obj = {
+          prop: function () {
+            return array[1] + array[2];
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop).toBe(array[1] + array[2]);
+
+    array[1] = 0;
+    expect(obj.prop).toBe(array[1] + array[2]);
+
+    array[2] = 30;
+    expect(obj.prop).toBe(array[1] + array[2]);
   });
 
 });
