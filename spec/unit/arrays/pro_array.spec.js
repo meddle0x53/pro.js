@@ -525,4 +525,96 @@ describe('Pro.Array', function () {
 
   });
 
+  it('#push updates depending properties and adds new index dependencies', function () {
+    var array = new Pro.Array(4, 1, 2, 3),
+        obj = {
+          prop: function () {
+            if (array[5] === undefined) {
+              array.length;
+              return array[0];
+            }
+            return array[1] + array[5];
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop).toBe(4);
+
+    array.push(4, 5, 6);
+    expect(obj.prop).toBe(1 + 5);
+
+    array[5] = 3;
+    expect(obj.prop).toBe(1 + 3);
+  });
+
+  it('#pop updates depending properties and removes index dependencies', function () {
+    var array = new Pro.Array(4, 1, 2, 3),
+        obj = {
+          prop: function () {
+            if (array[3] === undefined) {
+              return array[0];
+            } else {
+              array.length;
+            }
+
+            return array[2] + array[3];
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop).toBe(5);
+
+    array.pop();
+    expect(obj.prop).toBe(4);
+
+    array[3] = 7;
+    expect(obj.prop).toBe(4);
+  });
+
+  it('#unshift updates depending properties and adds new index dependencies', function () {
+    var array = new Pro.Array(4, 1, 2, 3),
+        obj = {
+          prop: function () {
+            if (array[5] === undefined) {
+              array.length;
+              return array[0];
+            }
+            return array[1] + array[5];
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop).toBe(4);
+
+    array.unshift(4, 5, 6);
+    expect(obj.prop).toBe(2 + 5);
+
+    array[5] = 3;
+    expect(obj.prop).toBe(3 + 5);
+  });
+
+  it('#shift updates depending properties and removes index dependencies', function () {
+    var array = new Pro.Array(4, 1, 2, 3),
+        obj = {
+          prop: function () {
+            if (array[3] === undefined) {
+              return array[0];
+            } else {
+              array.length;
+            }
+
+            return array[2] + array[3];
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop).toBe(5);
+
+    array.shift();
+    expect(obj.prop).toBe(1);
+
+    array[3] = 7;
+    expect(obj.prop).toBe(1);
+  });
+
 });

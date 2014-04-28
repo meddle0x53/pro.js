@@ -285,8 +285,10 @@ Pro.Array.prototype.pop = function () {
   if (this._array.length === 0) {
     return;
   }
-  var popped = pop.apply(this._array, arguments), _this = this;
+  var popped = pop.apply(this._array, arguments),
+      _this = this, index = this._array.length;
 
+  delete this[index];
   Pro.flow.run(function () {
     _this.willUpdate(Pro.Array.Operations.remove, _this._array.length, popped, null);
   });
@@ -295,23 +297,30 @@ Pro.Array.prototype.pop = function () {
 };
 
 Pro.Array.prototype.push = function () {
-  var vals = arguments,
-      newLength = push.apply(this._array, vals),
+  var vals = arguments, i, ln = arguments.length, index,
       _this = this;
+
+  for (i = 0; i < ln; i++) {
+    index = this._array.length;
+    push.call(this._array, arguments[i]);
+    this.defineIndexProp(index);
+  }
 
   Pro.flow.run(function () {
     _this.willUpdate(Pro.Array.Operations.add, _this._array.length - 1, null, vals);
   });
 
-  return newLength;
+  return this._array.length;
 };
 
 Pro.Array.prototype.shift = function () {
   if (this._array.length === 0) {
     return;
   }
-  var shifted = shift.apply(this._array, arguments), _this = this;
+  var shifted = shift.apply(this._array, arguments),
+      _this = this, index = this._array.length;
 
+  delete this[index];
   Pro.flow.run(function () {
     _this.willUpdate(Pro.Array.Operations.remove, 0, shifted, null);
   });
@@ -320,15 +329,19 @@ Pro.Array.prototype.shift = function () {
 };
 
 Pro.Array.prototype.unshift = function () {
-  var vals = arguments,
-      newLength = unshift.apply(this._array, arguments),
+  var vals = arguments, i, ln = arguments.length,
+      array = this._array,
       _this = this;
+  for (var i = 0; i < ln; i++) {
+    array.splice(i, 0, arguments[i]);
+    this.defineIndexProp(array.length - 1);
+  }
 
   Pro.flow.run(function () {
     _this.willUpdate(Pro.Array.Operations.add, 0, null, vals);
   });
 
-  return newLength;
+  return array.length;
 };
 
 Pro.Array.prototype.toArray = function () {
