@@ -10,15 +10,27 @@ Pro.Array = function () {
   this.indexListeners = [];
   this.lastIndexCaller = null;
   this.lengthListeners = [];
+  this.lastLengthCaller = null;
 
-  var _this = this, getLength, setLength, i;
+  var _this = this, getLength, setLength, i, oldLength;
 
   getLength = function () {
+    _this.addLengthCaller();
+
     return _this._array.length;
   };
 
   setLength = function (newLength) {
+    if (_this._array.length === newLength) {
+      return;
+    }
+
+    oldLength = _this._array.length;
     _this._array.length = newLength;
+
+    Pro.flow.run(function () {
+      _this.willUpdate(Pro.Array.Operations.setLength, -1, oldLength, newLength);
+    });
 
     return newLength;
   };
@@ -55,7 +67,27 @@ Pro.Array.prototype.constructor = Pro.Array;
 Pro.Array.Operations = {
   set: 0,
   add: 1,
-  remove: 2
+  remove: 2,
+  setLength: 3,
+  reverse: 4,
+  sort: 5,
+
+  isIndexOp: function (op) {
+    return op === this.set || op === this.reverse || op === this.sort;
+  }
+};
+
+Pro.Array.prototype.addLengthListener = function (listener) {
+  this.lengthListeners.push(listener);
+};
+
+Pro.Array.prototype.addLengthCaller = function () {
+  var caller = Pro.currentCaller;
+
+  if (caller && this.lastLengthCaller !== caller && !Pro.Utils.contains(this.lengthListeners, caller)) {
+    this.addLengthListener(caller);
+    this.lastLengthCaller = caller;
+  }
 };
 
 Pro.Array.prototype.addIndexListener = function (listener) {
@@ -65,7 +97,7 @@ Pro.Array.prototype.addIndexListener = function (listener) {
 Pro.Array.prototype.addIndexCaller = function () {
   var caller = Pro.currentCaller;
 
-  if (caller && this.lastIndexCaller !== caller) {
+  if (caller && this.lastIndexCaller !== caller && !Pro.Utils.contains(this.indexListeners, caller)) {
     this.addIndexListener(caller);
     this.lastIndexCaller = caller;
   }
@@ -101,7 +133,7 @@ Pro.Array.prototype.defineIndexProp = function (i) {
 
 Pro.Array.prototype.willUpdate = function (op, ind, oldVal, newVal) {
   var i, listener,
-      listeners = (op === Pro.Array.Operations.set) ? this.indexListeners : this.lengthListeners,
+      listeners = Pro.Array.Operations.isIndexOp(op) ? this.indexListeners : this.lengthListeners,
       length = listeners.length;
 
   for (i = 0; i < length; i++) {
@@ -120,87 +152,183 @@ Pro.Array.prototype.willUpdate = function (op, ind, oldVal, newVal) {
 };
 
 Pro.Array.prototype.concat = function () {
+  this.addIndexCaller();
+  this.addLengthCaller();
+
   return new Pro.Array(concat.apply(this._array, arguments));
 };
 
 Pro.Array.prototype.every = function () {
+  this.addIndexCaller();
+  this.addLengthCaller();
+
   return every.apply(this._array, arguments);
 };
 
 Pro.Array.prototype.some = function () {
+  this.addIndexCaller();
+  this.addLengthCaller();
+
   return some.apply(this._array, arguments);
 };
 
 Pro.Array.prototype.filter = function () {
+  this.addIndexCaller();
+  this.addLengthCaller();
+
   return new Pro.Array(filter.apply(this._array, arguments));
 };
 
 Pro.Array.prototype.forEach = function (fun /*, thisArg */) {
+  this.addIndexCaller();
+  this.addLengthCaller();
+
   return forEach.apply(this._array, arguments);
 };
 
 Pro.Array.prototype.map = function (fun /*, thisArg */) {
+  this.addIndexCaller();
+  this.addLengthCaller();
+
   return new Pro.Array(map.apply(this._array, arguments));
 };
 
 Pro.Array.prototype.reduce = function (fun /*, initialValue */) {
+  this.addIndexCaller();
+  this.addLengthCaller();
+
   return reduce.apply(this._array, arguments);
 };
 
 Pro.Array.prototype.reduceRight = function (fun /*, initialValue */) {
+  this.addIndexCaller();
+  this.addLengthCaller();
+
   return reduceRight.apply(this._array, arguments);
 };
 
 Pro.Array.prototype.indexOf = function () {
+  this.addIndexCaller();
+  this.addLengthCaller();
+
   return indexOf.apply(this._array, arguments);
 };
 
 Pro.Array.prototype.lastIndexOf = function () {
+  this.addIndexCaller();
+  this.addLengthCaller();
+
   return lastIndexOf.apply(this._array, arguments);
 };
 
 Pro.Array.prototype.join = function () {
+  this.addIndexCaller();
+  this.addLengthCaller();
+
   return join.apply(this._array, arguments);
 };
 
 Pro.Array.prototype.toLocaleString = function () {
+  this.addIndexCaller();
+  this.addLengthCaller();
+
   return toLocaleString.apply(this._array, arguments);
 };
 
 Pro.Array.prototype.toString = function () {
+  this.addIndexCaller();
+  this.addLengthCaller();
+
   return toString.apply(this._array, arguments);
 };
 
+Pro.Array.prototype.valueOf = function () {
+  return this.toArray();
+};
+
 Pro.Array.prototype.slice = function () {
+  this.addIndexCaller();
+  this.addLengthCaller();
+
   return new Pro.Array(slice.apply(this._array, arguments));
+};
+
+Pro.Array.prototype.reverse = function () {
+  if (this._array.length === 0) {
+    return;
+  }
+  var reversed = reverse.apply(this._array, arguments), _this = this;
+
+  Pro.flow.run(function () {
+    _this.willUpdate(Pro.Array.Operations.reverse, -1, null, null);
+  });
+  return reversed;
+};
+
+Pro.Array.prototype.sort = function () {
+  if (this._array.length === 0) {
+    return;
+  }
+  var sorted = sort.apply(this._array, arguments), _this = this;
+
+  Pro.flow.run(function () {
+    _this.willUpdate(Pro.Array.Operations.sort, -1, null, null);
+  });
+  return sorted;
 };
 
 Pro.Array.prototype.splice = function () {
   return new Pro.Array(splice.apply(this._array, arguments));
 };
 
-Pro.Array.prototype.reverse = function () {
-  return reverse.apply(this._array, arguments);
-};
-
-Pro.Array.prototype.sort = function () {
-  return sort.apply(this._array, arguments);
-};
-
 Pro.Array.prototype.pop = function () {
-  return pop.apply(this._array, arguments);
+  if (this._array.length === 0) {
+    return;
+  }
+  var popped = pop.apply(this._array, arguments), _this = this;
+
+  Pro.flow.run(function () {
+    _this.willUpdate(Pro.Array.Operations.remove, _this._array.length, popped, null);
+  });
+
+  return popped;
 };
 
 Pro.Array.prototype.push = function () {
-  return push.apply(this._array, arguments);
+  var vals = arguments,
+      newLength = push.apply(this._array, vals),
+      _this = this;
+
+  Pro.flow.run(function () {
+    _this.willUpdate(Pro.Array.Operations.add, _this._array.length - 1, null, vals);
+  });
+
+  return newLength;
 };
 
 Pro.Array.prototype.shift = function () {
-  return shift.apply(this._array, arguments);
+  if (this._array.length === 0) {
+    return;
+  }
+  var shifted = shift.apply(this._array, arguments), _this = this;
+
+  Pro.flow.run(function () {
+    _this.willUpdate(Pro.Array.Operations.remove, 0, shifted, null);
+  });
+
+  return shifted;
 };
 
 Pro.Array.prototype.unshift = function () {
-  return unshift.apply(this._array, arguments);
+  var vals = arguments,
+      newLength = unshift.apply(this._array, arguments),
+      _this = this;
+
+  Pro.flow.run(function () {
+    _this.willUpdate(Pro.Array.Operations.add, 0, null, vals);
+  });
+
+  return newLength;
 };
 
 Pro.Array.prototype.toArray = function () {

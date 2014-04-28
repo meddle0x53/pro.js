@@ -196,4 +196,333 @@ describe('Pro.Array', function () {
     expect(obj.prop).toBe(array[1] + array[2]);
   });
 
+  it('updates properties depending on it by length', function () {
+    var array = new Pro.Array(1, 2, 3, 4, 5),
+        obj = {
+          prop: function () {
+            return array.length;
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop).toBe(array.length);
+
+    array.length = 10;
+    expect(obj.prop).toBe(array.length);
+
+    array.length = 0;
+    expect(obj.prop).toBe(array.length);
+  });
+
+  it('updates properties depending on #concat', function () {
+    var array = new Pro.Array(1, 2, 3, 4, 5),
+        obj = {
+          prop: function () {
+            return array.concat(6, 7, 8, 9);
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop).toEqual(array.concat(6, 7, 8, 9));
+
+    array[0] = 10;
+    expect(obj.prop).toEqual(array.concat(6, 7, 8, 9));
+
+    array.length = 1;
+    expect(obj.prop).toEqual(array.concat(6, 7, 8, 9));
+
+    array.push(200);
+    expect(obj.prop).toEqual(array.concat(6, 7, 8, 9));
+
+    array.pop();
+    expect(obj.prop).toEqual(array.concat(6, 7, 8, 9));
+  });
+
+  it('updates properties depending on #every', function () {
+    var array = new Pro.Array(2, 4, 6, 8, 10),
+        obj = {
+          prop: function () {
+            return array.every(function (el) {
+              return el % 2 === 0;
+            });
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop).toEqual(true);
+
+    array[0] = 1;
+    expect(obj.prop).toEqual(false);
+    array[0] = 12;
+    expect(obj.prop).toEqual(true);
+
+    array.unshift(13);
+    expect(obj.prop).toEqual(false);
+
+    array.shift();
+    expect(obj.prop).toEqual(true);
+  });
+
+  it('updates properties depending on #some', function () {
+    var array = new Pro.Array(2, 4, 5, 9, 10),
+        obj = {
+          prop: function () {
+            return array.some(function (el) {
+              return el % 3 === 0;
+            });
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop).toEqual(true);
+
+    array[3] = 10;
+    expect(obj.prop).toEqual(false);
+
+    array.unshift(12);
+    expect(obj.prop).toEqual(true);
+  });
+
+  it('updates properties depending on #filter', function () {
+    var array = new Pro.Array(2, '4', 5, '9', 10),
+        obj = {
+          prop: function () {
+            return array.filter(function (el) {
+              return typeof(el) === 'string';
+            });
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop.toArray()).toEqual(['4', '9']);
+
+    array[0] = '2';
+    expect(obj.prop.toArray()).toEqual(['2', '4', '9']);
+
+    array.shift();
+    expect(obj.prop.toArray()).toEqual(['4', '9']);
+  });
+
+  it('updates properties depending on #forEach', function () {
+    var array = new Pro.Array(3, 5, 4),
+        obj = {
+          prop: function () {
+            var sum = 0;
+            array.forEach(function (el) {
+              sum += el * el;
+            });
+            return sum;
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop).toEqual(50);
+
+    array[1] = 0;
+    expect(obj.prop).toEqual(25);
+
+    array.pop();
+    expect(obj.prop).toEqual(9);
+
+    array.length = 0;
+    expect(obj.prop).toEqual(0);
+  });
+
+  it('updates properties depending on #map', function () {
+    var array = new Pro.Array(3, 5, 4),
+        obj = {
+          prop: function () {
+            return array.map(function (el) {
+              return el * el;
+            });
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop.valueOf()).toEqual([9, 25, 16].valueOf());
+
+    array[1] = 2;
+    expect(obj.prop.valueOf()).toEqual([9, 4, 16].valueOf());
+
+    array.push(1);
+    expect(obj.prop.valueOf()).toEqual([9, 4, 16, 1].valueOf());
+  });
+
+  it('updates properties depending on #reduce', function () {
+    var array = new Pro.Array(3, 5, 4),
+        obj = {
+          prop: function () {
+            return array.reduce(function (sum, el2) {
+              return (sum + (el2 * el2));
+            }, 0);
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop).toEqual(50);
+
+    array[1] = 0;
+    expect(obj.prop).toEqual(25);
+
+    array.pop();
+    expect(obj.prop).toEqual(9);
+
+    array.length = 0;
+    expect(obj.prop).toEqual(0);
+  });
+
+  it('updates properties depending on #reduceRight', function () {
+    var array = new Pro.Array(3, 5, 4),
+        obj = {
+          prop: function () {
+            return array.reduceRight(function (sum, el2) {
+              return (sum + (el2 * el2));
+            }, 0);
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop).toEqual(50);
+
+    array[1] = 0;
+    expect(obj.prop).toEqual(25);
+
+    array.pop();
+    expect(obj.prop).toEqual(9);
+
+    array.length = 0;
+    expect(obj.prop).toEqual(0);
+  });
+
+  it('updates properties depending on #indexOf', function () {
+    var array = new Pro.Array(3, 5, 4),
+        obj = {
+          prop: function () {
+            return array.indexOf(3);
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop).toEqual(0);
+
+    array[0] = 0;
+    expect(obj.prop).toEqual(-1);
+
+    array.push(3);
+    expect(obj.prop).toEqual(3);
+
+    array.length = 0;
+    expect(obj.prop).toEqual(-1);
+  });
+
+  it('updates properties depending on #lastIndexOf', function () {
+    var array = new Pro.Array(3, 5, 4),
+        obj = {
+          prop: function () {
+            return array.lastIndexOf(3);
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop).toEqual(0);
+
+    array[2] = 3;
+    expect(obj.prop).toEqual(2);
+
+    array.push(3);
+    expect(obj.prop).toEqual(3);
+
+    array.pop();
+    expect(obj.prop).toEqual(2);
+  });
+
+  it('updates properties depending on #join', function () {
+    var array = new Pro.Array(3, 5, 4),
+        obj = {
+          prop: function () {
+            return array.join('-');
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop).toEqual('3-5-4');
+
+    array[2] = 3;
+    expect(obj.prop).toEqual('3-5-3');
+
+    array.push(4);
+    expect(obj.prop).toEqual('3-5-3-4');
+
+    array.shift();
+    expect(obj.prop).toEqual('5-3-4');
+  });
+
+  it('updates properties depending on #toString', function () {
+    var array = new Pro.Array(3, 5, 4),
+        obj = {
+          prop: function () {
+            return array.toString();
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop).toEqual(array.toString());
+
+    array[2] = 5;
+    expect(obj.prop).toEqual(array.toString());
+
+    array.push(42);
+    expect(obj.prop).toEqual(array.toString());
+  });
+
+  it('updates properties depending on #slice', function () {
+    var array = new Pro.Array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+        obj = {
+          prop: function () {
+            return array.slice(1, 5);
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop.valueOf()).toEqual([2, 3, 4, 5]);
+
+    array[2] = 5;
+    expect(obj.prop.valueOf()).toEqual([2, 5, 4, 5]);
+
+    array.shift();
+    expect(obj.prop.valueOf()).toEqual([5, 4, 5, 6]);
+  });
+
+  it('#reverse updates depending properties', function () {
+    var array = new Pro.Array(1, 2, 3),
+        obj = {
+          prop: function () {
+            return array[0] + array.length;
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop).toEqual(4);
+
+    array.reverse();
+    expect(obj.prop).toEqual(6);
+
+  });
+
+  it('#sort updates depending properties', function () {
+    var array = new Pro.Array(4, 1, 2, 3),
+        obj = {
+          prop: function () {
+            return '[' + array[0] + ', ' + array[3] + ']';
+          }
+        },
+        property = new Pro.AutoProperty(obj, 'prop');
+
+    expect(obj.prop).toEqual('[4, 3]');
+
+    array.sort();
+    expect(obj.prop).toEqual('[1, 4]');
+
+  });
+
 });
