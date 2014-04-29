@@ -18,9 +18,11 @@ module.exports = function(grunt) {
       modules: {
         src: [fileToBuild],
         options: {
-          wrapper: [';(function(undefined) {\n', '\n}());'],
-          indent: '  ',
-          separator: ''
+          wrapper: [';(function (pro) {\n' +
+            '\twindow.Pro = pro();\n' +
+            '}(function() {', '\treturn Pro;\n}));'],
+          indent: '\t',
+          separator: '\n'
         }
       }
     },
@@ -99,6 +101,10 @@ module.exports = function(grunt) {
       unit: {
         configFile: 'spec/config/karma.conf.js',
         keepalive: true
+      },
+      integration: {
+        configFile: 'spec/config/karma.integration.conf.js',
+        keepalive: true
       }
     }
   });
@@ -106,8 +112,16 @@ module.exports = function(grunt) {
   grunt.registerTask('setup', 'build task', function() {
 
     var defaultFiles = [
+          'pro',
+          'flow/queue',
+          'flow/queues',
+          'flow/flow',
+          'arrays/pro_array',
           'properties/property',
-          'start'
+          'properties/auto_property',
+          'properties/object_property',
+          'properties/array_property',
+          'objects/prob',
         ],
         args = this.args, customFiles = [], index, i = -1;
 
@@ -127,7 +141,7 @@ module.exports = function(grunt) {
     grunt.config.set('customBuild.files', customFiles);
   });
 
-  grunt.registerTask('build', ['clean:dist', 'setup', 'concat', 'wrap', 'uglify']);
+  grunt.registerTask('build', ['clean:dist', 'setup', 'concat', 'wrap', 'uglify', 'karma:integration']);
   grunt.registerTask('spec', ['karma:unit']);
   grunt.registerTask('all', ['lint', 'todo', 'spec', 'jsdoc', 'build']);
 

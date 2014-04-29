@@ -4,18 +4,9 @@ module.exports = function(karma) {
     frameworks: ['jasmine'],
 
     files: [
-      'src/js/pro.js',
-      'src/js/flow/queue.js',
-      'src/js/flow/queues.js',
-      'src/js/flow/flow.js',
-      'src/js/arrays/pro_array.js',
-      'src/js/properties/property.js',
-      'src/js/properties/auto_property.js',
-      'src/js/properties/object_property.js',
-      'src/js/properties/array_property.js',
-      'src/js/objects/prob.js',
+      'dist/js/pro.js',
       'spec/spec_helper.js',
-      'spec/unit/**/*.spec.js'
+      'spec/integration/**/*.spec.js'
     ],
 
     browsers: ['PhantomJS'],
