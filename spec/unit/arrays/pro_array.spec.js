@@ -190,10 +190,10 @@ describe('Pro.Array', function () {
     expect(obj.prop).toBe(array[1] + array[2]);
 
     array[1] = 0;
-    expect(obj.prop).toBe(array[1] + array[2]);
+    expect(obj.prop).toBe(3);
 
     array[2] = 30;
-    expect(obj.prop).toBe(array[1] + array[2]);
+    expect(obj.prop).toBe(30);
   });
 
   it('updates properties depending on it by length', function () {
@@ -208,10 +208,10 @@ describe('Pro.Array', function () {
     expect(obj.prop).toBe(array.length);
 
     array.length = 10;
-    expect(obj.prop).toBe(array.length);
+    expect(obj.prop).toBe(10);
 
     array.length = 0;
-    expect(obj.prop).toBe(array.length);
+    expect(obj.prop).toBe(0);
   });
 
   it('updates properties depending on #concat', function () {
@@ -223,10 +223,10 @@ describe('Pro.Array', function () {
         },
         property = new Pro.AutoProperty(obj, 'prop');
 
-    expect(obj.prop).toEqual(array.concat(6, 7, 8, 9));
+    expect(obj.prop.valueOf()).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
     array[0] = 10;
-    expect(obj.prop).toEqual(array.concat(6, 7, 8, 9));
+    expect(obj.prop.valueOf()).toEqual([10, 2, 3, 4, 5, 6, 7, 8, 9]);
 
     array.length = 1;
     expect(obj.prop).toEqual(array.concat(6, 7, 8, 9));
@@ -615,6 +615,115 @@ describe('Pro.Array', function () {
 
     array[3] = 7;
     expect(obj.prop).toBe(1);
+  });
+
+  it('#splice updates the right listeners depending on the splice action', function () {
+    var array = new Pro.Array(4, 1, 2, 3, 5),
+        i, ov, nv, stack = [];
+
+    array.addIndexListener(function (op, index, oldVals, newVals) {
+      expect(op).toBe(Pro.Array.Operations.splice);
+      i = index;
+      ov = oldVals;
+      nv = newVals;
+      stack.push('index');
+    });
+
+    array.addLengthListener(function (op, index, oldVals, newVals) {
+      expect(op).toBe(Pro.Array.Operations.splice);
+      i = index;
+      ov = oldVals;
+      nv = newVals;
+      stack.push('length');
+    });
+
+    // only removing
+    array.splice(1, 2);
+    expect(i).toBe(1);
+    expect(ov).toEqual([1, 2]);
+    expect(nv).toEqual([]);
+    expect(stack.length).toEqual(1);
+    expect(stack[stack.length - 1]).toEqual('length');
+
+    // [4, 3, 5] only adding
+    array.splice(2, 0, 7, 8, 9);
+    expect(i).toBe(2);
+    expect(ov).toEqual([]);
+    expect(nv).toEqual([7, 8, 9]);
+    expect(stack.length).toEqual(2);
+    expect(stack[stack.length - 1]).toEqual('length');
+
+    // [4, 3, 7, 8, 9, 5] only changing elements
+    array.splice(3, 2, 1, 2);
+    expect(i).toBe(3);
+    expect(ov).toEqual([8, 9]);
+    expect(nv).toEqual([1, 2]);
+    expect(stack.length).toEqual(3);
+    expect(stack[stack.length - 1]).toEqual('index');
+
+    // [4, 3, 7, 1, 2, 5] both removing and changing indexes
+    array.splice(2, 4, 2, 1);
+    expect(i).toBe(2);
+    expect(ov).toEqual([7, 1, 2, 5]);
+    expect(nv).toEqual([2, 1]);
+    expect(stack.length).toEqual(5);
+    expect(stack.slice(3)).toEqual(['length', 'index']);
+  });
+
+  it('#splice updates index propeties of the Pro.Array depending on removing and adding', function () {
+    var array = new Pro.Array(1, 2, 3, 4, 5),
+        o, i, ov, nv, stack = [];
+
+    array.addIndexListener(function (op, index, oldVals, newVals) {
+      o = op;
+      i = index;
+      ov = oldVals;
+      nv = newVals;
+      stack.push('index');
+    });
+
+    array.addLengthListener(function (op, index, oldVals, newVals) {
+      o = op;
+      i = index;
+      ov = oldVals;
+      nv = newVals;
+      stack.push('length');
+    });
+
+    // remove 2 elements
+    array.splice(1, 2);
+    expect(o).toBe(Pro.Array.Operations.splice);
+    expect(i).toBe(1);
+    expect(ov).toEqual([2, 3]);
+    expect(nv).toEqual([]);
+    expect(stack.length).toEqual(1);
+    expect(stack[stack.length - 1]).toEqual('length');
+    expect(array.length).toBe(3);
+
+    array[3] = 10;
+    array[4] = 12;
+    expect(stack.length).toEqual(1);
+    expect(stack[stack.length - 1]).toEqual('length');
+    expect(array.length).toBe(3);
+
+    // add 1 element
+    array.splice(3, 0, 6);
+    expect(o).toBe(Pro.Array.Operations.splice);
+    expect(i).toBe(3);
+    expect(ov).toEqual([]);
+    expect(nv).toEqual([6]);
+    expect(stack.length).toEqual(2);
+    expect(stack[stack.length - 1]).toEqual('length');
+    expect(array.length).toBe(4);
+
+    array[3] = 12;
+    expect(o).toBe(Pro.Array.Operations.set);
+    expect(i).toBe(3);
+    expect(ov).toEqual(6);
+    expect(nv).toEqual(12);
+    expect(stack.length).toEqual(3);
+    expect(stack[stack.length - 1]).toEqual('index');
+    expect(array.length).toBe(4);
   });
 
 });

@@ -12,6 +12,7 @@ module.exports = function(karma) {
       'src/js/properties/property.js',
       'src/js/properties/auto_property.js',
       'src/js/properties/object_property.js',
+      'src/js/properties/array_property.js',
       'src/js/objects/prob.js',
       'spec/spec_helper.js',
       'spec/**/*.spec.js'

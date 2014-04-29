@@ -18,7 +18,8 @@ Pro.prob = function (object, meta) {
         conf = Pro.Configuration,
         keyprops = conf.keyprops,
         keypropList = conf.keypropList
-        isF = Pro.Utils.isFunction;
+        isF = Pro.Utils.isFunction,
+        isA = Pro.Utils.isArrayObject;
 
     for (property in object) {
       if (keyprops && keypropList.indexOf(property) !== -1) {
@@ -26,10 +27,12 @@ Pro.prob = function (object, meta) {
         break;
       }
 
-      if (object.hasOwnProperty(property) && !isF(object[property])) {
+      if (object.hasOwnProperty(property) && !isF(object[property]) && !isA(object[property])) {
         new Pro.Property(object, property);
       } else if (object.hasOwnProperty(property) && isF(object[property])) {
         new Pro.AutoProperty(object, property);
+      } else if (object.hasOwnProperty(property) && isA(object[property])) {
+        new Pro.ArrayProperty(object, property);
       }
     }
 

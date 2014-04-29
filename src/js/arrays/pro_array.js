@@ -71,6 +71,7 @@ Pro.Array.Operations = {
   setLength: 3,
   reverse: 4,
   sort: 5,
+  splice: 6,
 
   isIndexOp: function (op) {
     return op === this.set || op === this.reverse || op === this.sort;
@@ -132,9 +133,31 @@ Pro.Array.prototype.defineIndexProp = function (i) {
 };
 
 Pro.Array.prototype.willUpdate = function (op, ind, oldVal, newVal) {
-  var i, listener,
-      listeners = Pro.Array.Operations.isIndexOp(op) ? this.indexListeners : this.lengthListeners,
-      length = listeners.length;
+  var listeners = Pro.Array.Operations.isIndexOp(op) ? this.indexListeners : this.lengthListeners;
+
+  this.willUpdateListeners(listeners, op, ind, oldVal, newVal);
+};
+
+Pro.Array.prototype.willUpdateSplice = function (index, spliced, newItems) {
+  var listeners, op = Pro.Array.Operations.splice;
+
+  if (!spliced || !newItems || (spliced.length === 0 && newItems.length === 0)) {
+    return;
+  }
+
+  if (spliced.length === newItems.length) {
+    listeners = this.indexListeners;
+  } else if (!newItems.length || !spliced.length) {
+    listeners = this.lengthListeners;
+  } else {
+    listeners = this.lengthListeners.concat(this.indexListeners);
+  }
+
+  this.willUpdateListeners(listeners, op, index, spliced, newItems);
+};
+
+Pro.Array.prototype.willUpdateListeners = function (listeners, op, ind, oldVal, newVal) {
+  var length = listeners.length, i, listener;
 
   for (i = 0; i < length; i++) {
     listener = listeners[i];
@@ -277,8 +300,31 @@ Pro.Array.prototype.sort = function () {
   return sorted;
 };
 
-Pro.Array.prototype.splice = function () {
-  return new Pro.Array(splice.apply(this._array, arguments));
+Pro.Array.prototype.splice = function (index, howMany) {
+  var oldLn = this._array.length,
+      spliced = splice.apply(this._array, arguments),
+      ln = this._array.length, delta,
+      _this = this, newItems = slice.call(arguments, 2);
+
+  index = !~index ? ln - index : index
+  howMany = (howMany == null ? ln - index : howMany) || 0;
+
+  if (newItems.length > howMany) {
+    delta = newItems.length - howMany;
+    while (delta--) {
+      this.defineIndexProp(oldLn++);
+    }
+  } else if (howMany > newItems.length) {
+    delta = howMany - newItems.length;
+    while (delta--) {
+      delete this[--oldLn];
+    }
+  }
+
+  Pro.flow.run(function () {
+    _this.willUpdateSplice(index, spliced, newItems);
+  });
+  return new Pro.Array(spliced);
 };
 
 Pro.Array.prototype.pop = function () {
