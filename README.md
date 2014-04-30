@@ -11,8 +11,9 @@
   See the 'Examples' section.
 
 
-## pro.js is compatible with all the ECMAScript 5 browsers
-  Like Google's Chrome, Mozilla's Firefox, Apple's Safari, Opera, and the newest IEs - 10 and 11 (Tested with chrome and firefox, will be tested agains the others soon).
+## Compatibility 
+  Pro.js is compatible with all the ECMAScript 5 browsers.
+  For example Google's Chrome, Mozilla's Firefox, Apple's Safari, Opera, and the newest IEs - 10 and 11 (Tested with chrome and firefox, will be tested agains the others soon).
   
 ### Use in sites
 ```html
@@ -27,7 +28,7 @@ or
   
 ## Examples
 
-## The reacitve sum:
+## The reactive sum:
 
 ```javascript
   var obj = {
