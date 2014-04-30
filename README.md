@@ -34,7 +34,7 @@ or
   var obj = {
     a: 4,
     b: 3,
-    sum = function () {
+    sum: function () {
       return this.a + this.b;
     }
   };
