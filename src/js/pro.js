@@ -39,16 +39,24 @@ Pro.Utils.isString = function (property) {
   return typeof(property) === 'string';
 };
 
+Pro.Utils.isObject = function (property) {
+  return typeof(property) === 'object';
+};
+
 Pro.Utils.isArray = function (property) {
-  return typeof(property) === 'object' && Object.prototype.toString.call(property) === '[object Array]';
+  return Pro.Utils.isObject(property) && Object.prototype.toString.call(property) === '[object Array]';
 };
 
 Pro.Utils.isProArray = function (property) {
-  return typeof(property) === 'object' && Pro.Utils.isArray(property._array) && property.length !== undefined;
+  return property !== null && Pro.Utils.isObject(property) && Pro.Utils.isArray(property._array) && property.length !== undefined;
 };
 
 Pro.Utils.isArrayObject = function (property) {
   return Pro.Utils.isArray(property) || Pro.Utils.isProArray(property);
+};
+
+Pro.Utils.isProObject = function (property) {
+  return Pro.Utils.isObject(property) && property.__pro__ !== undefined && Pro.Utils.isObject(property.__pro__.properties)
 };
 
 Pro.Utils.contains = function (array, value) {

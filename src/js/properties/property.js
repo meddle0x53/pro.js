@@ -28,7 +28,8 @@ Pro.Property.Types = {
   simple: 0, // strings, booleans and numbers
   auto: 1, // functions - dependent
   object: 2, // references Pro objects
-  array: 3 // arrays
+  array: 3, // arrays
+  nil: 4 // nulls
 };
 
 Pro.Property.DEFAULT_GETTER = function (property) {

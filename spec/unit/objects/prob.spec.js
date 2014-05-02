@@ -160,4 +160,68 @@ describe('Pro.prob', function () {
     expect(objA.foo).toEqual('55false');
   });
 
+  it('makes subobjects pro objects too', function () {
+    var f = function () {return 5;}, obj = {
+      num: 5,
+      str: 'some stuff',
+      bool: true,
+      obj1: {
+        fl: 3.4,
+        nl: null,
+        obj12: {
+          f1: function () {
+            if (obj.obj1.nl) {
+              return obj.obj1.nl;
+            }
+
+            return obj.obj1.fl;
+          },
+          f2: function () {
+            return obj.str + ' ' + obj.f3;
+          }
+        }
+      },
+      obj2: {
+        ar: [1, '2', true, f],
+        f2: function () {
+          return this.ar[1];
+        }
+      },
+      f3: function () {
+        return this.obj2.ar[1] + this.obj1.obj12.f1 + this.num + this.obj2.ar[3]();
+      }
+    };
+
+    obj = Pro.prob(obj);
+
+    expect(Pro.Utils.isProObject(obj)).toBe(true);
+    expect(obj.__pro__.state).toBe(Pro.States.ready);
+    expect(obj.num).toBe(5);
+    expect(obj.str).toBe('some stuff');
+    expect(obj.bool).toBe(true);
+
+    expect(Pro.Utils.isProObject(obj.obj1)).toBe(true);
+    expect(obj.obj1.__pro__.state).toBe(Pro.States.ready);
+    expect(obj.obj1.fl).toEqual(3.4);
+    expect(obj.obj1.nl).toBe(null);
+    expect(Pro.Utils.isProObject(obj.obj1.obj12)).toBe(true);
+    expect(obj.obj1.obj12.__pro__.state).toBe(Pro.States.ready);
+    expect(obj.obj1.obj12.__pro__.properties.f1.state).toBe(Pro.States.init);
+    expect(obj.obj1.obj12.f1).toEqual(3.4);
+    expect(obj.obj1.obj12.__pro__.properties.f1.state).toBe(Pro.States.ready);
+
+    expect(Pro.Utils.isProObject(obj.obj2)).toBe(true);
+    expect(obj.obj2.__pro__.state).toBe(Pro.States.ready);
+    expect(obj.obj2.ar.valueOf()).toEqual([1, '2', true, f]);
+    expect(obj.obj2.f2).toEqual('2');
+
+    expect(obj.f3).toEqual('23.455');
+    expect(obj.obj1.obj12.f2).toEqual('some stuff 23.455');
+
+    obj.obj2.ar[1] = 2;
+    expect(obj.f3).toEqual(15.4);
+    expect(obj.obj2.f2).toEqual(2);
+    expect(obj.obj1.obj12.f2).toEqual('some stuff 15.4');
+  });
+
 });
