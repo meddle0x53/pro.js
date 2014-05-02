@@ -108,10 +108,15 @@ Pro.Array.prototype.defineIndexProp = function (i) {
   var proArray = this,
       array = proArray._array,
       oldVal,
-      isA = Pro.Utils.isArray;
+      isA = Pro.Utils.isArray,
+      isO = Pro.Utils.isObject,
+      isF = Pro.Utils.isFunction;
 
   if (isA(array[i])) {
     new Pro.ArrayProperty(array, i);
+  } else if (isF(array[i])) {
+  } else if (isO(array[i])) {
+    new Pro.ObjectProperty(array, i);
   }
 
   Object.defineProperty(this, i, {
