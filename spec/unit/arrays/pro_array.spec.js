@@ -726,4 +726,47 @@ describe('Pro.Array', function () {
     expect(array.length).toBe(4);
   });
 
+  it ('turns array memebers into Pro.Arrays.', function () {
+    var array = new Pro.Array(1, [1, 2], [[1, 2, 3], [1, 2, 3, 4], [1, 2, 3, 4, 5]], [[[6], 7], 8]),
+        o, i, ov, nv, stack = [], indexListener, lengthListener,
+        isPA = Pro.Utils.isProArray;
+
+    expect(isPA(array)).toBe(true);
+    expect(isPA(array[0])).toBe(false);
+
+    expect(isPA(array[1])).toBe(true);
+    expect(isPA(array[1][0])).toBe(false);
+    expect(isPA(array[1][1])).toBe(false);
+
+    expect(isPA(array[2])).toBe(true);
+    expect(isPA(array[2][0])).toBe(true);
+    expect(isPA(array[2][0][0])).toBe(false);
+    expect(isPA(array[2][0][1])).toBe(false);
+    expect(isPA(array[2][0][2])).toBe(false);
+
+    expect(isPA(array[2])).toBe(true);
+    expect(isPA(array[2][1])).toBe(true);
+    expect(isPA(array[2][1][0])).toBe(false);
+    expect(isPA(array[2][1][1])).toBe(false);
+    expect(isPA(array[2][1][2])).toBe(false);
+    expect(isPA(array[2][1][3])).toBe(false);
+
+    expect(isPA(array[2])).toBe(true);
+    expect(isPA(array[2][2])).toBe(true);
+    expect(isPA(array[2][2][0])).toBe(false);
+    expect(isPA(array[2][2][1])).toBe(false);
+    expect(isPA(array[2][2][2])).toBe(false);
+    expect(isPA(array[2][2][3])).toBe(false);
+    expect(isPA(array[2][2][4])).toBe(false);
+
+    expect(isPA(array[3])).toBe(true);
+    expect(isPA(array[3][0])).toBe(true);
+    expect(isPA(array[3][0][0])).toBe(true);
+    expect(isPA(array[3][0][0][0])).toBe(false);
+    expect(isPA(array[3][0][1])).toBe(false);
+    expect(isPA(array[3][1])).toBe(false);
+
+    expect(array.valueOf()).toEqual([1, [1, 2], [[1, 2, 3], [1, 2, 3, 4], [1, 2, 3, 4, 5]], [[[6], 7], 8]]);
+  });
+
 });

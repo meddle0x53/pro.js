@@ -107,7 +107,12 @@ Pro.Array.prototype.addIndexCaller = function () {
 Pro.Array.prototype.defineIndexProp = function (i) {
   var proArray = this,
       array = proArray._array,
-      oldVal;
+      oldVal,
+      isA = Pro.Utils.isArray;
+
+  if (isA(array[i])) {
+    new Pro.ArrayProperty(array, i);
+  }
 
   Object.defineProperty(this, i, {
     enumerable: true,
@@ -391,7 +396,19 @@ Pro.Array.prototype.unshift = function () {
 };
 
 Pro.Array.prototype.toArray = function () {
-  return this._array;
+  var result = [], i, ar = this._array, ln = ar.length, el,
+      isPA = Pro.Utils.isProArray;
+
+  for (i = 0; i < ln; i++) {
+    el = ar[i];
+    if (isPA(el)) {
+      el = el.toArray();
+    }
+
+    result.push(el);
+  }
+
+  return result;
 };
 
 Pro.Array.prototype.toJSON = function () {

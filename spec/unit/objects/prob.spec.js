@@ -160,7 +160,7 @@ describe('Pro.prob', function () {
     expect(objA.foo).toEqual('55false');
   });
 
-  it('makes subobjects pro objects too', function () {
+  it('makes subobjects pro objects too.', function () {
     var f = function () {return 5;}, obj = {
       num: 5,
       str: 'some stuff',
@@ -222,6 +222,13 @@ describe('Pro.prob', function () {
     expect(obj.f3).toEqual(15.4);
     expect(obj.obj2.f2).toEqual(2);
     expect(obj.obj1.obj12.f2).toEqual('some stuff 15.4');
+  });
+
+  it ('Creates arrays from Pro.Arrays.', function () {
+    var array = [1, '2', 3.0, true, null], proArray;
+
+    proArray = Pro.prob(array);
+    expect(Pro.Utils.isProArray(proArray)).toBe(true);
   });
 
 });

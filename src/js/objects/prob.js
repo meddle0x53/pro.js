@@ -4,6 +4,19 @@ Pro.prob = function (object, meta) {
     return undefined;
   }
 
+  var property,
+      conf = Pro.Configuration,
+      keyprops = conf.keyprops,
+      keypropList = conf.keypropList
+      isF = Pro.Utils.isFunction,
+      isAr = Pro.Utils.isArray,
+      isA = Pro.Utils.isArrayObject,
+      isO = Pro.Utils.isObject;
+
+  if (isAr(object)) {
+    return new Pro.Array(object);
+  }
+
   try {
     Object.defineProperty(object, '__pro__', {
       enumerable: false,
@@ -13,14 +26,6 @@ Pro.prob = function (object, meta) {
     });
 
     object.__pro__.state = Pro.States.init;
-
-    var property,
-        conf = Pro.Configuration,
-        keyprops = conf.keyprops,
-        keypropList = conf.keypropList
-        isF = Pro.Utils.isFunction,
-        isA = Pro.Utils.isArrayObject,
-        isO = Pro.Utils.isObject;
 
     for (property in object) {
       if (keyprops && keypropList.indexOf(property) !== -1) {
