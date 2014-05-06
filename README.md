@@ -30,19 +30,61 @@ or
 
 ### The reactive sum:
 
+Let's say we want to define sum=a+b. We want whenever 'a' or 'b' changes, 'sum' to be updated automatically.
+'Pro.prob' accepts a normal javascript object and returns a Pro Object. All the functions of the initial object are simple fields in the Pro Object, but they are computed using the original function. If something that the original function is depending on, changes, the value of the corresponding field is changed. So the implementation of the 'sum' is:
 ```javascript
-  var obj = {
+  var obj = Pro.prob({
     a: 4,
     b: 3,
     sum: function () {
       return this.a + this.b;
     }
-  };
-  Pro.prob(obj); // Make obj Pro Object (object with reactive properties).
+  });  // Make obj Pro Object (object with reactive properties).
   
-  console.log(obj.sum); // sum is simple property now and it is 7
+  console.log(typeof(obj.sum)); // "number"
+  console.log(obj.sum); // sum is simple field now and it is 7
   obj.a = 5;
   console.log(obj.sum); // sum is 8
   obj.b = 25;
   console.log(obj.sum); // sum is 30
+```
+Now. What about a sum of all the array's elements:
+```javascript
+  var obj = Pro.prob({
+    a: [1, 2, 3, 4, 5],
+    sum: function () {
+      var result = 0, i, ln = this.a.length;
+      
+      for (i = 0; i < ln; i++) {
+        result += this.a[i];
+      }
+      
+      return result;
+    }
+  });  // Make obj Pro Object (object with reactive properties).
+  
+  console.log(typeof(obj.sum)); // "number"
+  console.log(obj.sum); // sum is simple field now and it is 1 + 2 + 3 + 4 + 5 = 15
+  obj.a.push(6);
+  console.log(obj.sum); // sum is 21
+  obj.a.shift();
+  console.log(obj.sum); // sum is 20
+```
+
+### Observing
+Of course we can use the reactive properties of an object to observe changes. I am going to implement the first example of [Watch.js](https://github.com/melanke/Watch.JS/), using a smart pro object.
+
+```javascript
+  var obj = Pro.prob({
+    a: "initial value of a",
+    aWatcher: function () {
+      var newVal = this.a;
+      if (newVal !== "initial value of a") {
+        alert("a changed to " + newVal);
+      }
+    }
+  });
+  obj.aWatcher; // The computed properties are lazy so, initialize the watcher first.
+  
+  obj.a = "other value"; // We will see the alert.
 ```
