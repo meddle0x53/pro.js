@@ -791,4 +791,21 @@ describe('Pro.Array', function () {
     expect(array[4].h).toEqual(10);
   });
 
+  it ('turns new object memebers into Pro.Objects.', function () {
+    var array = new Pro.Array(),
+        isPO = Pro.Utils.isProObject,
+        isPA = Pro.Utils.isProArray;
+
+    array.push({
+      a: 3,
+      b: function () {return this.a;}
+    });
+
+    expect(isPA(array)).toBe(true);
+    expect(isPA(array[0])).toBe(false);
+    expect(isPO(array[0])).toBe(true);
+
+    expect(array[0].a).toEqual(array[0].b);
+  });
+
 });
