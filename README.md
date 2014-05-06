@@ -1,4 +1,4 @@
-# pro.js (0.0.0)
+# pro.js (0.0.1)
 
 ## Download
  * [Development](https://raw.github.com/meddle0x53/pro.js/master/dist/js/pro.js)
