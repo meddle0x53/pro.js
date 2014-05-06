@@ -1,8 +1,8 @@
 {
   "name": "projs",
   "title": "Pro.js",
-  "description": "TODO",
-  "version": "0.0.0",
+  "description": "Reactive JavaScript objects and properties.",
+  "version": "0.0.1",
   "author": "meddle0x53",
   "devDependencies": {
     "grunt": "~0.4.2",

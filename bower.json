@@ -1,7 +1,10 @@
 {
   "name": "pro.js",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "main": "dist/js/pro.min.js",
+  "description": "Reactive JavaScript objects and properties.",
+  "license": "MIT",
+  "authors": ["meddle0x53 <n.tzvetinov@gmail.com>"],
   "ignore": [
     "node_modules",
     "spec",

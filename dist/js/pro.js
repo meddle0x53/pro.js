@@ -42,16 +42,24 @@
 	  return typeof(property) === 'string';
 	};
 	
+	Pro.Utils.isObject = function (property) {
+	  return typeof(property) === 'object';
+	};
+	
 	Pro.Utils.isArray = function (property) {
-	  return typeof(property) === 'object' && Object.prototype.toString.call(property) === '[object Array]';
+	  return Pro.Utils.isObject(property) && Object.prototype.toString.call(property) === '[object Array]';
 	};
 	
 	Pro.Utils.isProArray = function (property) {
-	  return typeof(property) === 'object' && Pro.Utils.isArray(property._array) && property.length !== undefined;
+	  return property !== null && Pro.Utils.isObject(property) && Pro.Utils.isArray(property._array) && property.length !== undefined;
 	};
 	
 	Pro.Utils.isArrayObject = function (property) {
 	  return Pro.Utils.isArray(property) || Pro.Utils.isProArray(property);
+	};
+	
+	Pro.Utils.isProObject = function (property) {
+	  return Pro.Utils.isObject(property) && property.__pro__ !== undefined && Pro.Utils.isObject(property.__pro__.properties)
 	};
 	
 	Pro.Utils.contains = function (array, value) {
@@ -519,7 +527,17 @@
 	Pro.Array.prototype.defineIndexProp = function (i) {
 	  var proArray = this,
 	      array = proArray._array,
-	      oldVal;
+	      oldVal,
+	      isA = Pro.Utils.isArray,
+	      isO = Pro.Utils.isObject,
+	      isF = Pro.Utils.isFunction;
+	
+	  if (isA(array[i])) {
+	    new Pro.ArrayProperty(array, i);
+	  } else if (isF(array[i])) {
+	  } else if (isO(array[i])) {
+	    new Pro.ObjectProperty(array, i);
+	  }
 	
 	  Object.defineProperty(this, i, {
 	    enumerable: true,
@@ -803,7 +821,19 @@
 	};
 	
 	Pro.Array.prototype.toArray = function () {
-	  return this._array;
+	  var result = [], i, ar = this._array, ln = ar.length, el,
+	      isPA = Pro.Utils.isProArray;
+	
+	  for (i = 0; i < ln; i++) {
+	    el = ar[i];
+	    if (isPA(el)) {
+	      el = el.toArray();
+	    }
+	
+	    result.push(el);
+	  }
+	
+	  return result;
 	};
 	
 	Pro.Array.prototype.toJSON = function () {
@@ -840,7 +870,8 @@
 	  simple: 0, // strings, booleans and numbers
 	  auto: 1, // functions - dependent
 	  object: 2, // references Pro objects
-	  array: 3 // arrays
+	  array: 3, // arrays
+	  nil: 4 // nulls
 	};
 	
 	Pro.Property.DEFAULT_GETTER = function (property) {
@@ -1171,6 +1202,19 @@
 	    return undefined;
 	  }
 	
+	  var property,
+	      conf = Pro.Configuration,
+	      keyprops = conf.keyprops,
+	      keypropList = conf.keypropList
+	      isF = Pro.Utils.isFunction,
+	      isAr = Pro.Utils.isArray,
+	      isA = Pro.Utils.isArrayObject,
+	      isO = Pro.Utils.isObject;
+	
+	  if (isAr(object)) {
+	    return new Pro.Array(object);
+	  }
+	
 	  try {
 	    Object.defineProperty(object, '__pro__', {
 	      enumerable: false,
@@ -1181,25 +1225,22 @@
 	
 	    object.__pro__.state = Pro.States.init;
 	
-	    var property,
-	        conf = Pro.Configuration,
-	        keyprops = conf.keyprops,
-	        keypropList = conf.keypropList
-	        isF = Pro.Utils.isFunction,
-	        isA = Pro.Utils.isArrayObject;
-	
 	    for (property in object) {
 	      if (keyprops && keypropList.indexOf(property) !== -1) {
 	        throw Error('The property name ' + property + ' is a key word for pro objects! Objects passed to Pro.prob can not contain properties named as keyword properties.');
 	        break;
 	      }
 	
-	      if (object.hasOwnProperty(property) && !isF(object[property]) && !isA(object[property])) {
+	      if (object.hasOwnProperty(property) && object[property] === null) {
+	        new Pro.NullProperty(object, property);
+	      } else if (object.hasOwnProperty(property) && !isF(object[property]) && !isA(object[property]) && !isO(object[property])) {
 	        new Pro.Property(object, property);
 	      } else if (object.hasOwnProperty(property) && isF(object[property])) {
 	        new Pro.AutoProperty(object, property);
 	      } else if (object.hasOwnProperty(property) && isA(object[property])) {
 	        new Pro.ArrayProperty(object, property);
+	      } else if (object.hasOwnProperty(property) && isO(object[property])) {
+	        new Pro.ObjectProperty(object, property);
 	      }
 	    }
 	
