@@ -3,7 +3,7 @@
 describe('Pro.Property', function () {
   var obj;
   beforeEach(function () {
-    obj = {a: 'my val'};
+    obj = {a: 'my val', b: 5};
   });
 
   describe('#constructor', function () {
@@ -99,5 +99,70 @@ describe('Pro.Property', function () {
       expect(property.willUpdate).toHaveBeenCalled();
     });
   });
-});
 
+  describe('#willUpdate', function () {
+    it('must be called in a flow', function () {
+      var property = new Pro.Property(obj, 'a'), go;
+      property.addListener(function () {});
+      go = function () {
+        property.willUpdate();
+      };
+
+      expect(go).toThrow('Not in running flow!');
+    });
+
+    it('executes the listeners of a property and passes to them a value Pro.Event', function () {
+      var property = new Pro.Property(obj, 'a'), called = false;
+      property.addListener(function (event) {
+        called = true;
+
+        expect(event instanceof Pro.Event).toBe(true);
+        expect(event.source).toBeUndefined();
+        expect(event.target).toBe(property);
+        expect(event.type).toBe(Pro.Event.Types.value);
+
+        expect(event.args.length).toBe(0);
+      });
+
+      property.oldVal = property.val;
+      property.val = 10;
+      Pro.flow.run(function () {
+        property.willUpdate();
+      });
+      expect(called).toBe(true);
+    });
+
+    it('executes the listeners of a sub-property and passes to them a value Pro.Event', function () {
+      var propertyA = new Pro.Property(obj, 'a'),
+          propertyB = new Pro.Property(obj, 'b'),
+          called = false, ev;
+      propertyA.addListener({
+        call: function (event) {
+          ev = event;
+          propertyB.oldVal = 5;
+          propertyB.val = 15;
+        },
+        property: propertyB
+      });
+
+      propertyB.addListener(function (event) {
+        called = true;
+
+        expect(event instanceof Pro.Event).toBe(true);
+        expect(event.source).not.toBeUndefined();
+        expect(event.source).toBe(ev);
+        expect(event.target).toBe(propertyB);
+        expect(event.type).toBe(Pro.Event.Types.value);
+
+        expect(event.args.length).toBe(0);
+      });
+
+      propertyA.oldVal = propertyA.val;
+      propertyA.val = 10;
+      Pro.flow.run(function () {
+        propertyA.willUpdate();
+      });
+      expect(called).toBe(true);
+    });
+  });
+});

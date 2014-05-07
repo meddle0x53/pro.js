@@ -167,19 +167,20 @@ Pro.Array.prototype.willUpdateSplice = function (index, spliced, newItems) {
 };
 
 Pro.Array.prototype.willUpdateListeners = function (listeners, op, ind, oldVal, newVal) {
-  var length = listeners.length, i, listener;
+  var length = listeners.length, i, listener,
+      event = new Pro.Event(undefined, this, Pro.Event.Types.array, op, ind, oldVal, newVal);
 
   for (i = 0; i < length; i++) {
     listener = listeners[i];
 
     if (Pro.Utils.isFunction(listener)) {
-      Pro.flow.pushOnce(listener, [op, ind, oldVal, newVal]);
+      Pro.flow.pushOnce(listener, [event]);
     } else {
-      Pro.flow.pushOnce(listener, listener.call, [op, ind, oldVal, newVal]);
+      Pro.flow.pushOnce(listener, listener.call, [event]);
     }
 
     if (listener.property) {
-      listener.property.willUpdate();
+      listener.property.willUpdate(event);
     }
   }
 };

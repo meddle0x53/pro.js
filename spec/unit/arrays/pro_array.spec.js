@@ -113,11 +113,11 @@ describe('Pro.Array', function () {
     var array = new Pro.Array(1, 2, 3, 4, 5),
         op, i, ov, nv;
 
-    array.addIndexListener(function (operation, index, oldValue, newValue) {
-      op = operation;
-      i = index;
-      ov = oldValue;
-      nv = newValue;
+    array.addIndexListener(function (event) {
+      op = event.args[0];
+      i = event.args[1];
+      ov = event.args[2];
+      nv = event.args[3];
     });
 
     array[0] = 33;
@@ -141,11 +141,11 @@ describe('Pro.Array', function () {
         op, i, ov, nv,
         callTimes = 0;
 
-    Pro.currentCaller = function (operation, index, oldValue, newValue) {
-      op = operation;
-      i = index;
-      ov = oldValue;
-      nv = newValue;
+    Pro.currentCaller = function (event) {
+      op = event.args[0];
+      i = event.args[1];
+      ov = event.args[2];
+      nv = event.args[3];
 
       callTimes = callTimes + 1;
     };
@@ -621,19 +621,19 @@ describe('Pro.Array', function () {
     var array = new Pro.Array(4, 1, 2, 3, 5),
         i, ov, nv, stack = [];
 
-    array.addIndexListener(function (op, index, oldVals, newVals) {
-      expect(op).toBe(Pro.Array.Operations.splice);
-      i = index;
-      ov = oldVals;
-      nv = newVals;
+    array.addIndexListener(function (event) {
+      expect(event.args[0]).toBe(Pro.Array.Operations.splice);
+      i = event.args[1];
+      ov = event.args[2];
+      nv = event.args[3];
       stack.push('index');
     });
 
-    array.addLengthListener(function (op, index, oldVals, newVals) {
-      expect(op).toBe(Pro.Array.Operations.splice);
-      i = index;
-      ov = oldVals;
-      nv = newVals;
+    array.addLengthListener(function (event) {
+      expect(event.args[0]).toBe(Pro.Array.Operations.splice);
+      i = event.args[1];
+      ov = event.args[2];
+      nv = event.args[3];
       stack.push('length');
     });
 
@@ -674,19 +674,19 @@ describe('Pro.Array', function () {
     var array = new Pro.Array(1, 2, 3, 4, 5),
         o, i, ov, nv, stack = [];
 
-    array.addIndexListener(function (op, index, oldVals, newVals) {
-      o = op;
-      i = index;
-      ov = oldVals;
-      nv = newVals;
+    array.addIndexListener(function (event) {
+      o = event.args[0];
+      i = event.args[1];
+      ov = event.args[2];
+      nv = event.args[3];
       stack.push('index');
     });
 
-    array.addLengthListener(function (op, index, oldVals, newVals) {
-      o = op;
-      i = index;
-      ov = oldVals;
-      nv = newVals;
+    array.addLengthListener(function (event) {
+      o = event.args[0];
+      i = event.args[1];
+      ov = event.args[2];
+      nv = event.args[3];
       stack.push('length');
     });
 

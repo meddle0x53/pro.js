@@ -8,6 +8,7 @@ module.exports = function(karma) {
       'src/js/flow/queue.js',
       'src/js/flow/queues.js',
       'src/js/flow/flow.js',
+      'src/js/events/pro_event.js',
       'src/js/arrays/pro_array.js',
       'src/js/properties/property.js',
       'src/js/properties/null_property.js',

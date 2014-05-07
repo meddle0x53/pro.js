@@ -132,21 +132,22 @@ Pro.Property.prototype.notifyAll = function () {
   }
 };
 
-Pro.Property.prototype.willUpdate = function () {
+Pro.Property.prototype.willUpdate = function (source) {
   var i, listener,
       listeners = this.listeners,
-      length = listeners.length;
+      length = listeners.length,
+      event = new Pro.Event(source, this, Pro.Event.Types.value);
   for (i = 0; i < length; i++) {
     listener = listeners[i];
 
     if (Pro.Utils.isFunction(listener)) {
-      Pro.flow.pushOnce(listener);
+      Pro.flow.pushOnce(listener, [event]);
     } else {
-      Pro.flow.pushOnce(listener, listener.call);
+      Pro.flow.pushOnce(listener, listener.call, [event]);
     }
 
     if (listener.property) {
-      listener.property.willUpdate();
+      listener.property.willUpdate(event);
     }
   }
 };
