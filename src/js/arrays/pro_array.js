@@ -104,6 +104,11 @@ Pro.Array.prototype.addIndexCaller = function () {
   }
 };
 
+Pro.Array.prototype.addListener = function (listener) {
+  this.addIndexListener(listener);
+  this.addLengthListener(listener);
+};
+
 Pro.Array.prototype.defineIndexProp = function (i) {
   var proArray = this,
       array = proArray._array,
@@ -220,11 +225,57 @@ Pro.Array.prototype.forEach = function (fun /*, thisArg */) {
   return forEach.apply(this._array, arguments);
 };
 
-Pro.Array.prototype.map = function (fun /*, thisArg */) {
+Pro.Array.prototype.map = function (fun, thisArg) {
   this.addIndexCaller();
   this.addLengthCaller();
 
-  return new Pro.Array(map.apply(this._array, arguments));
+  var mapped = new Pro.Array(map.apply(this._array, arguments)),
+      _this = this;
+  this.addListener(function (event) {
+    if (event.type !== Pro.Event.Types.array) {
+      throw Error('Not implemented for non array events');
+    }
+    var op  = event.args[0],
+        ind = event.args[1],
+        ov  = event.args[2],
+        nv  = event.args[3],
+        nvs, j, ln;
+    if (op === Pro.Array.Operations.set) {
+      mapped[ind] = fun.call(thisArg, nv);
+    } else if (op === Pro.Array.Operations.add) {
+      nvs = slice.call(nv, 0);
+      ln = nvs.length;
+      if (ind === 0) {
+        j = ln - 1;
+        while(j >= 0) {
+          mapped.unshift(fun.call(thisArg, nvs[j]));
+          j--;
+        }
+      } else {
+        j = 0;
+        while(j < ln) {
+          mapped.push(fun.apply(thisArg, [nvs[j], _this._array.length - (ln - j), _this._array]));
+          j++;
+        }
+      }
+    } else if (op === Pro.Array.Operations.remove) {
+      if (ind === 0) {
+        mapped.shift();
+      } else {
+        mapped.pop();
+      }
+    } else if (op === Pro.Array.Operations.setLength) {
+      mapped.length = nv;
+    } else if (op === Pro.Array.Operations.reverse) {
+      mapped.reverse();
+    } else if (op === Pro.Array.Operations.sort) {
+      Pro.Array.prototype.sort.apply(mapped, nv);
+    } else if (op === Pro.Array.Operations.splice) {
+      console.log('TODO')
+    }
+  });
+
+  return mapped;
 };
 
 Pro.Array.prototype.reduce = function (fun /*, initialValue */) {
@@ -303,10 +354,11 @@ Pro.Array.prototype.sort = function () {
   if (this._array.length === 0) {
     return;
   }
-  var sorted = sort.apply(this._array, arguments), _this = this;
+  var sorted = sort.apply(this._array, arguments), _this = this,
+      args = arguments;
 
   Pro.flow.run(function () {
-    _this.willUpdate(Pro.Array.Operations.sort, -1, null, null);
+    _this.willUpdate(Pro.Array.Operations.sort, -1, null, args);
   });
   return sorted;
 };

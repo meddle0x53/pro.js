@@ -42,6 +42,10 @@ describe('Pro.Array', function () {
     expect(transformedArray.length).toBe(4);
     expect(transformedArray.indexOf(9)).toBe(0);
 
+    // Terminate relations...
+    array.indexListeners = [];
+    array.lengthListeners = [];
+
     ind = 1;
     result = array.reduce(function (curr, el, i, arr) {
       expect(typeof(el)).toEqual('number');
@@ -328,24 +332,74 @@ describe('Pro.Array', function () {
     expect(obj.prop).toEqual(0);
   });
 
-  it('updates properties depending on #map', function () {
-    var array = new Pro.Array(3, 5, 4),
-        obj = {
-          prop: function () {
-            return array.map(function (el) {
-              return el * el;
-            });
-          }
-        },
-        property = new Pro.AutoProperty(obj, 'prop');
+  describe('#map', function () {
+    it('creates a new Pro.Array dependable on the original', function () {
+      var array = new Pro.Array(1, 2, 3), mapped;
 
-    expect(obj.prop.valueOf()).toEqual([9, 25, 16].valueOf());
+      mapped = array.map(function (el, i, arr) {
+        return el + el;
+      });
 
-    array[1] = 2;
-    expect(obj.prop.valueOf()).toEqual([9, 4, 16].valueOf());
+      expect(Pro.Utils.isProArray(mapped)).toBe(true);
+      expect(mapped.toArray()).toEqual([2, 4, 6]);
 
-    array.push(1);
-    expect(obj.prop.valueOf()).toEqual([9, 4, 16, 1].valueOf());
+      array[0] = 0;
+      expect(mapped.toArray()).toEqual([0, 4, 6]);
+
+      array.unshift(-2, -1);
+      expect(mapped.toArray()).toEqual([-4, -2, 0, 4, 6]);
+
+      array.push(4, 5);
+      expect(mapped.toArray()).toEqual([-4, -2, 0, 4, 6, 8, 10]);
+
+      array.shift();
+      expect(mapped.toArray()).toEqual([-2, 0, 4, 6, 8, 10]);
+
+      array.pop();
+      expect(mapped.toArray()).toEqual([-2, 0, 4, 6, 8]);
+
+      array.length = 1;
+      expect(mapped.toArray()).toEqual([-2]);
+
+      array.push(0, 1, 2, 3, 4, 5, 6);
+      expect(mapped.toArray()).toEqual([-2, 0, 2, 4, 6, 8, 10, 12]);
+
+      array.reverse();
+      expect(mapped.toArray()).toEqual([12, 10, 8, 6, 4, 2, 0, -2]);
+
+      array.sort(function (el1, el2) {
+        if (el1 < el2) {
+          return -1;
+        }
+        if (el1 > el2) {
+          return 1;
+        }
+        return 0;
+      });
+      expect(mapped.toArray()).toEqual([-2, 0, 2, 4, 6, 8, 10, 12]);
+      console.log(array.toArray())
+
+    });
+
+    it('updates properties depending on #map', function () {
+      var array = new Pro.Array(3, 5, 4),
+          obj = {
+            prop: function () {
+              return array.map(function (el) {
+                return el * el;
+              });
+            }
+          },
+          property = new Pro.AutoProperty(obj, 'prop');
+
+      expect(obj.prop.valueOf()).toEqual([9, 25, 16].valueOf());
+
+      array[1] = 2;
+      expect(obj.prop.valueOf()).toEqual([9, 4, 16].valueOf());
+
+      array.push(1);
+      expect(obj.prop.valueOf()).toEqual([9, 4, 16, 1].valueOf());
+    });
   });
 
   it('updates properties depending on #reduce', function () {
