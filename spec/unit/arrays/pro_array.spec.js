@@ -377,8 +377,15 @@ describe('Pro.Array', function () {
         return 0;
       });
       expect(mapped.toArray()).toEqual([-2, 0, 2, 4, 6, 8, 10, 12]);
-      console.log(array.toArray())
 
+      array.splice(3, 2, 1, 2, 3);
+      expect(mapped.toArray()).toEqual([-2, 0, 2, 2, 4, 6, 8, 10, 12]);
+
+      array.splice(0, 3);
+      expect(mapped.toArray()).toEqual([2, 4, 6, 8, 10, 12]);
+
+      array.splice(3, 3);
+      expect(mapped.toArray()).toEqual([2, 4, 6]);
     });
 
     it('updates properties depending on #map', function () {

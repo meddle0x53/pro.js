@@ -226,9 +226,6 @@ Pro.Array.prototype.forEach = function (fun /*, thisArg */) {
 };
 
 Pro.Array.prototype.map = function (fun, thisArg) {
-  this.addIndexCaller();
-  this.addLengthCaller();
-
   var mapped = new Pro.Array(map.apply(this._array, arguments)),
       _this = this;
   this.addListener(function (event) {
@@ -271,7 +268,13 @@ Pro.Array.prototype.map = function (fun, thisArg) {
     } else if (op === Pro.Array.Operations.sort) {
       Pro.Array.prototype.sort.apply(mapped, nv);
     } else if (op === Pro.Array.Operations.splice) {
-      console.log('TODO')
+      // TODO maybe map one by one to keep index!
+      Pro.Array.prototype.splice.apply(mapped, [
+        ind,
+        ov.length
+      ].concat(
+        map.apply(nv, [fun, thisArg])
+      ));
     }
   });
 
