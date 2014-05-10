@@ -7,6 +7,7 @@ Pro.Flow = function (queueNames, options) {
   this.options = options || {};
 
   this.flowInstance = null;
+  this.flowInstances = [];
 };
 
 Pro.Flow.prototype = {};
@@ -17,24 +18,32 @@ Pro.Flow.prototype.start = function () {
       start = options && options.start,
       queueNames = this.queueNames;
 
-  if (!queues) {
-    queues = this.flowInstance = new Pro.Queues(queueNames, options.flowInstance);
-    if (start) {
-      start(queues);
-    }
+  if (queues) {
+    this.flowInstances.push(queues);
+  }
+
+  this.flowInstance = new Pro.Queues(queueNames, options.flowInstance);
+  if (start) {
+    start(this.flowInstance);
   }
 };
 
 Pro.Flow.prototype.end = function () {
   var queues = this.flowInstance,
       options = this.options,
-      end = options && options.end;
+      end = options && options.end,
+      nextQueues;
 
   if (queues) {
     try {
       queues.go();
     } finally {
       this.flowInstance = null;
+
+      if (this.flowInstances.length) {
+        nextQueues = this.flowInstances.pop();
+        this.flowInstance = nextQueues;
+      }
 
       if (end) {
         end(queues);
@@ -46,10 +55,6 @@ Pro.Flow.prototype.end = function () {
 Pro.Flow.prototype.run = function (obj, method) {
   var options = this.options,
       onError = options.onError;
-
-  if (this.isRunning()) {
-    return;
-  }
 
   this.start();
   if (!method) {

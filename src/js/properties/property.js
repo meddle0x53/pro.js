@@ -49,9 +49,11 @@ Pro.Property.DEFAULT_SETTER = function (property) {
     property.oldVal = property.val;
     property.val = newVal;
 
-    Pro.flow.run(function () {
-      property.willUpdate();
-    });
+    if (!Pro.flow.isRunning()) {
+      Pro.flow.run(function () {
+        property.willUpdate();
+      });
+    }
   };
 };
 

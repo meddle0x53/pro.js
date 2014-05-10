@@ -56,7 +56,7 @@ describe('Pro.Flow', function () {
       expect(startParam).toBe(flow.flowInstance);
     });
 
-    it ('when once called every call after that it reuses the same flowInstance', function () {
+    it ('when once called every call after that uses a new flowInstance', function () {
       var flowInstance = null;
 
       flow.start();
@@ -66,7 +66,7 @@ describe('Pro.Flow', function () {
 
       flow.start();
 
-      expect(flowInstance).toBe(flow.flowInstance);
+      expect(flowInstance).not.toBe(flow.flowInstance);
     });
 
     it ('passes its flowInstance related options to the flowInstance', function () {

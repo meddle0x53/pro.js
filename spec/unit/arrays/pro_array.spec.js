@@ -407,6 +407,60 @@ describe('Pro.Array', function () {
       array.push(1);
       expect(obj.prop.valueOf()).toEqual([9, 4, 16, 1].valueOf());
     });
+
+    it('chain mapping works', function () {
+      var a1 = new Pro.Array(1, 2, 3, 4, 5),
+          a2, a3, a4;
+
+      a2 = a1.map(function (el) {
+        return el * 2;
+      });
+      expect(a2.toArray()).toEqual([2, 4, 6, 8, 10]);
+
+      a3 = a2.map(function (el) {
+        return el - 2;
+      });
+      expect(a3.toArray()).toEqual([0, 2, 4, 6, 8]);
+
+      a4 = a3.map(function (el) {
+        return el * 3;
+      });
+
+      expect(a4.toArray()).toEqual([0, 6, 12, 18, 24]);
+
+      a1[0] = 6;
+      expect(a2.toArray()).toEqual([12, 4, 6, 8, 10]);
+      expect(a3.toArray()).toEqual([10, 2, 4, 6, 8]);
+      expect(a4.toArray()).toEqual([30, 6, 12, 18, 24]);
+
+      a1.push(1);
+      expect(a2.toArray()).toEqual([12, 4, 6, 8, 10, 2]);
+      expect(a3.toArray()).toEqual([10, 2, 4, 6, 8, 0]);
+      expect(a4.toArray()).toEqual([30, 6, 12, 18, 24, 0]);
+
+      a1.shift();
+      expect(a2.toArray()).toEqual([4, 6, 8, 10, 2]);
+      expect(a3.toArray()).toEqual([2, 4, 6, 8, 0]);
+      expect(a4.toArray()).toEqual([6, 12, 18, 24, 0]);
+
+      a1.sort(function (el1, el2) {
+        if (el1 < el2) {
+          return -1;
+        }
+        if (el1 > el2) {
+          return 1;
+        }
+        return 0;
+      });
+      expect(a2.toArray()).toEqual([2, 4, 6, 8, 10]);
+      expect(a3.toArray()).toEqual([0, 2, 4, 6, 8]);
+      expect(a4.toArray()).toEqual([0, 6, 12, 18, 24]);
+
+      a1.splice(2, 3, 1, 0, -1);
+      expect(a2.toArray()).toEqual([2, 4, 2, 0, -2]);
+      expect(a3.toArray()).toEqual([0, 2, 0, -2, -4]);
+      expect(a4.toArray()).toEqual([0, 6, 0, -6, -12]);
+    });
   });
 
   it('updates properties depending on #reduce', function () {
