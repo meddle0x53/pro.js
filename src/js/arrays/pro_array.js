@@ -236,24 +236,29 @@ Pro.Array.prototype.map = function (fun, thisArg) {
         ind = event.args[1],
         ov  = event.args[2],
         nv  = event.args[3],
-        nvs, j, ln;
+        nvs, j, ln, mnvs;
     if (op === Pro.Array.Operations.set) {
       mapped[ind] = fun.call(thisArg, nv);
     } else if (op === Pro.Array.Operations.add) {
+      mnvs = [];
       nvs = slice.call(nv, 0);
       ln = nvs.length;
       if (ind === 0) {
         j = ln - 1;
         while(j >= 0) {
-          mapped.unshift(fun.call(thisArg, nvs[j]));
+          mnvs[j] = fun.apply(thisArg, [nvs[j], j, _this._array]);
           j--;
         }
+
+        Pro.Array.prototype.unshift.apply(mapped, mnvs);
       } else {
         j = 0;
         while(j < ln) {
-          mapped.push(fun.apply(thisArg, [nvs[j], _this._array.length - (ln - j), _this._array]));
+          mnvs[j] = fun.apply(thisArg, [nvs[j], _this._array.length - (ln - j), _this._array]);
           j++;
         }
+
+        Pro.Array.prototype.push.apply(mapped, mnvs);
       }
     } else if (op === Pro.Array.Operations.remove) {
       if (ind === 0) {
@@ -268,13 +273,17 @@ Pro.Array.prototype.map = function (fun, thisArg) {
     } else if (op === Pro.Array.Operations.sort) {
       Pro.Array.prototype.sort.apply(mapped, nv);
     } else if (op === Pro.Array.Operations.splice) {
-      // TODO maybe map one by one to keep index!
+      mnvs = [];
+      j = 0;
+      while (j < nv.length) {
+        mnvs[j] = fun.apply(thisArg, [nv[j], (j + ind), _this._array]);
+        j++;
+      }
+
       Pro.Array.prototype.splice.apply(mapped, [
         ind,
         ov.length
-      ].concat(
-        map.apply(nv, [fun, thisArg])
-      ));
+      ].concat(mnvs));
     }
   });
 

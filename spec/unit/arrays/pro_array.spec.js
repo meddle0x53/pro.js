@@ -137,7 +137,6 @@ describe('Pro.Array', function () {
     expect(i).toBe(2);
     expect(ov).toBe(3);
     expect(nv).toBe(35);
-
   });
 
   it('it adds index listener on index get', function () {
@@ -460,6 +459,11 @@ describe('Pro.Array', function () {
       expect(a2.toArray()).toEqual([2, 4, 2, 0, -2]);
       expect(a3.toArray()).toEqual([0, 2, 0, -2, -4]);
       expect(a4.toArray()).toEqual([0, 6, 0, -6, -12]);
+
+      a1.unshift(-1, 0);
+      expect(a2.toArray()).toEqual([-2, 0, 2, 4, 2, 0, -2]);
+      expect(a3.toArray()).toEqual([-4, -2, 0, 2, 0, -2, -4]);
+      expect(a4.toArray()).toEqual([-12, -6, 0, 6, 0, -6, -12]);
     });
   });
 
