@@ -286,26 +286,6 @@ describe('Pro.Array', function () {
     expect(obj.prop).toEqual(true);
   });
 
-  it('updates properties depending on #filter', function () {
-    var array = new Pro.Array(2, '4', 5, '9', 10),
-        obj = {
-          prop: function () {
-            return array.filter(function (el) {
-              return typeof(el) === 'string';
-            });
-          }
-        },
-        property = new Pro.AutoProperty(obj, 'prop');
-
-    expect(obj.prop.toArray()).toEqual(['4', '9']);
-
-    array[0] = '2';
-    expect(obj.prop.toArray()).toEqual(['2', '4', '9']);
-
-    array.shift();
-    expect(obj.prop.toArray()).toEqual(['4', '9']);
-  });
-
   it('updates properties depending on #forEach', function () {
     var array = new Pro.Array(3, 5, 4),
         obj = {
@@ -329,6 +309,89 @@ describe('Pro.Array', function () {
 
     array.length = 0;
     expect(obj.prop).toEqual(0);
+  });
+
+  describe('#filter', function () {
+    it('creates a new Pro.Array dependable on the original', function () {
+      var array = new Pro.Array(1, 2, 3, 4), filtered;
+
+      filtered = array.filter(function (el) {
+        return (el % 2) === 0;
+      });
+
+     expect(Pro.Utils.isProArray(filtered)).toBe(true);
+     expect(filtered.toArray()).toEqual([2, 4]);
+
+     array[0] = -2;
+     expect(filtered.toArray()).toEqual([-2, 2, 4]);
+
+     array[3] = 6;
+     expect(filtered.toArray()).toEqual([-2, 2, 6]);
+
+     array.unshift(-6, -5, -4, -3);
+     expect(filtered.toArray()).toEqual([-6, -4, -2, 2, 6]);
+
+     array.push(8, 9);
+     expect(filtered.toArray()).toEqual([-6, -4, -2, 2, 6, 8]);
+
+     array.shift();
+     array.shift();
+     expect(filtered.toArray()).toEqual([-4, -2, 2, 6, 8]);
+
+     array.pop();
+     array.pop();
+     expect(filtered.toArray()).toEqual([-4, -2, 2, 6]);
+
+     array.length = 2;
+     expect(filtered.toArray()).toEqual([-4, -2]);
+
+     array.push(-1, 0, 1, 2, 3, 4, 5);
+     expect(filtered.toArray()).toEqual([-4, -2, 0, 2, 4]);
+
+     array.reverse();
+     expect(filtered.toArray()).toEqual([4, 2, 0, -2, -4]);
+
+     array.sort(function (el1, el2) {
+       if (el1 < el2) {
+         return -1;
+       }
+       if (el1 > el2) {
+         return 1;
+       }
+       return 0;
+     });
+     expect(filtered.toArray()).toEqual([-4, -2, 0, 2, 4]);
+     console.log(array.toArray());
+
+     // array.splice(3, 2, 1, 2, 3);
+     // expect(filtered.toArray()).toEqual([-2, 0, 2, 2, 4, 6, 8, 10, 12]);
+
+     // array.splice(0, 3);
+     // expect(mapped.toArray()).toEqual([2, 4, 6, 8, 10, 12]);
+
+     // array.splice(3, 3);
+     // expect(mapped.toArray()).toEqual([2, 4, 6]);
+    });
+
+    it('updates depending properties', function () {
+      var array = new Pro.Array(2, '4', 5, '9', 10),
+          obj = {
+            prop: function () {
+              return array.filter(function (el) {
+                return typeof(el) === 'string';
+              });
+            }
+          },
+          property = new Pro.AutoProperty(obj, 'prop');
+
+      expect(obj.prop.toArray()).toEqual(['4', '9']);
+
+      array[0] = '2';
+      expect(obj.prop.toArray()).toEqual(['2', '4', '9']);
+
+      array.shift();
+      expect(obj.prop.toArray()).toEqual(['4', '9']);
+    });
   });
 
   describe('#map', function () {

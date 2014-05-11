@@ -72,6 +72,7 @@ Pro.Array.Operations = {
   reverse: 4,
   sort: 5,
   splice: 6,
+  all: 7,
 
   isIndexOp: function (op) {
     return op === this.set || op === this.reverse || op === this.sort;
@@ -211,18 +212,85 @@ Pro.Array.prototype.some = function () {
   return some.apply(this._array, arguments);
 };
 
-Pro.Array.prototype.filter = function () {
-  this.addIndexCaller();
-  this.addLengthCaller();
-
-  return new Pro.Array(filter.apply(this._array, arguments));
-};
-
 Pro.Array.prototype.forEach = function (fun /*, thisArg */) {
   this.addIndexCaller();
   this.addLengthCaller();
 
   return forEach.apply(this._array, arguments);
+};
+
+Pro.Array.prototype.filter = function (fun, thisArg) {
+  this.addIndexCaller();
+  this.addLengthCaller();
+
+  var args = arguments,
+      filtered = new Pro.Array(filter.apply(this._array, args)),
+      _this = this;
+
+  this.addListener(function (event) {
+    if (event.type !== Pro.Event.Types.array) {
+      throw Error('Not implemented for non array events');
+    }
+    var op  = event.args[0],
+        ind = event.args[1],
+        ov  = event.args[2],
+        nv  = event.args[3],
+        napply, oapply, oarr,
+        nvs, fnvs, j, ln;
+
+    if (op === Pro.Array.Operations.set) {
+      napply = fun.call(thisArg, nv);
+      oapply = fun.call(thisArg, ov);
+
+      if (oapply === true || napply === true) {
+        filtered._array = filter.apply(_this._array, args);
+      }
+    } else if (op === Pro.Array.Operations.add) {
+      fnvs = [];
+      nvs = slice.call(nv, 0);
+      ln = nvs.length;
+      if (ind === 0) {
+        j = ln - 1;
+        while(j >= 0) {
+          if (fun.apply(thisArg, [nvs[j], j, _this._array])) {
+            fnvs.unshift(nvs[j]);
+          }
+          j--;
+        }
+
+        if (fnvs.length) {
+          Pro.Array.prototype.unshift.apply(filtered, fnvs);
+        }
+      } else {
+        j = 0;
+        while(j < ln) {
+          if (fun.apply(thisArg, [nvs[j], _this._array.length - (ln - j), _this._array])) {
+            fnvs.push(nvs[j]);
+          }
+          j++;
+        }
+
+        if (fnvs.length) {
+          Pro.Array.prototype.push.apply(filtered, fnvs);
+        }
+      }
+    } else if (op === Pro.Array.Operations.remove) {
+      if (fun.apply(thisArg, [ov, ind, _this._array])) {
+        if (ind === 0) {
+          filtered.shift();
+        } else {
+          filtered.pop();
+        }
+      }
+    } else if (op === Pro.Array.Operations.setLength) {
+      filtered.length = nv;
+    } else if (op === Pro.Array.Operations.reverse) {
+      filtered.reverse();
+    } else if (op === Pro.Array.Operations.sort) {
+      Pro.Array.prototype.sort.apply(filtered, nv);
+    }
+  });
+  return filtered;
 };
 
 Pro.Array.prototype.map = function (fun, thisArg) {
