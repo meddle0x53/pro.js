@@ -121,6 +121,7 @@ module.exports = function(grunt) {
           'properties/auto_property',
           'properties/object_property',
           'properties/array_property',
+          'objects/pro_val',
           'objects/prob',
         ],
         args = this.args, customFiles = [], index, i = -1;

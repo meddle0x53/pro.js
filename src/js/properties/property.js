@@ -127,13 +127,6 @@ Pro.Property.prototype.removeListener = function (listener) {
   }
 };
 
-Pro.Property.prototype.notifyAll = function () {
-  var i;
-  for (i = 0; i < this.listeners.length; i++) {
-    this.listeners[i].call(this.proObject);
-  }
-};
-
 Pro.Property.prototype.willUpdate = function (source) {
   var i, listener,
       listeners = this.listeners,

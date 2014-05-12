@@ -241,29 +241,100 @@ describe('Pro.Array', function () {
     expect(obj.prop).toEqual(array.concat(6, 7, 8, 9));
   });
 
-  it('updates properties depending on #every', function () {
-    var array = new Pro.Array(2, 4, 6, 8, 10),
-        obj = {
-          prop: function () {
-            return array.every(function (el) {
-              return el % 2 === 0;
+  describe('#every & #pevery', function () {
+    it('updates properties depending on #every', function () {
+      var array = new Pro.Array(2, 4, 6, 8, 10),
+          obj = {
+            prop: function () {
+              return array.every(function (el) {
+                return el % 2 === 0;
+              });
+            }
+          },
+          property = new Pro.AutoProperty(obj, 'prop');
+
+      expect(obj.prop).toEqual(true);
+
+      array[0] = 1;
+      expect(obj.prop).toEqual(false);
+      array[0] = 12;
+      expect(obj.prop).toEqual(true);
+
+      array.unshift(13);
+      expect(obj.prop).toEqual(false);
+
+      array.shift();
+      expect(obj.prop).toEqual(true);
+    });
+
+    describe('#pevery', function () {
+      it('returns pro value', function () {
+        var array = new Pro.Array(1, 2, 3, 4, 5),
+            every = array.pevery(function (el) {
+              return typeof(el) === 'number';
             });
-          }
-        },
-        property = new Pro.AutoProperty(obj, 'prop');
 
-    expect(obj.prop).toEqual(true);
+        expect(Pro.Utils.isProVal(every)).toBe(true);
+        expect(every.valueOf()).toBe(true);
+      });
+    });
 
-    array[0] = 1;
-    expect(obj.prop).toEqual(false);
-    array[0] = 12;
-    expect(obj.prop).toEqual(true);
+    describe('#pevery', function () {
+      it('returns pro value', function () {
+        var array = new Pro.Array(1, 2, 3, 4, 5),
+            every = array.pevery(function (el) {
+              return typeof(el) === 'number';
+            });
 
-    array.unshift(13);
-    expect(obj.prop).toEqual(false);
+        expect(Pro.Utils.isProVal(every)).toBe(true);
+        expect(every.valueOf()).toBe(true);
+      });
 
-    array.shift();
-    expect(obj.prop).toEqual(true);
+      it('on list changes the produced value is updated', function () {
+        var array = new Pro.Array(1, 2, 3, 4, 5),
+            every = array.pevery(function (el) {
+              return typeof(el) === 'number';
+            });
+
+        expect(every.valueOf()).toBe(true);
+
+        array[2] = '3';
+        expect(every.valueOf()).toBe(false);
+
+        array[0] = '1';
+        expect(every.valueOf()).toBe(false);
+
+        array[0] = 1;
+        array[2] = 3;
+        expect(every.valueOf()).toBe(true);
+
+        array.push(6, 7, 8);
+        expect(every.valueOf()).toBe(true);
+        array.push('9', 10);
+        expect(every.valueOf()).toBe(false);
+
+        array.pop();
+        expect(every.valueOf()).toBe(false);
+        array.pop();
+        expect(every.valueOf()).toBe(true);
+        array.pop();
+        expect(every.valueOf()).toBe(true);
+
+        array[4] = 'wow';
+        expect(every.valueOf()).toBe(false);
+        array.length = 3;
+        expect(every.valueOf()).toBe(true);
+
+        array.splice(0, 1);
+        expect(every.valueOf()).toBe(true);
+
+        array.splice(1, 1, 2, '3', 4);
+        expect(every.valueOf()).toBe(false);
+
+        array.splice(2, 2, 2, 2, 2);
+        expect(every.valueOf()).toBe(true);
+      });
+    });
   });
 
   it('updates properties depending on #some', function () {

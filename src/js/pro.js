@@ -56,7 +56,11 @@ Pro.Utils.isArrayObject = function (property) {
 };
 
 Pro.Utils.isProObject = function (property) {
-  return Pro.Utils.isObject(property) && property.__pro__ !== undefined && Pro.Utils.isObject(property.__pro__.properties)
+  return Pro.Utils.isObject(property) && property.__pro__ !== undefined && Pro.Utils.isObject(property.__pro__.properties);
+};
+
+Pro.Utils.isProVal = function (property) {
+  return this.isProObject(property) && property.__pro__.properties.v !== undefined;
 };
 
 Pro.Utils.contains = function (array, value) {

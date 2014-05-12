@@ -220,6 +220,63 @@ Pro.Array.prototype.every = function () {
   return every.apply(this._array, arguments);
 };
 
+Pro.Array.everyNewValue = function (fun, thisArg, nv) {
+  var nvs = slice.call(nv, 0),
+      j = nvs.length - 1;
+  while (j >= 0) {
+    if (!fun.call(thisArg, nvs[j])) {
+      return false;
+    }
+    j--;
+  }
+
+  return true;
+};
+
+Pro.Array.prototype.pevery = function (fun, thisArg) {
+  var _this = this, args = arguments,
+      val = new Pro.Val(every.apply(this._array, args));
+
+  this.addListener(function (event) {
+    if (event.type !== Pro.Event.Types.array) {
+      throw Error('Not implemented for non array events');
+    }
+    var op  = event.args[0],
+        ind = event.args[1],
+        ov  = event.args[2],
+        nv  = event.args[3],
+        ev;
+    if (op === Pro.Array.Operations.set) {
+      ev = fun.call(thisArg, nv);
+      if (val.valueOf() === true && !ev) {
+        val.v = false;
+      } else if (val.valueOf() === false && ev) {
+        val.v = every.apply(_this._array, args);
+      }
+    } else if (op === Pro.Array.Operations.add) {
+      if (val.valueOf() === true) {
+        val.v = Pro.Array.everyNewValue(fun, thisArg, nv);
+      }
+    } else if (op === Pro.Array.Operations.remove) {
+      if (val.valueOf() === false && !fun.call(thisArg, ov)) {
+        val.v = every.apply(_this._array, args);
+      }
+    } else if (op === Pro.Array.Operations.setLength) {
+      if (val.valueOf() === false) {
+        val.v = every.apply(_this._array, args);
+      }
+    } else if (op === Pro.Array.Operations.splice) {
+      if (val.valueOf() === true) {
+        val.v = Pro.Array.everyNewValue(fun, thisArg, nv);
+      } else if (Pro.Array.everyNewValue(fun, thisArg, nv) && !Pro.Array.everyNewValue(fun, thisArg, ov)) {
+        val.v = every.apply(_this._array, args);
+      }
+    }
+  });
+
+  return val;
+};
+
 Pro.Array.prototype.some = function () {
   this.addIndexCaller();
   this.addLengthCaller();
@@ -235,9 +292,6 @@ Pro.Array.prototype.forEach = function (fun /*, thisArg */) {
 };
 
 Pro.Array.prototype.filter = function (fun, thisArg) {
-  this.addIndexCaller();
-  this.addLengthCaller();
-
   var args = arguments,
       filtered = new Pro.Array(filter.apply(this._array, args)),
       _this = this;

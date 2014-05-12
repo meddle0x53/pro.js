@@ -74,7 +74,9 @@ describe('Pro.Property', function () {
       Pro.currentCaller = null;
       expect(property.listeners.length).toBe(1);
 
-      property.notifyAll();
+      Pro.flow.run(function () {
+        property.willUpdate();
+      });
       expect(obj.b).toEqual('my val is cool');
     });
   });
