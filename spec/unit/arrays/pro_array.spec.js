@@ -391,6 +391,90 @@ describe('Pro.Array', function () {
       array.shift();
       expect(obj.prop.toArray()).toEqual(['4', '9']);
     });
+
+    it ('supports chain filtering', function () {
+      var a1 = new Pro.Array('true', 'detective', 'yellow', 'king', 'Carcosa', 'death', 'scarred'),
+          a2, a3, a4;
+
+      a2 = a1.filter(function (el) {
+        return el && (el.indexOf('e') !== -1 || el.indexOf('a') !== -1);
+      });
+      a3 = a2.filter(function (el) {
+        return el && el.indexOf('a') !== -1;
+      });
+      a4 = a3.filter(function (el) {
+        return el && el.indexOf('c') !== -1;
+      });
+
+      expect(a2.toArray()).toEqual(['true', 'detective', 'yellow', 'Carcosa', 'death', 'scarred']);
+      expect(a3.toArray()).toEqual(['Carcosa', 'death', 'scarred']);
+      expect(a4.toArray()).toEqual(['Carcosa', 'scarred']);
+
+      a1[3] = 'black';
+      expect(a2.toArray()).toEqual(['true', 'detective', 'yellow', 'black', 'Carcosa', 'death', 'scarred']);
+      expect(a3.toArray()).toEqual(['black', 'Carcosa', 'death', 'scarred']);
+      expect(a4.toArray()).toEqual(['black', 'Carcosa', 'scarred']);
+
+      a1[0] = 'king';
+      expect(a2.toArray()).toEqual(['detective', 'yellow', 'black', 'Carcosa', 'death', 'scarred']);
+      expect(a3.toArray()).toEqual(['black', 'Carcosa', 'death', 'scarred']);
+      expect(a4.toArray()).toEqual(['black', 'Carcosa', 'scarred']);
+
+      a1[2] = 'yellow art';
+      expect(a2.toArray()).toEqual(['detective', 'yellow art', 'black', 'Carcosa', 'death', 'scarred']);
+      expect(a3.toArray()).toEqual(['yellow art', 'black', 'Carcosa', 'death', 'scarred']);
+      expect(a4.toArray()).toEqual(['black', 'Carcosa', 'scarred']);
+
+      a1.push('Marty', 'Rust', 'Hart & Cohle')
+      expect(a2.toArray()).toEqual(['detective', 'yellow art', 'black', 'Carcosa', 'death', 'scarred', 'Marty', 'Hart & Cohle']);
+      expect(a3.toArray()).toEqual(['yellow art', 'black', 'Carcosa', 'death', 'scarred', 'Marty', 'Hart & Cohle']);
+      expect(a4.toArray()).toEqual(['black', 'Carcosa', 'scarred']);
+
+      a1.unshift('poems', 'killer', 'Carcosa again');
+      expect(a2.toArray()).toEqual(['poems', 'killer', 'Carcosa again', 'detective', 'yellow art', 'black', 'Carcosa', 'death', 'scarred', 'Marty', 'Hart & Cohle']);
+      expect(a3.toArray()).toEqual(['Carcosa again', 'yellow art', 'black', 'Carcosa', 'death', 'scarred', 'Marty', 'Hart & Cohle']);
+      expect(a4.toArray()).toEqual(['Carcosa again', 'black', 'Carcosa', 'scarred']);
+
+      a1.pop();
+      expect(a2.toArray()).toEqual(['poems', 'killer', 'Carcosa again', 'detective', 'yellow art', 'black', 'Carcosa', 'death', 'scarred', 'Marty']);
+      expect(a3.toArray()).toEqual(['Carcosa again', 'yellow art', 'black', 'Carcosa', 'death', 'scarred', 'Marty']);
+      expect(a4.toArray()).toEqual(['Carcosa again', 'black', 'Carcosa', 'scarred']);
+
+      a1.shift();
+      expect(a2.toArray()).toEqual(['killer', 'Carcosa again', 'detective', 'yellow art', 'black', 'Carcosa', 'death', 'scarred', 'Marty']);
+      expect(a3.toArray()).toEqual(['Carcosa again', 'yellow art', 'black', 'Carcosa', 'death', 'scarred', 'Marty']);
+      expect(a4.toArray()).toEqual(['Carcosa again', 'black', 'Carcosa', 'scarred']);
+
+      a1.shift();
+      expect(a2.toArray()).toEqual(['Carcosa again', 'detective', 'yellow art', 'black', 'Carcosa', 'death', 'scarred', 'Marty']);
+      expect(a3.toArray()).toEqual(['Carcosa again', 'yellow art', 'black', 'Carcosa', 'death', 'scarred', 'Marty']);
+      expect(a4.toArray()).toEqual(['Carcosa again', 'black', 'Carcosa', 'scarred']);
+
+      a1.shift();
+      expect(a2.toArray()).toEqual(['detective', 'yellow art', 'black', 'Carcosa', 'death', 'scarred', 'Marty']);
+      expect(a3.toArray()).toEqual(['yellow art', 'black', 'Carcosa', 'death', 'scarred', 'Marty']);
+      expect(a4.toArray()).toEqual(['black', 'Carcosa', 'scarred']);
+
+      a1.length = 5;
+      expect(a2.toArray()).toEqual(['detective', 'yellow art', 'black', 'Carcosa']);
+      expect(a3.toArray()).toEqual(['yellow art', 'black', 'Carcosa']);
+      expect(a4.toArray()).toEqual(['black', 'Carcosa']);
+
+      a1.reverse();
+      expect(a2.toArray()).toEqual(['detective', 'yellow art', 'black', 'Carcosa'].reverse());
+      expect(a3.toArray()).toEqual(['yellow art', 'black', 'Carcosa'].reverse());
+      expect(a4.toArray()).toEqual(['black', 'Carcosa'].reverse());
+
+      a1.sort();
+      expect(a2.toArray()).toEqual(['Carcosa', 'black', 'detective', 'yellow art']);
+      expect(a3.toArray()).toEqual(['Carcosa', 'black', 'yellow art']);
+      expect(a4.toArray()).toEqual(['Carcosa', 'black']);
+
+      a1.splice(2, 2, 'meadow');
+      expect(a2.toArray()).toEqual(['Carcosa', 'black', 'meadow', 'yellow art']);
+      expect(a3.toArray()).toEqual(['Carcosa', 'black', 'meadow', 'yellow art']);
+      expect(a4.toArray()).toEqual(['Carcosa', 'black']);
+    });
   });
 
   describe('#map', function () {
