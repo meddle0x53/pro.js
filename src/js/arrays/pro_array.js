@@ -72,10 +72,25 @@ Pro.Array.Operations = {
   reverse: 4,
   sort: 5,
   splice: 6,
-  all: 7,
 
   isIndexOp: function (op) {
     return op === this.set || op === this.reverse || op === this.sort;
+  }
+};
+
+Pro.Array.reFilter = function (original, filtered, filterArgs) {
+  var oarr = filtered._array,
+      diff, j;
+
+  filtered._array = filter.apply(original._array, filterArgs);
+  diff = Pro.Utils.diff(oarr, filtered._array);
+
+  for (j in diff) { break; }
+  if (j) {
+    diff = diff[j];
+    Pro.flow.run(function () {
+      filtered.willUpdateSplice(j, diff.o, diff.n);
+    });
   }
 };
 
@@ -236,14 +251,14 @@ Pro.Array.prototype.filter = function (fun, thisArg) {
         ov  = event.args[2],
         nv  = event.args[3],
         napply, oapply, oarr,
-        nvs, fnvs, j, ln;
+        nvs, fnvs, j, ln, diff;
 
     if (op === Pro.Array.Operations.set) {
       napply = fun.call(thisArg, nv);
       oapply = fun.call(thisArg, ov);
 
       if (oapply === true || napply === true) {
-        filtered._array = filter.apply(_this._array, args);
+        Pro.Array.reFilter(_this, filtered, args);
       }
     } else if (op === Pro.Array.Operations.add) {
       fnvs = [];
@@ -283,13 +298,13 @@ Pro.Array.prototype.filter = function (fun, thisArg) {
         }
       }
     } else if (op === Pro.Array.Operations.setLength) {
-      filtered._array = filter.apply(_this._array, args);
+      Pro.Array.reFilter(_this, filtered, args);
     } else if (op === Pro.Array.Operations.reverse) {
       filtered.reverse();
     } else if (op === Pro.Array.Operations.sort) {
       Pro.Array.prototype.sort.apply(filtered, nv);
     } else if (op === Pro.Array.Operations.splice) {
-      filtered._array = filter.apply(_this._array, args);
+      Pro.Array.reFilter(_this, filtered, args);
     }
   });
   return filtered;

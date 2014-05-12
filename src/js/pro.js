@@ -70,6 +70,51 @@ Pro.Utils.contains = function (array, value) {
   return false;
 };
 
+Pro.Utils.diff = function (array1, array2) {
+  var i, e1, e2,
+      index = -1,
+      l1 = array1.length,
+      l2 = array2.length,
+      diff = {};
+
+  if (l1 >= l2) {
+    for (i = 0; i < l2; i++) {
+      e1 = array1[i];
+      e2 = array2[i];
+
+      if (e1 !== e2) {
+        if (index === -1) {
+          index = i;
+        }
+        diff[index] = diff[index] || {o: [], n: []};
+        diff[index].o.push(e1);
+        diff[index].n.push(e2);
+      } else {
+        index = -1;
+      }
+    }
+
+    if (index === -1) {
+      index = i;
+    }
+    diff[index] = diff[index] || {o: [], n: []};
+    for (; i < l1; i++) {
+      e1 = array1[i];
+      diff[index].o.push(e1);
+    }
+  } else if (l2 > l1) {
+    diff = Pro.Utils.diff(array2, array1)
+    for (i in diff) {
+      el1 = diff[i];
+      el2 = el1.n;
+      el1.n = el1.o;
+      el1.o = el2;
+    }
+  }
+
+  return diff;
+};
+
 Pro.Configuration = {
   keyprops: true,
   keypropList: ['p']
