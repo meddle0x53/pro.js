@@ -283,11 +283,13 @@ Pro.Array.prototype.filter = function (fun, thisArg) {
         }
       }
     } else if (op === Pro.Array.Operations.setLength) {
-      filtered.length = nv;
+      filtered._array = filter.apply(_this._array, args);
     } else if (op === Pro.Array.Operations.reverse) {
       filtered.reverse();
     } else if (op === Pro.Array.Operations.sort) {
       Pro.Array.prototype.sort.apply(filtered, nv);
+    } else if (op === Pro.Array.Operations.splice) {
+      filtered._array = filter.apply(_this._array, args);
     }
   });
   return filtered;
