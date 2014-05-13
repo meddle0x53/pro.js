@@ -217,28 +217,76 @@ describe('Pro.Array', function () {
     expect(obj.prop).toBe(0);
   });
 
-  it('updates properties depending on #concat', function () {
-    var array = new Pro.Array(1, 2, 3, 4, 5),
-        obj = {
-          prop: function () {
-            return array.concat(6, 7, 8, 9);
-          }
-        },
-        property = new Pro.AutoProperty(obj, 'prop');
+  describe('#concat', function () {
+    it('returns a Pro.Array instance', function () {
+      var array = new Pro.Array(1, 2, 3, 4, 5),
+          res = array.concat(6, 7);
 
-    expect(obj.prop.valueOf()).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      expect(Pro.Utils.isProArray(res)).toBe(true);
+      expect(res.valueOf()).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    });
 
-    array[0] = 10;
-    expect(obj.prop.valueOf()).toEqual([10, 2, 3, 4, 5, 6, 7, 8, 9]);
+    it('updates properties depending on it', function () {
+      var array = new Pro.Array(1, 2, 3, 4, 5),
+          obj = {
+            prop: function () {
+              return array.concat(6, 7, 8, 9);
+            }
+          },
+          property = new Pro.AutoProperty(obj, 'prop');
 
-    array.length = 1;
-    expect(obj.prop).toEqual(array.concat(6, 7, 8, 9));
+      expect(obj.prop.valueOf()).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
-    array.push(200);
-    expect(obj.prop).toEqual(array.concat(6, 7, 8, 9));
+      array[0] = 10;
+      expect(obj.prop.valueOf()).toEqual([10, 2, 3, 4, 5, 6, 7, 8, 9]);
 
-    array.pop();
-    expect(obj.prop).toEqual(array.concat(6, 7, 8, 9));
+      array.length = 1;
+      expect(obj.prop).toEqual(array.concat(6, 7, 8, 9));
+
+      array.push(200);
+      expect(obj.prop).toEqual(array.concat(6, 7, 8, 9));
+
+      array.pop();
+      expect(obj.prop).toEqual(array.concat(6, 7, 8, 9));
+    });
+
+    it('the returned Pro.Array depends on the original one', function () {
+      var array = new Pro.Array(1, 2, 3, 4, 5),
+          res = array.concat(6, 7);
+
+      array[2] = -3;
+      expect(res.toArray()).toEqual([1, 2, -3, 4, 5, 6, 7]);
+
+      array.push(8);
+      expect(res.toArray()).toEqual([1, 2, -3, 4, 5, 8, 6, 7]);
+
+      array.unshift(-1, 0);
+      expect(res.toArray()).toEqual([-1, 0, 1, 2, -3, 4, 5, 8, 6, 7]);
+
+      array.pop();
+      expect(res.toArray()).toEqual([-1, 0, 1, 2, -3, 4, 5, 6, 7]);
+
+      array.shift();
+      expect(res.toArray()).toEqual([0, 1, 2, -3, 4, 5, 6, 7]);
+
+      array.length = 3;
+      expect(res.toArray()).toEqual([0, 1, 2, 6, 7]);
+
+      array.length = 6;
+      expect(res.toArray()).toEqual([0, 1, 2, undefined, undefined, undefined, 6, 7]);
+
+      array.splice(3, 3);
+      expect(res.toArray()).toEqual([0, 1, 2, 6, 7]);
+
+      array.reverse();
+      expect(res.toArray()).toEqual([2, 1, 0, 6, 7]);
+
+      array.sort();
+      expect(res.toArray()).toEqual([0, 1, 2, 6, 7]);
+
+      array.splice(2, 14, 4, 5);
+      expect(res.toArray()).toEqual([0, 1, 4, 5, 6, 7]);
+    });
   });
 
   describe('#every & #pevery', function () {
