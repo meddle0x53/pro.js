@@ -219,6 +219,9 @@ Pro.Array.prototype.willUpdateListeners = function (listeners, op, ind, oldVal, 
   }
 };
 
+
+// TODO 1. Reactive result.
+// TODO 2. if argument is Pro.Array - work on it
 Pro.Array.prototype.concat = function () {
   this.addIndexCaller();
   this.addLengthCaller();
@@ -277,6 +280,7 @@ Pro.Array.prototype.pevery = function (fun, thisArg) {
   return val;
 };
 
+// TODO psome
 Pro.Array.prototype.some = function () {
   this.addIndexCaller();
   this.addLengthCaller();
@@ -494,6 +498,7 @@ Pro.Array.prototype.preduceRight = function (fun /*, initialValue */) {
   return val;
 };
 
+// TODO pindexof
 Pro.Array.prototype.indexOf = function () {
   this.addIndexCaller();
   this.addLengthCaller();
@@ -501,6 +506,7 @@ Pro.Array.prototype.indexOf = function () {
   return indexOf.apply(this._array, arguments);
 };
 
+// TODO plastindexof
 Pro.Array.prototype.lastIndexOf = function () {
   this.addIndexCaller();
   this.addLengthCaller();
@@ -508,6 +514,7 @@ Pro.Array.prototype.lastIndexOf = function () {
   return lastIndexOf.apply(this._array, arguments);
 };
 
+// TODO pjoin use preduce!
 Pro.Array.prototype.join = function () {
   this.addIndexCaller();
   this.addLengthCaller();
@@ -515,6 +522,7 @@ Pro.Array.prototype.join = function () {
   return join.apply(this._array, arguments);
 };
 
+// TODO ptoLocaleString
 Pro.Array.prototype.toLocaleString = function () {
   this.addIndexCaller();
   this.addLengthCaller();
@@ -522,6 +530,7 @@ Pro.Array.prototype.toLocaleString = function () {
   return toLocaleString.apply(this._array, arguments);
 };
 
+// TODO ptoString
 Pro.Array.prototype.toString = function () {
   this.addIndexCaller();
   this.addLengthCaller();
@@ -533,6 +542,7 @@ Pro.Array.prototype.valueOf = function () {
   return this.toArray();
 };
 
+// TODO reactivate
 Pro.Array.prototype.slice = function () {
   this.addIndexCaller();
   this.addLengthCaller();
@@ -565,6 +575,7 @@ Pro.Array.prototype.sort = function () {
   return sorted;
 };
 
+// TODO think if it can be reactivated... maybe not.
 Pro.Array.prototype.splice = function (index, howMany) {
   var oldLn = this._array.length,
       spliced = splice.apply(this._array, arguments),
@@ -671,6 +682,7 @@ Pro.Array.prototype.toArray = function () {
   return result;
 };
 
+// TODO reactivate
 Pro.Array.prototype.toJSON = function () {
   return JSON.stringify(this._array);
 };

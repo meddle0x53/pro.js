@@ -1,7 +1,17 @@
 [4mRunning "todo:src" (todo) task[24m
 
-spec/unit/flow/flow.spec.js
+src/js/arrays/pro_array.js
 
-	line 191  TODO  For the real diamond test - c should be before b, thanks to Tanya
+	line 223  TODO  1. Reactive result.
+	line 224  TODO  2. if argument is Pro.Array - work on it
+	line 283  TODO  psome
+	line 501  TODO  pindexof
+	line 509  TODO  plastindexof
+	line 517  TODO  pjoin use preduce!
+	line 525  TODO  ptoLocaleString
+	line 533  TODO  ptoString
+	line 545  TODO  reactivate
+	line 578  TODO  think if it can be reactivated... maybe not.
+	line 685  TODO  reactivate
 
 [32mDone, without errors.[39m
