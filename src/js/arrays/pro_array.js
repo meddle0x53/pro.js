@@ -94,6 +94,19 @@ Pro.Array.reFilter = function (original, filtered, filterArgs) {
   }
 };
 
+Pro.Array.everyNewValue = function (fun, thisArg, nv) {
+  var nvs = slice.call(nv, 0),
+      j = nvs.length - 1;
+  while (j >= 0) {
+    if (!fun.call(thisArg, nvs[j])) {
+      return false;
+    }
+    j--;
+  }
+
+  return true;
+};
+
 Pro.Array.prototype.addLengthListener = function (listener) {
   this.lengthListeners.push(listener);
 };
@@ -218,19 +231,6 @@ Pro.Array.prototype.every = function () {
   this.addLengthCaller();
 
   return every.apply(this._array, arguments);
-};
-
-Pro.Array.everyNewValue = function (fun, thisArg, nv) {
-  var nvs = slice.call(nv, 0),
-      j = nvs.length - 1;
-  while (j >= 0) {
-    if (!fun.call(thisArg, nvs[j])) {
-      return false;
-    }
-    j--;
-  }
-
-  return true;
 };
 
 Pro.Array.prototype.pevery = function (fun, thisArg) {
@@ -436,6 +436,32 @@ Pro.Array.prototype.reduce = function (fun /*, initialValue */) {
   return reduce.apply(this._array, arguments);
 };
 
+Pro.Array.prototype.preduce = function (fun /*, initialValue */) {
+  var _this = this, args = arguments,
+      val = new Pro.Val(reduce.apply(this._array, args)), oldLn = this._array.length;
+
+  this.addListener(function (event) {
+    if (event.type !== Pro.Event.Types.array) {
+      throw Error('Not implemented for non array events');
+    }
+    var op  = event.args[0],
+        ind = event.args[1],
+        ov  = event.args[2],
+        nv  = event.args[3],
+        nvs;
+    if ((op === Pro.Array.Operations.add && ind !== 0) ||
+       (op === Pro.Array.Operations.splice && ind >= oldLn && ov.length === 0)) {
+      nvs = slice.call(nv, 0);
+      val.v = reduce.apply(nvs, [fun, val.valueOf()]);
+    } else {
+      val.v = reduce.apply(_this._array, args);
+    }
+    oldLn = _this._array.length;
+  });
+
+  return val;
+};
+
 Pro.Array.prototype.reduceRight = function (fun /*, initialValue */) {
   this.addIndexCaller();
   this.addLengthCaller();
@@ -621,5 +647,5 @@ Pro.Array.prototype.toArray = function () {
 };
 
 Pro.Array.prototype.toJSON = function () {
-  return JSON1.stringify(this._array);
+  return JSON.stringify(this._array);
 };

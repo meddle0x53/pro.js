@@ -277,18 +277,6 @@ describe('Pro.Array', function () {
         expect(Pro.Utils.isProVal(every)).toBe(true);
         expect(every.valueOf()).toBe(true);
       });
-    });
-
-    describe('#pevery', function () {
-      it('returns pro value', function () {
-        var array = new Pro.Array(1, 2, 3, 4, 5),
-            every = array.pevery(function (el) {
-              return typeof(el) === 'number';
-            });
-
-        expect(Pro.Utils.isProVal(every)).toBe(true);
-        expect(every.valueOf()).toBe(true);
-      });
 
       it('on list changes the produced value is updated', function () {
         var array = new Pro.Array(1, 2, 3, 4, 5),
@@ -684,27 +672,80 @@ describe('Pro.Array', function () {
     });
   });
 
-  it('updates properties depending on #reduce', function () {
-    var array = new Pro.Array(3, 5, 4),
-        obj = {
-          prop: function () {
-            return array.reduce(function (sum, el2) {
-              return (sum + (el2 * el2));
+  describe('#reduce & #preduce', function () {
+    it('updates properties depending on #reduce', function () {
+      var array = new Pro.Array(3, 5, 4),
+          obj = {
+            prop: function () {
+              return array.reduce(function (sum, el2) {
+                return (sum + (el2 * el2));
+              }, 0);
+            }
+          },
+          property = new Pro.AutoProperty(obj, 'prop');
+
+      expect(obj.prop).toEqual(50);
+
+      array[1] = 0;
+      expect(obj.prop).toEqual(25);
+
+      array.pop();
+      expect(obj.prop).toEqual(9);
+
+      array.length = 0;
+      expect(obj.prop).toEqual(0);
+    });
+
+    describe('#preduce', function () {
+      it('returns pro value', function () {
+        var array = new Pro.Array(1, 2, 3, 4, 5),
+            val = array.preduce(function (i, el) {
+              return i + el;
             }, 0);
-          }
-        },
-        property = new Pro.AutoProperty(obj, 'prop');
 
-    expect(obj.prop).toEqual(50);
+        expect(Pro.Utils.isProVal(val)).toBe(true);
+        expect(val.valueOf()).toBe(15);
+      });
 
-    array[1] = 0;
-    expect(obj.prop).toEqual(25);
+      it('on list changes the produced value is updated', function () {
+        var array = new Pro.Array('b', 'a', 'h', 'a', 'm', 'a'),
+            val = array.preduce(function (pel, el) {
+              return pel + '-' + el;
+            });
 
-    array.pop();
-    expect(obj.prop).toEqual(9);
+        expect(val.valueOf()).toEqual('b-a-h-a-m-a');
 
-    array.length = 0;
-    expect(obj.prop).toEqual(0);
+        array[0] = 'm';
+        expect(val.valueOf()).toEqual('m-a-h-a-m-a');
+
+        array.push('i');
+        expect(val.valueOf()).toEqual('m-a-h-a-m-a-i');
+
+        array.unshift('h');
+        expect(val.valueOf()).toEqual('h-m-a-h-a-m-a-i');
+
+        array.pop();
+        expect(val.valueOf()).toEqual('h-m-a-h-a-m-a');
+
+        array.shift();
+        expect(val.valueOf()).toEqual('m-a-h-a-m-a');
+
+        array.length = 3;
+        expect(val.valueOf()).toEqual('m-a-h');
+
+        array.reverse();
+        expect(val.valueOf()).toEqual('h-a-m');
+
+        array.sort();
+        expect(val.valueOf()).toEqual('a-h-m');
+
+        array.splice(1, 1, 'l', 'a', 'b', 'a');
+        expect(val.valueOf()).toEqual('a-l-a-b-a-m');
+
+        array.splice(6, 0, 'a', 's');
+        expect(val.valueOf()).toEqual('a-l-a-b-a-m-a-s');
+      });
+    });
   });
 
   it('updates properties depending on #reduceRight', function () {
