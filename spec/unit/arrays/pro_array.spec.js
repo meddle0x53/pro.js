@@ -748,28 +748,82 @@ describe('Pro.Array', function () {
     });
   });
 
-  it('updates properties depending on #reduceRight', function () {
-    var array = new Pro.Array(3, 5, 4),
-        obj = {
-          prop: function () {
-            return array.reduceRight(function (sum, el2) {
-              return (sum + (el2 * el2));
+  describe('#reduceRight & #preduceRight', function () {
+    it('updates properties depending on #reduceRight', function () {
+      var array = new Pro.Array(3, 5, 4),
+          obj = {
+            prop: function () {
+              return array.reduceRight(function (sum, el2) {
+                return (sum + (el2 * el2));
+              }, 0);
+            }
+          },
+          property = new Pro.AutoProperty(obj, 'prop');
+
+      expect(obj.prop).toEqual(50);
+
+      array[1] = 0;
+      expect(obj.prop).toEqual(25);
+
+      array.pop();
+      expect(obj.prop).toEqual(9);
+
+      array.length = 0;
+      expect(obj.prop).toEqual(0);
+    });
+
+    describe('#preduceRight', function () {
+      it('returns pro value', function () {
+        var array = new Pro.Array(1, 2, 3, 4, 5),
+            val = array.preduceRight(function (i, el) {
+              return i + el;
             }, 0);
-          }
-        },
-        property = new Pro.AutoProperty(obj, 'prop');
 
-    expect(obj.prop).toEqual(50);
+        expect(Pro.Utils.isProVal(val)).toBe(true);
+        expect(val.valueOf()).toBe(15);
+      });
 
-    array[1] = 0;
-    expect(obj.prop).toEqual(25);
+      it('on list changes the produced value is updated', function () {
+        var array = new Pro.Array('b', 'a', 'h', 'a', 'm', 'a'),
+            val = array.preduceRight(function (pel, el) {
+              return pel + '-' + el;
+            });
 
-    array.pop();
-    expect(obj.prop).toEqual(9);
+        expect(val.valueOf()).toEqual('a-m-a-h-a-b');
 
-    array.length = 0;
-    expect(obj.prop).toEqual(0);
+        array[0] = 'm';
+        expect(val.valueOf()).toEqual('a-m-a-h-a-m');
+
+        array.push('i');
+        expect(val.valueOf()).toEqual('i-a-m-a-h-a-m');
+
+        array.unshift('h');
+        expect(val.valueOf()).toEqual('i-a-m-a-h-a-m-h');
+
+        array.pop();
+        expect(val.valueOf()).toEqual('a-m-a-h-a-m-h');
+
+        array.shift();
+        expect(val.valueOf()).toEqual('a-m-a-h-a-m');
+
+        array.length = 3;
+        expect(val.valueOf()).toEqual('h-a-m');
+
+        array.reverse();
+        expect(val.valueOf()).toEqual('m-a-h');
+
+        array.sort();
+        expect(val.valueOf()).toEqual('m-h-a');
+
+        array.splice(1, 1, 'l', 'a', 'b', 'a');
+        expect(val.valueOf()).toEqual('m-a-b-a-l-a');
+
+        array.splice(0, 0, 'a', 's');
+        expect(val.valueOf()).toEqual('m-a-b-a-l-a-s-a');
+      });
+    });
   });
+
 
   it('updates properties depending on #indexOf', function () {
     var array = new Pro.Array(3, 5, 4),
