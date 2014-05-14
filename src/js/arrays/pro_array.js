@@ -282,66 +282,8 @@ Pro.Array.prototype.filter = function (fun, thisArg) {
 };
 
 Pro.Array.prototype.map = function (fun, thisArg) {
-  var mapped = new Pro.Array(map.apply(this._array, arguments)),
-      _this = this;
-  this.addListener(function (event) {
-    if (event.type !== Pro.Event.Types.array) {
-      throw Error('Not implemented for non array events');
-    }
-    var op  = event.args[0],
-        ind = event.args[1],
-        ov  = event.args[2],
-        nv  = event.args[3],
-        nvs, j, ln, mnvs;
-    if (op === Pro.Array.Operations.set) {
-      mapped[ind] = fun.call(thisArg, nv);
-    } else if (op === Pro.Array.Operations.add) {
-      mnvs = [];
-      nvs = slice.call(nv, 0);
-      ln = nvs.length;
-      if (ind === 0) {
-        j = ln - 1;
-        while(j >= 0) {
-          mnvs[j] = fun.apply(thisArg, [nvs[j], j, _this._array]);
-          j--;
-        }
-
-        Pro.Array.prototype.unshift.apply(mapped, mnvs);
-      } else {
-        j = 0;
-        while(j < ln) {
-          mnvs[j] = fun.apply(thisArg, [nvs[j], _this._array.length - (ln - j), _this._array]);
-          j++;
-        }
-
-        Pro.Array.prototype.push.apply(mapped, mnvs);
-      }
-    } else if (op === Pro.Array.Operations.remove) {
-      if (ind === 0) {
-        mapped.shift();
-      } else {
-        mapped.pop();
-      }
-    } else if (op === Pro.Array.Operations.setLength) {
-      mapped.length = nv;
-    } else if (op === Pro.Array.Operations.reverse) {
-      mapped.reverse();
-    } else if (op === Pro.Array.Operations.sort) {
-      Pro.Array.prototype.sort.apply(mapped, nv);
-    } else if (op === Pro.Array.Operations.splice) {
-      mnvs = [];
-      j = 0;
-      while (j < nv.length) {
-        mnvs[j] = fun.apply(thisArg, [nv[j], (j + ind), _this._array]);
-        j++;
-      }
-
-      Pro.Array.prototype.splice.apply(mapped, [
-        ind,
-        ov.length
-      ].concat(mnvs));
-    }
-  });
+  var mapped = new Pro.Array(map.apply(this._array, arguments));
+  this.addListener(Pro.Array.Listeners.map(mapped, this, arguments));
 
   return mapped;
 };

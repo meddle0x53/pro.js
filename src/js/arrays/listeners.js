@@ -130,9 +130,7 @@ Pro.Array.Listeners.every = function (val, original, args) {
 Pro.Array.Listeners.filter = function (filtered, original, args) {
   var fun = args[0], thisArg = args[1];
   return function (event) {
-    if (event.type !== Pro.Event.Types.array) {
-      throw Error('Not implemented for non array events');
-    }
+    Pro.Array.Listeners.check(event);
     var op  = event.args[0],
         ind = event.args[1],
         ov  = event.args[2],
@@ -192,6 +190,66 @@ Pro.Array.Listeners.filter = function (filtered, original, args) {
       Pro.Array.prototype.sort.apply(filtered, nv);
     } else if (op === Pro.Array.Operations.splice) {
       Pro.Array.reFilter(original, filtered, args);
+    }
+  };
+};
+
+Pro.Array.Listeners.map = function (mapped, original, args) {
+  var fun = args[0], thisArg = args[1];
+  return function (event) {
+    Pro.Array.Listeners.check(event);
+    var op  = event.args[0],
+        ind = event.args[1],
+        ov  = event.args[2],
+        nv  = event.args[3],
+        nvs, j, ln, mnvs;
+    if (op === Pro.Array.Operations.set) {
+      mapped[ind] = fun.call(thisArg, nv);
+    } else if (op === Pro.Array.Operations.add) {
+      mnvs = [];
+      nvs = slice.call(nv, 0);
+      ln = nvs.length;
+      if (ind === 0) {
+        j = ln - 1;
+        while(j >= 0) {
+          mnvs[j] = fun.apply(thisArg, [nvs[j], j, original._array]);
+          j--;
+        }
+
+        Pro.Array.prototype.unshift.apply(mapped, mnvs);
+      } else {
+        j = 0;
+        while(j < ln) {
+          mnvs[j] = fun.apply(thisArg, [nvs[j], original._array.length - (ln - j), original._array]);
+          j++;
+        }
+
+        Pro.Array.prototype.push.apply(mapped, mnvs);
+      }
+    } else if (op === Pro.Array.Operations.remove) {
+      if (ind === 0) {
+        mapped.shift();
+      } else {
+        mapped.pop();
+      }
+    } else if (op === Pro.Array.Operations.setLength) {
+      mapped.length = nv;
+    } else if (op === Pro.Array.Operations.reverse) {
+      mapped.reverse();
+    } else if (op === Pro.Array.Operations.sort) {
+      Pro.Array.prototype.sort.apply(mapped, nv);
+    } else if (op === Pro.Array.Operations.splice) {
+      mnvs = [];
+      j = 0;
+      while (j < nv.length) {
+        mnvs[j] = fun.apply(thisArg, [nv[j], (j + ind), original._array]);
+        j++;
+      }
+
+      Pro.Array.prototype.splice.apply(mapped, [
+        ind,
+        ov.length
+      ].concat(mnvs));
     }
   };
 };
