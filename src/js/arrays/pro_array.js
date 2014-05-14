@@ -310,26 +310,8 @@ Pro.Array.prototype.reduceRight = function (fun /*, initialValue */) {
 };
 
 Pro.Array.prototype.preduceRight = function (fun /*, initialValue */) {
-  var _this = this, args = arguments,
-      val = new Pro.Val(reduceRight.apply(this._array, args));
-
-  this.addListener(function (event) {
-    if (event.type !== Pro.Event.Types.array) {
-      throw Error('Not implemented for non array events');
-    }
-    var op  = event.args[0],
-        ind = event.args[1],
-        ov  = event.args[2],
-        nv  = event.args[3],
-        nvs;
-    if ((op === Pro.Array.Operations.add && ind === 0) ||
-       (op === Pro.Array.Operations.splice && ind === 0 && ov.length === 0)) {
-      nvs = slice.call(nv, 0);
-      val.v = reduceRight.apply(nvs, [fun, val.valueOf()]);
-    } else {
-      val.v = reduceRight.apply(_this._array, args);
-    }
-  });
+  var val = new Pro.Val(reduceRight.apply(this._array, arguments));
+  this.addListener(Pro.Array.Listeners.reduceRight(val, this, arguments));
 
   return val;
 };

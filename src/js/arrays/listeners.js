@@ -257,9 +257,7 @@ Pro.Array.Listeners.map = function (mapped, original, args) {
 Pro.Array.Listeners.reduce = function (val, original, args) {
   var oldLn = original._array.length, fun = args[0];
   return function (event) {
-    if (event.type !== Pro.Event.Types.array) {
-      throw Error('Not implemented for non array events');
-    }
+    Pro.Array.Listeners.check(event);
     var op  = event.args[0],
         ind = event.args[1],
         ov  = event.args[2],
@@ -273,5 +271,24 @@ Pro.Array.Listeners.reduce = function (val, original, args) {
       val.v = reduce.apply(original._array, args);
     }
     oldLn = original._array.length;
+  };
+};
+
+Pro.Array.Listeners.reduceRight = function (val, original, args) {
+  var fun = args[0];
+  return function (event) {
+    Pro.Array.Listeners.check(event);
+    var op  = event.args[0],
+        ind = event.args[1],
+        ov  = event.args[2],
+        nv  = event.args[3],
+        nvs;
+    if ((op === Pro.Array.Operations.add && ind === 0) ||
+       (op === Pro.Array.Operations.splice && ind === 0 && ov.length === 0)) {
+      nvs = slice.call(nv, 0);
+      val.v = reduceRight.apply(nvs, [fun, val.valueOf()]);
+    } else {
+      val.v = reduceRight.apply(original._array, args);
+    }
   };
 };
