@@ -241,45 +241,9 @@ Pro.Array.prototype.every = function () {
 };
 
 Pro.Array.prototype.pevery = function (fun, thisArg) {
-  var _this = this, args = arguments,
-      val = new Pro.Val(every.apply(this._array, args));
+  var val = new Pro.Val(every.apply(this._array, arguments));
 
-  this.addListener(function (event) {
-    if (event.type !== Pro.Event.Types.array) {
-      throw Error('Not implemented for non array events');
-    }
-    var op  = event.args[0],
-        ind = event.args[1],
-        ov  = event.args[2],
-        nv  = event.args[3],
-        ev;
-    if (op === Pro.Array.Operations.set) {
-      ev = fun.call(thisArg, nv);
-      if (val.valueOf() === true && !ev) {
-        val.v = false;
-      } else if (val.valueOf() === false && ev) {
-        val.v = every.apply(_this._array, args);
-      }
-    } else if (op === Pro.Array.Operations.add) {
-      if (val.valueOf() === true) {
-        val.v = Pro.Array.everyNewValue(fun, thisArg, nv);
-      }
-    } else if (op === Pro.Array.Operations.remove) {
-      if (val.valueOf() === false && !fun.call(thisArg, ov)) {
-        val.v = every.apply(_this._array, args);
-      }
-    } else if (op === Pro.Array.Operations.setLength) {
-      if (val.valueOf() === false) {
-        val.v = every.apply(_this._array, args);
-      }
-    } else if (op === Pro.Array.Operations.splice) {
-      if (val.valueOf() === true) {
-        val.v = Pro.Array.everyNewValue(fun, thisArg, nv);
-      } else if (Pro.Array.everyNewValue(fun, thisArg, nv) && !Pro.Array.everyNewValue(fun, thisArg, ov)) {
-        val.v = every.apply(_this._array, args);
-      }
-    }
-  });
+  this.addListener(Pro.Array.Listeners.every(val, this, arguments));
 
   return val;
 };

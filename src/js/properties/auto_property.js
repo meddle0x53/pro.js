@@ -26,7 +26,7 @@ Pro.AutoProperty = function (proObject, property) {
   Pro.Property.call(this, proObject, property, getter, function () {});
 };
 
-Pro.AutoProperty.prototype = Object.create(Pro.Property.prototype);;
+Pro.AutoProperty.prototype = Object.create(Pro.Property.prototype);
 Pro.AutoProperty.prototype.constructor = Pro.AutoProperty;
 
 Pro.AutoProperty.prototype.type = function () {
