@@ -287,6 +287,60 @@ describe('Pro.Array', function () {
       array.splice(2, 14, 4, 5);
       expect(res.toArray()).toEqual([0, 1, 4, 5, 6, 7]);
     });
+
+    it('the returned result depends on the argument if the argument is a Pro.Array too', function () {
+      var array1 = new Pro.Array(1, 2, 3, 4, 5),
+          array2 = new Pro.Array(6, 7, 8, 9, 10),
+          res = array1.concat(array2);
+
+      expect(res.toArray()).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+      array2[2] = 18;
+      expect(res.toArray()).toEqual([1, 2, 3, 4, 5, 6, 7, 18, 9, 10]);
+
+      array2[4] = 1;
+      array1[3] = 7;
+      expect(res.toArray()).toEqual([1, 2, 3, 7, 5, 6, 7, 18, 9, 1]);
+
+      array1.push(5.5);
+      array2.push(2, 3);
+      expect(res.toArray()).toEqual([1, 2, 3, 7, 5, 5.5, 6, 7, 18, 9, 1, 2, 3]);
+
+      array1.unshift(0);
+      array2.unshift(4, 5);
+      expect(res.toArray()).toEqual([0, 1, 2, 3, 7, 5, 5.5, 4, 5, 6, 7, 18, 9, 1, 2, 3]);
+
+      array2.pop();
+      array1.pop();
+      array2.pop();
+      expect(res.toArray()).toEqual([0, 1, 2, 3, 7, 5, 4, 5, 6, 7, 18, 9, 1]);
+
+      array2.shift();
+      array1.pop();
+      array1.pop();
+      array2.shift();
+      array1.shift();
+      expect(res.toArray()).toEqual([1, 2, 3, 6, 7, 18, 9, 1]);
+
+      array2.length = 2;
+      array1.length = 2;
+      expect(res.toArray()).toEqual([1, 2, 6, 7]);
+
+      array2.reverse();
+      array1.reverse();
+      expect(res.toArray()).toEqual([2, 1, 7, 6]);
+
+      array1.sort();
+      array2.sort();
+      expect(res.toArray()).toEqual([1, 2, 6, 7]);
+
+      array2.splice(0, 1, 3, 4, 5, 6);
+      array1.splice(2, 0, 3, 4);
+      array2.splice(1, 1, 3);
+      array2.splice(1, 2, 4);
+      array2.splice(0, 2, 5);
+      expect(res.toArray()).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    });
   });
 
   describe('#every & #pevery', function () {

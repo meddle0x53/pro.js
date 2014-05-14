@@ -225,10 +225,21 @@ Pro.Array.prototype.updateByDiff = function (array) {
 };
 
 
-// TODO 2. if argument is Pro.Array - work on it
 Pro.Array.prototype.concat = function () {
-  var res = new Pro.Array(concat.apply(this._array, arguments));
-  this.addListener(Pro.Array.Listeners.leftConcat(res, this, arguments));
+  var res, rightProArray;
+
+  if (arguments.length === 1 && Pro.Utils.isProArray(arguments[0])) {
+    rightProArray = arguments[0];
+    arguments[0] = rightProArray._array;
+  }
+
+  res = new Pro.Array(concat.apply(this._array, arguments));
+  if (rightProArray) {
+    this.addListener(Pro.Array.Listeners.leftConcat(res, this, rightProArray));
+    rightProArray.addListener(Pro.Array.Listeners.rightConcat(res, this, rightProArray));
+  } else {
+    this.addListener(Pro.Array.Listeners.leftConcat(res, this, slice.call(arguments, 0)));
+  }
 
   return res;
 };
@@ -264,75 +275,9 @@ Pro.Array.prototype.forEach = function (fun /*, thisArg */) {
 };
 
 Pro.Array.prototype.filter = function (fun, thisArg) {
-  var args = arguments,
-      filtered = new Pro.Array(filter.apply(this._array, args)),
-      _this = this;
+  var filtered = new Pro.Array(filter.apply(this._array, arguments));
+  this.addListener(Pro.Array.Listeners.filter(filtered, this, arguments));
 
-  this.addListener(function (event) {
-    if (event.type !== Pro.Event.Types.array) {
-      throw Error('Not implemented for non array events');
-    }
-    var op  = event.args[0],
-        ind = event.args[1],
-        ov  = event.args[2],
-        nv  = event.args[3],
-        napply, oapply, oarr,
-        nvs, fnvs, j, ln, diff;
-
-    if (op === Pro.Array.Operations.set) {
-      napply = fun.call(thisArg, nv);
-      oapply = fun.call(thisArg, ov);
-
-      if (oapply === true || napply === true) {
-        Pro.Array.reFilter(_this, filtered, args);
-      }
-    } else if (op === Pro.Array.Operations.add) {
-      fnvs = [];
-      nvs = slice.call(nv, 0);
-      ln = nvs.length;
-      if (ind === 0) {
-        j = ln - 1;
-        while(j >= 0) {
-          if (fun.apply(thisArg, [nvs[j], j, _this._array])) {
-            fnvs.unshift(nvs[j]);
-          }
-          j--;
-        }
-
-        if (fnvs.length) {
-          Pro.Array.prototype.unshift.apply(filtered, fnvs);
-        }
-      } else {
-        j = 0;
-        while(j < ln) {
-          if (fun.apply(thisArg, [nvs[j], _this._array.length - (ln - j), _this._array])) {
-            fnvs.push(nvs[j]);
-          }
-          j++;
-        }
-
-        if (fnvs.length) {
-          Pro.Array.prototype.push.apply(filtered, fnvs);
-        }
-      }
-    } else if (op === Pro.Array.Operations.remove) {
-      if (fun.apply(thisArg, [ov, ind, _this._array])) {
-        if (ind === 0) {
-          filtered.shift();
-        } else {
-          filtered.pop();
-        }
-      }
-    } else if (op === Pro.Array.Operations.setLength) {
-      Pro.Array.reFilter(_this, filtered, args);
-    } else if (op === Pro.Array.Operations.reverse) {
-      filtered.reverse();
-    } else if (op === Pro.Array.Operations.sort) {
-      Pro.Array.prototype.sort.apply(filtered, nv);
-    } else if (op === Pro.Array.Operations.splice) {
-      Pro.Array.reFilter(_this, filtered, args);
-    }
-  });
   return filtered;
 };
 
@@ -597,7 +542,7 @@ Pro.Array.prototype.push = function () {
   }
 
   Pro.flow.run(function () {
-    _this.willUpdate(Pro.Array.Operations.add, _this._array.length - 1, null, vals);
+    _this.willUpdate(Pro.Array.Operations.add, _this._array.length - 1, null, slice.call(vals, 0));
   });
 
   return this._array.length;
@@ -619,7 +564,7 @@ Pro.Array.prototype.shift = function () {
 };
 
 Pro.Array.prototype.unshift = function () {
-  var vals = arguments, i, ln = arguments.length,
+  var vals = slice.call(arguments, 0), i, ln = arguments.length,
       array = this._array,
       _this = this;
   for (var i = 0; i < ln; i++) {

@@ -2,15 +2,14 @@
 
 src/js/arrays/pro_array.js
 
-	line 228  TODO  2. if argument is Pro.Array - work on it
-	line 333  TODO  psome
-	line 551  TODO  pindexof
-	line 559  TODO  plastindexof
-	line 567  TODO  pjoin use preduce!
-	line 575  TODO  ptoLocaleString
-	line 583  TODO  ptoString
-	line 595  TODO  reactivate
-	line 628  TODO  think if it can be reactivated... maybe not.
-	line 735  TODO  reactivate
+	line 262  TODO  psome
+	line 414  TODO  pindexof
+	line 422  TODO  plastindexof
+	line 430  TODO  pjoin use preduce!
+	line 438  TODO  ptoLocaleString
+	line 446  TODO  ptoString
+	line 458  TODO  reactivate
+	line 491  TODO  think if it can be reactivated... maybe not.
+	line 598  TODO  reactivate
 
 [32mDone, without errors.[39m
