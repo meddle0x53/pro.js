@@ -296,27 +296,8 @@ Pro.Array.prototype.reduce = function (fun /*, initialValue */) {
 };
 
 Pro.Array.prototype.preduce = function (fun /*, initialValue */) {
-  var _this = this, args = arguments,
-      val = new Pro.Val(reduce.apply(this._array, args)), oldLn = this._array.length;
-
-  this.addListener(function (event) {
-    if (event.type !== Pro.Event.Types.array) {
-      throw Error('Not implemented for non array events');
-    }
-    var op  = event.args[0],
-        ind = event.args[1],
-        ov  = event.args[2],
-        nv  = event.args[3],
-        nvs;
-    if ((op === Pro.Array.Operations.add && ind !== 0) ||
-       (op === Pro.Array.Operations.splice && ind >= oldLn && ov.length === 0)) {
-      nvs = slice.call(nv, 0);
-      val.v = reduce.apply(nvs, [fun, val.valueOf()]);
-    } else {
-      val.v = reduce.apply(_this._array, args);
-    }
-    oldLn = _this._array.length;
-  });
+  var val = new Pro.Val(reduce.apply(this._array, arguments));
+  this.addListener(Pro.Array.Listeners.reduce(val, this, arguments));
 
   return val;
 };
