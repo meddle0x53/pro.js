@@ -94,6 +94,7 @@ module.exports = function(grunt) {
       src : [
         'spec/unit/flow/flow.spec.js',
         'src/js/arrays/pro_array.js',
+        'src/js/arrays/listeners.js',
         'src/js/properties/property.js',
       ]
     },
@@ -118,6 +119,7 @@ module.exports = function(grunt) {
           'flow/queues',
           'flow/flow',
           'arrays/pro_array',
+          'arrays/listeners',
           'properties/property',
           'properties/auto_property',
           'properties/object_property',

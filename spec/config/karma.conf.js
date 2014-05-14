@@ -10,6 +10,7 @@ module.exports = function(karma) {
       'src/js/flow/flow.js',
       'src/js/events/pro_event.js',
       'src/js/arrays/pro_array.js',
+      'src/js/arrays/listeners.js',
       'src/js/properties/property.js',
       'src/js/properties/null_property.js',
       'src/js/properties/auto_property.js',

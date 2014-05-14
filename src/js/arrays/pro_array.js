@@ -227,54 +227,8 @@ Pro.Array.prototype.updateByDiff = function (array) {
 
 // TODO 2. if argument is Pro.Array - work on it
 Pro.Array.prototype.concat = function () {
-  this.addIndexCaller();
-  this.addLengthCaller();
-
-  var res = new Pro.Array(concat.apply(this._array, arguments)),
-      args = arguments,
-      _this = this, argln = [].concat(arguments).length;
-
-  this.addListener(function (event) {
-    if (event.type !== Pro.Event.Types.array) {
-      throw Error('Not implemented for non array events');
-    }
-    var op  = event.args[0],
-        ind = event.args[1],
-        ov  = event.args[2],
-        nv  = event.args[3],
-        nvs, toAdd;
-    if (op === Pro.Array.Operations.set) {
-      res[ind] = nv;
-    } else if (op === Pro.Array.Operations.add) {
-      nvs = slice.call(nv, 0);
-      if (ind === 0) {
-        Pro.Array.prototype.unshift.apply(res, nvs);
-      } else {
-        Pro.Array.prototype.splice.apply(res, [res.length - argln - 1, 0].concat(nvs));
-      }
-    } else if (op === Pro.Array.Operations.remove) {
-      if (ind === 0) {
-        Pro.Array.prototype.shift.call(res, ov);
-      } else {
-        Pro.Array.prototype.splice.apply(res, [res.length - argln - 2, 1]);
-      }
-    } else if (op === Pro.Array.Operations.setLength) {
-      nvs = ov -nv;
-      if (nvs > 0) {
-        Pro.Array.prototype.splice.apply(res, [nv, nvs]);
-      } else {
-        toAdd = [ov, 0];
-        toAdd.length = 2 - nvs;
-        Pro.Array.prototype.splice.apply(res, toAdd);
-      }
-    } else if (op === Pro.Array.Operations.reverse || op === Pro.Array.Operations.sort) {
-      nvs = res._array;
-      res._array = concat.apply(_this._array, args);
-      res.updateByDiff(nvs);
-    } else if (op === Pro.Array.Operations.splice) {
-      Pro.Array.prototype.splice.apply(res, [ind, ov.length].concat(nv));
-    }
-  });
+  var res = new Pro.Array(concat.apply(this._array, arguments));
+  this.addListener(Pro.Array.Listeners.leftConcat(res, this, arguments));
 
   return res;
 };

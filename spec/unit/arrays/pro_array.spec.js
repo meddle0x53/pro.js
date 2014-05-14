@@ -244,7 +244,7 @@ describe('Pro.Array', function () {
       expect(obj.prop).toEqual(array.concat(6, 7, 8, 9));
 
       array.push(200);
-      expect(obj.prop).toEqual(array.concat(6, 7, 8, 9));
+      expect(obj.prop.toArray()).toEqual(array.concat(6, 7, 8, 9).toArray());
 
       array.pop();
       expect(obj.prop).toEqual(array.concat(6, 7, 8, 9));
