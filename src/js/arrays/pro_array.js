@@ -85,19 +85,6 @@ Pro.Array.reFilter = function (original, filtered, filterArgs) {
   filtered.updateByDiff(oarr);
 };
 
-Pro.Array.everyNewValue = function (fun, thisArg, nv) {
-  var nvs = slice.call(nv, 0),
-      j = nvs.length - 1;
-  while (j >= 0) {
-    if (!fun.call(thisArg, nvs[j])) {
-      return false;
-    }
-    j--;
-  }
-
-  return true;
-};
-
 Pro.Array.prototype.addLengthListener = function (listener) {
   this.lengthListeners.push(listener);
 };
@@ -259,12 +246,19 @@ Pro.Array.prototype.pevery = function (fun, thisArg) {
   return val;
 };
 
-// TODO psome
 Pro.Array.prototype.some = function () {
   this.addIndexCaller();
   this.addLengthCaller();
 
   return some.apply(this._array, arguments);
+};
+
+Pro.Array.prototype.psome = function (fun, thisArg) {
+  var val = new Pro.Val(some.apply(this._array, arguments));
+
+  this.addListener(Pro.Array.Listeners.some(val, this, arguments));
+
+  return val;
 };
 
 Pro.Array.prototype.forEach = function (fun /*, thisArg */) {

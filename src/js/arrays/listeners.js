@@ -107,7 +107,7 @@ Pro.Array.Listeners.every = function (val, original, args) {
       }
     } else if (op === Pro.Array.Operations.add) {
       if (val.valueOf() === true) {
-        val.v = Pro.Array.everyNewValue(fun, thisArg, nv);
+        val.v = every.call(nv, fun, thisArg);
       }
     } else if (op === Pro.Array.Operations.remove) {
       if (val.valueOf() === false && !fun.call(thisArg, ov)) {
@@ -119,9 +119,47 @@ Pro.Array.Listeners.every = function (val, original, args) {
       }
     } else if (op === Pro.Array.Operations.splice) {
       if (val.valueOf() === true) {
-        val.v = Pro.Array.everyNewValue(fun, thisArg, nv);
-      } else if (Pro.Array.everyNewValue(fun, thisArg, nv) && !Pro.Array.everyNewValue(fun, thisArg, ov)) {
+        val.v = every.call(nv, fun, thisArg);
+      } else if (every.call(nv, fun, thisArg) && !every.call(ov, fun, thisArg)) {
         val.v = every.apply(original._array, args);
+      }
+    }
+  };
+};
+
+Pro.Array.Listeners.some = function (val, original, args) {
+  var fun = args[0], thisArg = args[1];
+  return function (event) {
+    Pro.Array.Listeners.check(event);
+    var op  = event.args[0],
+        ind = event.args[1],
+        ov  = event.args[2],
+        nv  = event.args[3],
+        sv;
+    if (op === Pro.Array.Operations.set) {
+      sv = fun.call(thisArg, nv);
+      if (val.valueOf() === false && sv) {
+        val.v = true;
+      } else if (val.valueOf() === true && !sv) {
+        val.v = some.apply(original._array, args);
+      }
+    } else if (op === Pro.Array.Operations.add) {
+      if (val.valueOf() === false) {
+        val.v = some.call(nv, fun, thisArg);
+      }
+    } else if (op === Pro.Array.Operations.remove) {
+      if (val.valueOf() === true && fun.call(thisArg, ov)) {
+        val.v = some.apply(original._array, args);
+      }
+    } else if (op === Pro.Array.Operations.setLength) {
+      if (val.valueOf() === true) {
+        val.v = some.apply(original._array, args);
+      }
+    } else if (op === Pro.Array.Operations.splice) {
+      if (val.valueOf() === false) {
+        val.v = some.call(nv, fun, thisArg);
+      } else if (some.call(ov, fun, thisArg) && !some.call(nv, fun, thisArg)) {
+        val.v = some.apply(original._array, args);
       }
     }
   };

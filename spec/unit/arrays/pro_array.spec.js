@@ -427,24 +427,83 @@ describe('Pro.Array', function () {
     });
   });
 
-  it('updates properties depending on #some', function () {
-    var array = new Pro.Array(2, 4, 5, 9, 10),
-        obj = {
-          prop: function () {
-            return array.some(function (el) {
-              return el % 3 === 0;
+  describe('#some & #psome', function () {
+    it('updates properties depending on #some', function () {
+      var array = new Pro.Array(2, 4, 5, 9, 10),
+          obj = {
+            prop: function () {
+              return array.some(function (el) {
+                return el % 3 === 0;
+              });
+            }
+          },
+          property = new Pro.AutoProperty(obj, 'prop');
+
+      expect(obj.prop).toEqual(true);
+
+      array[3] = 10;
+      expect(obj.prop).toEqual(false);
+
+      array.unshift(12);
+      expect(obj.prop).toEqual(true);
+    });
+
+    describe('#psome', function () {
+      it('returns pro value', function () {
+        var array = new Pro.Array(1, 2, 3, 4, '5'),
+            every = array.psome(function (el) {
+              return typeof(el) === 'number';
             });
-          }
-        },
-        property = new Pro.AutoProperty(obj, 'prop');
 
-    expect(obj.prop).toEqual(true);
+        expect(Pro.Utils.isProVal(every)).toBe(true);
+        expect(every.valueOf()).toBe(true);
+      });
 
-    array[3] = 10;
-    expect(obj.prop).toEqual(false);
+      it('on list changes the produced value is updated', function () {
+        var array = new Pro.Array(1, '2', '3', '4', '5'),
+            some = array.psome(function (el) {
+              return typeof(el) === 'number';
+            });
 
-    array.unshift(12);
-    expect(obj.prop).toEqual(true);
+        expect(some.valueOf()).toBe(true);
+
+        array[0] = '1';
+        expect(some.valueOf()).toBe(false);
+        array[3] = 4;
+        expect(some.valueOf()).toBe(true);
+        array[3] = '4';
+        expect(some.valueOf()).toBe(false);
+
+        array.push(6);
+        expect(some.valueOf()).toBe(true);
+        array[5] = '6';
+        expect(some.valueOf()).toBe(false);
+        array.unshift(0);
+        expect(some.valueOf()).toBe(true);
+
+        array.shift();
+        expect(some.valueOf()).toBe(false);
+        array[5] = 6;
+        expect(some.valueOf()).toBe(true);
+        array.pop();
+        expect(some.valueOf()).toBe(false);
+
+        array[4] = 5;
+        expect(some.valueOf()).toBe(true);
+        array.length = 2;
+        expect(some.valueOf()).toBe(false);
+
+        array.splice(1, 1, 2);
+        expect(some.valueOf()).toBe(true);
+        array.splice(0, 1, '0', '1');
+        expect(some.valueOf()).toBe(true);
+        array.splice(2, 1, '2', 3);
+        expect(some.valueOf()).toBe(true);
+        array.splice(3, 1, '3');
+        expect(some.valueOf()).toBe(false);
+      });
+    });
+
   });
 
   it('updates properties depending on #forEach', function () {
