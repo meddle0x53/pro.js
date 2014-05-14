@@ -985,26 +985,127 @@ describe('Pro.Array', function () {
     });
   });
 
+  describe('#indexOf & #pindexof', function () {
+    it('updates properties depending on #indexOf', function () {
+      var array = new Pro.Array(3, 5, 4),
+          obj = {
+            prop: function () {
+              return array.indexOf(3);
+            }
+          },
+          property = new Pro.AutoProperty(obj, 'prop');
 
-  it('updates properties depending on #indexOf', function () {
-    var array = new Pro.Array(3, 5, 4),
-        obj = {
-          prop: function () {
-            return array.indexOf(3);
-          }
-        },
-        property = new Pro.AutoProperty(obj, 'prop');
+      expect(obj.prop).toEqual(0);
 
-    expect(obj.prop).toEqual(0);
+      array[0] = 0;
+      expect(obj.prop).toEqual(-1);
 
-    array[0] = 0;
-    expect(obj.prop).toEqual(-1);
+      array.push(3);
+      expect(obj.prop).toEqual(3);
 
-    array.push(3);
-    expect(obj.prop).toEqual(3);
+      array.length = 0;
+      expect(obj.prop).toEqual(-1);
+    });
 
-    array.length = 0;
-    expect(obj.prop).toEqual(-1);
+    describe('#pindexOf', function () {
+      it('returns pro value', function () {
+        var array = new Pro.Array(1, 2, 3, 4, 5),
+            val = array.pindexOf(5);
+
+        expect(Pro.Utils.isProVal(val)).toBe(true);
+        expect(val.valueOf()).toBe(4);
+      });
+
+      it('on list changes the produced value is updated', function () {
+        var array = new Pro.Array('a', 'b', 'c'),
+            val = array.pindexOf('b'),
+            fval = array.pindexOf('b', 2);
+
+        expect(val.valueOf()).toBe(1);
+        expect(fval.valueOf()).toBe(-1);
+
+        array[1] = 'B';
+        expect(val.valueOf()).toBe(-1);
+        expect(fval.valueOf()).toBe(-1);
+
+        array.push('d', 'b');
+        expect(val.valueOf()).toBe(4);
+        expect(fval.valueOf()).toBe(4);
+        array[1] = 'b';
+        expect(val.valueOf()).toBe(1);
+        expect(fval.valueOf()).toBe(4);
+        array[1] = 'B';
+        expect(val.valueOf()).toBe(4);
+        expect(fval.valueOf()).toBe(4);
+
+        array.unshift('8', '9');
+        expect(val.valueOf()).toBe(6);
+        expect(fval.valueOf()).toBe(6);
+
+        array.unshift('6', 'b', '7');
+        expect(val.valueOf()).toBe(1);
+        expect(fval.valueOf()).toBe(9);
+
+        array.shift();
+        expect(val.valueOf()).toBe(0);
+        expect(fval.valueOf()).toBe(8);
+        array.shift();
+        expect(val.valueOf()).toBe(7);
+        expect(fval.valueOf()).toBe(7);
+
+        array.pop();
+        expect(val.valueOf()).toBe(-1);
+        expect(fval.valueOf()).toBe(-1);
+
+        array[4] = 'b';
+        expect(val.valueOf()).toBe(4);
+        expect(fval.valueOf()).toBe(4);
+        array.length = 5;
+        expect(val.valueOf()).toBe(4);
+        expect(fval.valueOf()).toBe(4);
+        array.length = 4;
+        expect(val.valueOf()).toBe(-1);
+        expect(fval.valueOf()).toBe(-1);
+        array[1] = 'b';
+        expect(val.valueOf()).toBe(1);
+        expect(fval.valueOf()).toBe(-1);
+
+        array.reverse();
+        expect(val.valueOf()).toBe(2);
+        expect(fval.valueOf()).toBe(2);
+
+        array.sort();
+        expect(val.valueOf()).toBe(3);
+        expect(fval.valueOf()).toBe(3);
+
+        array.splice(3, 1, 'B', 'c');
+        expect(val.valueOf()).toBe(-1);
+        expect(fval.valueOf()).toBe(-1);
+
+        array.splice(1, 3, 'a', 'b');
+        expect(val.valueOf()).toBe(2);
+        expect(fval.valueOf()).toBe(2);
+
+        array.splice(1, 0, '8', '9');
+        expect(val.valueOf()).toBe(4);
+        expect(fval.valueOf()).toBe(4);
+
+        array.splice(1, 1, 'b');
+        expect(val.valueOf()).toBe(1);
+        expect(fval.valueOf()).toBe(4);
+
+        array.splice(0, 2);
+        expect(val.valueOf()).toBe(2);
+        expect(fval.valueOf()).toBe(2);
+        array.splice(0, 1);
+        expect(val.valueOf()).toBe(1);
+        expect(fval.valueOf()).toBe(-1);
+        array.splice(0, 2);
+        expect(val.valueOf()).toBe(-1);
+        expect(fval.valueOf()).toBe(-1);
+      });
+    });
+
   });
 
   it('updates properties depending on #lastIndexOf', function () {

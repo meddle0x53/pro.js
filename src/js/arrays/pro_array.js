@@ -310,12 +310,18 @@ Pro.Array.prototype.preduceRight = function (fun /*, initialValue */) {
   return val;
 };
 
-// TODO pindexof
 Pro.Array.prototype.indexOf = function () {
   this.addIndexCaller();
   this.addLengthCaller();
 
   return indexOf.apply(this._array, arguments);
+};
+
+Pro.Array.prototype.pindexOf = function () {
+  var val = new Pro.Val(indexOf.apply(this._array, arguments));
+  this.addListener(Pro.Array.Listeners.indexOf(val, this, arguments));
+
+  return val;
 };
 
 // TODO plastindexof

@@ -299,12 +299,10 @@ Pro.Array.Listeners.reduce = function (val, original, args) {
     var op  = event.args[0],
         ind = event.args[1],
         ov  = event.args[2],
-        nv  = event.args[3],
-        nvs;
+        nv  = event.args[3];
     if ((op === Pro.Array.Operations.add && ind !== 0) ||
        (op === Pro.Array.Operations.splice && ind >= oldLn && ov.length === 0)) {
-      nvs = slice.call(nv, 0);
-      val.v = reduce.apply(nvs, [fun, val.valueOf()]);
+      val.v = reduce.apply(nv, [fun, val.valueOf()]);
     } else {
       val.v = reduce.apply(original._array, args);
     }
@@ -319,14 +317,81 @@ Pro.Array.Listeners.reduceRight = function (val, original, args) {
     var op  = event.args[0],
         ind = event.args[1],
         ov  = event.args[2],
-        nv  = event.args[3],
-        nvs;
+        nv  = event.args[3];
     if ((op === Pro.Array.Operations.add && ind === 0) ||
        (op === Pro.Array.Operations.splice && ind === 0 && ov.length === 0)) {
-      nvs = slice.call(nv, 0);
-      val.v = reduceRight.apply(nvs, [fun, val.valueOf()]);
+      val.v = reduceRight.apply(nv, [fun, val.valueOf()]);
     } else {
       val.v = reduceRight.apply(original._array, args);
+    }
+  };
+};
+
+Pro.Array.Listeners.indexOf = function (val, original, args) {
+  var what = args[0], fromIndex = args[1], hasFrom = !!fromIndex;
+  return function (event) {
+    Pro.Array.Listeners.check(event);
+    var op  = event.args[0],
+        ind = event.args[1],
+        ov  = event.args[2],
+        nv  = event.args[3],
+        v = val.valueOf(),
+        nvi, i;
+
+    if (op === Pro.Array.Operations.set) {
+      if (ov === what) {
+        val.v = indexOf.apply(original._array, args);
+      } else if (nv === what && (ind < v || v === -1) && (!hasFrom || ind >= fromIndex)) {
+        val.v = ind;
+      }
+    } else if (op === Pro.Array.Operations.add) {
+      nvi = nv.indexOf(what);
+      if (ind === 0) {
+        if (nvi !== -1 && (!hasFrom || ind >= fromIndex)) {
+          val.v = nvi;
+        } else if (v !== -1) {
+          val.v = v + nv.length;
+        }
+      } else if (v === -1 &&  (!hasFrom || ind >= fromIndex)) {
+        if (nvi !== -1) {
+          val.v = ind;
+        }
+      }
+    } else if (op === Pro.Array.Operations.remove) {
+      if (v !== -1) {
+        if (ind === 0) {
+          if (ov === what && !hasFrom) {
+            val.v = indexOf.apply(original._array, args);
+          } else {
+            val.v = v - 1;
+          }
+        } else if (what === ov) {
+          val.v = -1;
+        }
+      }
+    } else if (op === Pro.Array.Operations.setLength && nv <= v) {
+      val.v = -1;
+    } else if (op === Pro.Array.Operations.reverse || op === Pro.Array.Operations.sort) {
+      val.v = indexOf.apply(original._array, args);
+    } else if (op === Pro.Array.Operations.splice) {
+      nvi = nv.indexOf(what);
+      i = nvi + ind;
+      if (ind <= v) {
+        if (nvi !== -1 && i < v && (!hasFrom || fromIndex <= i)) {
+          val.v = i;
+        } else if (nv.length !== ov.length && ov.indexOf(what) === -1) {
+          v = v + (nv.length - ov.length);
+          if (!hasFrom || v >= fromIndex) {
+            val.v = v;
+          } else {
+            val.v = indexOf.apply(original._array, args);
+          }
+        } else {
+          val.v = indexOf.apply(original._array, args);
+        }
+      } else if (v === -1 && nvi !== -1) {
+        val.v = i;
+      }
     }
   };
 };
