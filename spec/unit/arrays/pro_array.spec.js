@@ -1201,25 +1201,48 @@ describe('Pro.Array', function () {
     });
   });
 
-  it('updates properties depending on #join', function () {
-    var array = new Pro.Array(3, 5, 4),
-        obj = {
-          prop: function () {
-            return array.join('-');
-          }
-        },
-        property = new Pro.AutoProperty(obj, 'prop');
+  describe('#join and #pjoin', function () {
+    it('updates properties depending on #join', function () {
+      var array = new Pro.Array(3, 5, 4),
+          obj = {
+            prop: function () {
+              return array.join('-');
+            }
+          },
+          property = new Pro.AutoProperty(obj, 'prop');
 
-    expect(obj.prop).toEqual('3-5-4');
+      expect(obj.prop).toEqual('3-5-4');
 
-    array[2] = 3;
-    expect(obj.prop).toEqual('3-5-3');
+      array[2] = 3;
+      expect(obj.prop).toEqual('3-5-3');
 
-    array.push(4);
-    expect(obj.prop).toEqual('3-5-3-4');
+      array.push(4);
+      expect(obj.prop).toEqual('3-5-3-4');
 
-    array.shift();
-    expect(obj.prop).toEqual('5-3-4');
+      array.shift();
+      expect(obj.prop).toEqual('5-3-4');
+    });
+
+    // TODO Test it
+    describe('#pjoin', function () {
+      it('returns pro value', function () {
+        var array = new Pro.Array(0, 8, 8, 8),
+            val = array.pjoin('-');
+
+        expect(Pro.Utils.isProVal(val)).toBe(true);
+       // expect(val.valueOf()).toBe('0-8-8-8');
+      });
+
+      it('on list changes the produced value is updated', function () {
+        var array = new Pro.Array('', ''),
+            val = array.pjoin('-');
+
+       // expect(val.valueOf()).toBe('-');
+
+       // array.push(0);
+       // expect(val.valueOf()).toBe('-0');
+      });
+    });
   });
 
   it('updates properties depending on #toString', function () {

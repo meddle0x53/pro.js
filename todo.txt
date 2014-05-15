@@ -1,12 +1,12 @@
 [4mRunning "todo:src" (todo) task[24m
 
+spec/unit/arrays/pro_array.spec.js
+
+	line 1226  TODO  Test it
+
 src/js/arrays/pro_array.js
 
-	line 341  TODO  pjoin use preduce!
-	line 349  TODO  ptoLocaleString
-	line 357  TODO  ptoString
-	line 369  TODO  reactivate
-	line 402  TODO  think if it can be reactivated... maybe not.
-	line 509  TODO  reactivate
+	line 348  TODO  property transformator!
+	line 373  TODO  Reactivate
 
 [32mDone, without errors.[39m

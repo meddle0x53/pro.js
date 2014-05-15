@@ -93,6 +93,7 @@ module.exports = function(grunt) {
       },
       src : [
         'spec/unit/flow/flow.spec.js',
+        'spec/unit/arrays/pro_array.spec.js',
         'src/js/arrays/pro_array.js',
         'src/js/arrays/listeners.js',
         'src/js/properties/property.js',

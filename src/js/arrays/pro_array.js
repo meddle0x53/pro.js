@@ -338,7 +338,6 @@ Pro.Array.prototype.plastindexOf = function () {
   return val;
 };
 
-// TODO pjoin use preduce!
 Pro.Array.prototype.join = function () {
   this.addIndexCaller();
   this.addLengthCaller();
@@ -346,7 +345,13 @@ Pro.Array.prototype.join = function () {
   return join.apply(this._array, arguments);
 };
 
-// TODO ptoLocaleString
+// TODO property transformator!
+Pro.Array.prototype.pjoin = function (separator) {
+  return this.preduce(function (i, el) {
+    return i + separator + el;
+  }, '');
+};
+
 Pro.Array.prototype.toLocaleString = function () {
   this.addIndexCaller();
   this.addLengthCaller();
@@ -354,7 +359,6 @@ Pro.Array.prototype.toLocaleString = function () {
   return toLocaleString.apply(this._array, arguments);
 };
 
-// TODO ptoString
 Pro.Array.prototype.toString = function () {
   this.addIndexCaller();
   this.addLengthCaller();
@@ -366,7 +370,7 @@ Pro.Array.prototype.valueOf = function () {
   return this.toArray();
 };
 
-// TODO reactivate
+// TODO Reactivate
 Pro.Array.prototype.slice = function () {
   this.addIndexCaller();
   this.addLengthCaller();
@@ -399,7 +403,6 @@ Pro.Array.prototype.sort = function () {
   return sorted;
 };
 
-// TODO think if it can be reactivated... maybe not.
 Pro.Array.prototype.splice = function (index, howMany) {
   var oldLn = this._array.length,
       spliced = splice.apply(this._array, arguments),
@@ -506,7 +509,6 @@ Pro.Array.prototype.toArray = function () {
   return result;
 };
 
-// TODO reactivate
 Pro.Array.prototype.toJSON = function () {
   return JSON.stringify(this._array);
 };
