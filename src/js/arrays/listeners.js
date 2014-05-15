@@ -395,3 +395,45 @@ Pro.Array.Listeners.indexOf = function (val, original, args) {
     }
   };
 };
+
+Pro.Array.Listeners.lastIndexOf = function (val, original, args) {
+  var what = args[0], fromIndex = args[1], hasFrom = !!fromIndex;
+  return function (event) {
+    Pro.Array.Listeners.check(event);
+    var op  = event.args[0],
+        ind = event.args[1],
+        ov  = event.args[2],
+        nv  = event.args[3],
+        v = val.valueOf(),
+        nvi, i;
+
+    if (op === Pro.Array.Operations.set) {
+      if (ov === what) {
+        val.v = lastIndexOf.apply(original._array, args);
+      } else if (nv === what && (ind > v || v === -1) && (!hasFrom || ind <= fromIndex)) {
+        val.v = ind;
+      }
+    } else if (op === Pro.Array.Operations.add) {
+      nvi = nv.indexOf(what);
+      if (ind === 0) {
+        if (nvi !== -1 && v === -1 && (!hasFrom || ind <= fromIndex)) {
+          val.v = nvi;
+        } else if (v !== -1) {
+          val.v = v + nv.length;
+        }
+      } else if (nvi !== -1 && (!hasFrom || (ind + nvi) <= fromIndex)) {
+        val.v = ind + nvi;
+      }
+    } else if (op === Pro.Array.Operations.remove) {
+      if (v !== -1) {
+        if (ind === 0) {
+          val.v = v - 1;
+        } else if (what === ov) {
+          val.v = lastIndexOf.apply(original._array, args);
+        }
+      }
+    } else if (op === Pro.Array.Operations.splice || op === Pro.Array.Operations.reverse || op === Pro.Array.Operations.sort || (op === Pro.Array.Operations.setLength && nv < ov)) {
+      val.v = lastIndexOf.apply(original._array, args);
+    }
+  };
+};

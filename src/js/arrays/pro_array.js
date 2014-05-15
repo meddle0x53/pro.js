@@ -324,12 +324,18 @@ Pro.Array.prototype.pindexOf = function () {
   return val;
 };
 
-// TODO plastindexof
 Pro.Array.prototype.lastIndexOf = function () {
   this.addIndexCaller();
   this.addLengthCaller();
 
   return lastIndexOf.apply(this._array, arguments);
+};
+
+Pro.Array.prototype.plastindexOf = function () {
+  var val = new Pro.Val(lastIndexOf.apply(this._array, arguments));
+  this.addListener(Pro.Array.Listeners.lastIndexOf(val, this, arguments));
+
+  return val;
 };
 
 // TODO pjoin use preduce!

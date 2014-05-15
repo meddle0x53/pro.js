@@ -1108,25 +1108,97 @@ describe('Pro.Array', function () {
 
   });
 
-  it('updates properties depending on #lastIndexOf', function () {
-    var array = new Pro.Array(3, 5, 4),
-        obj = {
-          prop: function () {
-            return array.lastIndexOf(3);
-          }
-        },
-        property = new Pro.AutoProperty(obj, 'prop');
+  describe('#lastIndexOf and plastindexOf', function () {
+    it('updates properties depending on #lastIndexOf', function () {
+      var array = new Pro.Array(3, 5, 4),
+          obj = {
+            prop: function () {
+              return array.lastIndexOf(3);
+            }
+          },
+          property = new Pro.AutoProperty(obj, 'prop');
 
-    expect(obj.prop).toEqual(0);
+      expect(obj.prop).toEqual(0);
 
-    array[2] = 3;
-    expect(obj.prop).toEqual(2);
+      array[2] = 3;
+      expect(obj.prop).toEqual(2);
 
-    array.push(3);
-    expect(obj.prop).toEqual(3);
+      array.push(3);
+      expect(obj.prop).toEqual(3);
 
-    array.pop();
-    expect(obj.prop).toEqual(2);
+      array.pop();
+      expect(obj.prop).toEqual(2);
+    });
+
+    describe('#plastindexOf', function () {
+      it('returns pro value', function () {
+        var array = new Pro.Array(1, 2, 3, 2, 5),
+            val = array.plastindexOf(2);
+
+        expect(Pro.Utils.isProVal(val)).toBe(true);
+        expect(val.valueOf()).toBe(3);
+      });
+
+      it('on list changes the produced value is updated', function () {
+        var array = new Pro.Array('a', 'b', 'c', 'b', 'a'),
+            val = array.plastindexOf('b');
+
+        expect(val.valueOf()).toBe(3);
+
+        array[4] = 'b';
+        expect(val.valueOf()).toBe(4);
+        array[4] = 'a';
+        expect(val.valueOf()).toBe(3);
+        array[3] = 'B';
+        expect(val.valueOf()).toBe(1);
+        array[1] = 'B';
+        expect(val.valueOf()).toBe(-1);
+        array.unshift('z', 'b');
+        expect(val.valueOf()).toBe(1);
+        array[3] = 'b';
+        expect(val.valueOf()).toBe(3);
+        array[1] = 'b';
+        expect(val.valueOf()).toBe(3);
+
+        array.unshift('z', 'x');
+        expect(val.valueOf()).toBe(5);
+
+        array.unshift('y', 'b')
+        expect(val.valueOf()).toBe(7);
+
+        array.push('d', 'e');
+        expect(val.valueOf()).toBe(7);
+
+        array.push('b', 'f');
+        expect(val.valueOf()).toBe(14);
+
+        array.pop();
+        expect(val.valueOf()).toBe(14);
+        array.pop();
+        expect(val.valueOf()).toBe(7);
+        array.pop();
+        array.shift(); array.shift();
+        array.shift(); array.shift();
+        array.shift(); array.shift();
+        expect(val.valueOf()).toBe(1);
+        array[3] = 'b';
+        expect(val.valueOf()).toBe(3);
+
+        array.reverse();
+        expect(val.valueOf()).toBe(4);
+        array.sort();
+        expect(val.valueOf()).toBe(3);
+        array.length = 10;
+        expect(val.valueOf()).toBe(3);
+        array.length = 3;
+        expect(val.valueOf()).toBe(2);
+
+        array.splice(2, 1, 'x', 'b', 'z');
+        expect(val.valueOf()).toBe(3);
+        array.splice(1, 0, 'a', 'b', 'k');
+        expect(val.valueOf()).toBe(6);
+      });
+    });
   });
 
   it('updates properties depending on #join', function () {
