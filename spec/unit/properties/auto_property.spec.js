@@ -36,6 +36,19 @@ describe('Pro.AutoProperty', function () {
     expect(obj.a).toEqual(obj.ap);
   });
 
+  it('changes when a sub-prop changes using the transformators added to it using #addTransformator', function () {
+    var property = new Pro.Property(obj, 'a'),
+        autoProperty = new Pro.AutoProperty(obj, 'ap');
+    autoProperty.addTransformator(function (val) {
+      return val + 5;
+    });
+
+    expect(obj.a + 5).toEqual(obj.ap);
+
+    obj.a = 10;
+    expect(obj.a + 5).toEqual(obj.ap);
+  });
+
   it('changes when an auto sub-prop changes', function () {
     var property = new Pro.Property(obj, 'a'),
         autoProperty = new Pro.AutoProperty(obj, 'ap'),

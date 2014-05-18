@@ -19,4 +19,17 @@ describe('Pro.Val', function () {
     });
   });
 
+  it ('one value can depend on another', function () {
+    var val = new Pro.Val(5),
+        vall = new Pro.Val(function () {
+          return val.v + 5;
+        });
+    expect(val.v).toBe(5);
+    expect(vall.v).toBe(10);
+
+    val.v = 10;
+    expect(val.v).toBe(10);
+    expect(vall.v).toBe(15);
+  });
+
 });

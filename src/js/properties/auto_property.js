@@ -11,7 +11,8 @@ Pro.AutoProperty = function (proObject, property) {
     Pro.currentCaller = {
       property: _this,
       call: function () {
-        proObject[property] = _this.func.call(proObject);
+        _this.oldVal = _this.val;
+        _this.val = Pro.Property.transform(_this, _this.func.call(proObject));
       }
     };
     _this.val = _this.func.apply(_this.proObject, arguments);
@@ -20,6 +21,8 @@ Pro.AutoProperty = function (proObject, property) {
     Pro.Property.defineProp(_this.proObject, _this.property, get, set);
 
     _this.state = Pro.States.ready;
+
+    _this.val = Pro.Property.transform(_this, _this.val);
     return _this.val;
   };
 

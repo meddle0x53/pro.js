@@ -1223,24 +1223,25 @@ describe('Pro.Array', function () {
       expect(obj.prop).toEqual('5-3-4');
     });
 
-    // TODO Test it
     describe('#pjoin', function () {
       it('returns pro value', function () {
         var array = new Pro.Array(0, 8, 8, 8),
             val = array.pjoin('-');
 
+        val.v;
         expect(Pro.Utils.isProVal(val)).toBe(true);
-       // expect(val.valueOf()).toBe('0-8-8-8');
+        expect(val.valueOf()).toBe('0-8-8-8');
       });
 
       it('on list changes the produced value is updated', function () {
         var array = new Pro.Array('', ''),
             val = array.pjoin('-');
 
-       // expect(val.valueOf()).toBe('-');
+        val.v;
+        expect(val.valueOf()).toBe('-');
 
-       // array.push(0);
-       // expect(val.valueOf()).toBe('-0');
+        array.push(0);
+        expect(val.valueOf()).toBe('--0');
       });
     });
   });

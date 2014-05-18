@@ -345,11 +345,16 @@ Pro.Array.prototype.join = function () {
   return join.apply(this._array, arguments);
 };
 
-// TODO property transformator!
 Pro.Array.prototype.pjoin = function (separator) {
-  return this.preduce(function (i, el) {
+  var reduced = this.preduce(function (i, el) {
     return i + separator + el;
-  }, '');
+  }, ''), res = new Pro.Val(function () {
+    if (!reduced.v) {
+      return '';
+    }
+    return reduced.v.substring(1);
+  });
+  return res;
 };
 
 Pro.Array.prototype.toLocaleString = function () {

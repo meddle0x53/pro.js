@@ -11,6 +11,12 @@ Pro.Val.prototype.addListener = function (listener) {
   this.__pro__.properties.v.addListener(listener);
 };
 
+Pro.Val.prototype.addTransformator = function (transformator) {
+  this.__pro__.properties.v.addTransformator(transformator);
+
+  return this;
+};
+
 Pro.Val.prototype.removeListener = function (listener) {
   this.__pro__.properties.v.removeListener(listener);
 };

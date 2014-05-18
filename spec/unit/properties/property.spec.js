@@ -100,6 +100,34 @@ describe('Pro.Property', function () {
 
       expect(property.willUpdate).toHaveBeenCalled();
     });
+
+    describe('transformators', function () {
+      it('transformator added with #addTransformator is always applied', function () {
+        var property = new Pro.Property(obj, 'a');
+        property.addTransformator(function (val) {
+          return val * val;
+        });
+
+        property.set(5);
+        expect(obj.a).toEqual(5 * 5);
+      });
+
+      it('chained transformations work', function () {
+        var property = new Pro.Property(obj, 'a');
+        property.addTransformator(function (val) {
+          return val * val;
+        });
+        property.addTransformator(function (val) {
+          return val - 1;
+        });
+        property.addTransformator(function (val) {
+          return val / 3;
+        });
+
+        property.set(5);
+        expect(obj.a).toEqual(8);
+      });
+    });
   });
 
   describe('#willUpdate', function () {

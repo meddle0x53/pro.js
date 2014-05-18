@@ -1,12 +1,7 @@
 [4mRunning "todo:src" (todo) task[24m
 
-spec/unit/arrays/pro_array.spec.js
-
-	line 1226  TODO  Test it
-
 src/js/arrays/pro_array.js
 
-	line 348  TODO  property transformator!
-	line 373  TODO  Reactivate
+	line 378  TODO  Reactivate
 
 [32mDone, without errors.[39m

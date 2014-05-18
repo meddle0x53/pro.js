@@ -1,7 +1,12 @@
 Pro.Property = function (proObject, property, getter, setter) {
   var _this = this;
 
-  this.proObject = proObject;
+  Object.defineProperty(this, 'proObject', {
+    enumerable: false,
+    configurable: true,
+    writeble: true,
+    value: proObject
+  });
   this.property = property;
 
   if (!this.proObject['__pro__']) {
@@ -16,6 +21,7 @@ Pro.Property = function (proObject, property, getter, setter) {
   this.oldVal = null;
   this.val = proObject[property];
   this.listeners = [];
+  this.transformators = [];
 
   this.state = Pro.States.init;
   this.g = this.get;
@@ -30,6 +36,15 @@ Pro.Property.Types = {
   object: 2, // references Pro objects
   array: 3, // arrays
   nil: 4 // nulls
+};
+
+Pro.Property.transform = function (property, val) {
+  var i, t = property.transformators, ln = t.length;
+  for (i = 0; i < ln; i++) {
+    val = t[i].call(property, val);
+  }
+
+  return val;
 };
 
 Pro.Property.DEFAULT_GETTER = function (property) {
@@ -47,13 +62,11 @@ Pro.Property.DEFAULT_SETTER = function (property) {
     }
 
     property.oldVal = property.val;
-    property.val = newVal;
+    property.val = Pro.Property.transform(property, newVal);
 
-    if (!Pro.flow.isRunning()) {
-      Pro.flow.run(function () {
-        property.willUpdate();
-      });
-    }
+    Pro.flow.run(function () {
+      property.willUpdate();
+    });
   };
 };
 
@@ -88,7 +101,7 @@ Pro.Property.prototype.addCaller = function () {
   var _this = this,
       caller = Pro.currentCaller;
 
-  if (caller && caller.property.property != this.property) {
+  if (caller && caller.property !== this) {
     this.addListener(caller);
   }
 };
@@ -111,6 +124,12 @@ Pro.Property.prototype.destroy = function () {
   this.g = this.s = undefined;
   this.val = undefined;
   this.state = Pro.States.destroyed;
+};
+
+Pro.Property.prototype.addTransformator = function (transformator) {
+  this.transformators.push(transformator);
+
+  return this;
 };
 
 Pro.Property.prototype.addListener = function (listener) {
@@ -145,4 +164,8 @@ Pro.Property.prototype.willUpdate = function (source) {
       listener.property.willUpdate(event);
     }
   }
+};
+
+Pro.Property.prototype.toString = function () {
+  return this.val;
 };

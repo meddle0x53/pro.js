@@ -1,3 +1,5 @@
 'use strict';
 
-Pro.currentCaller = null;
+beforeEach(function() {
+  Pro.currentCaller = null;
+});
