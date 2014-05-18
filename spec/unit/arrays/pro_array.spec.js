@@ -1264,22 +1264,41 @@ describe('Pro.Array', function () {
     expect(obj.prop).toEqual(array.toString());
   });
 
-  it('updates properties depending on #slice', function () {
-    var array = new Pro.Array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
-        obj = {
-          prop: function () {
-            return array.slice(1, 5);
-          }
-        },
-        property = new Pro.AutoProperty(obj, 'prop');
+  describe('#slice', function () {
+    it('updates properties depending on it', function () {
+      var array = new Pro.Array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+          obj = {
+            prop: function () {
+              return array.slice(1, 5);
+            }
+          },
+          property = new Pro.AutoProperty(obj, 'prop');
 
-    expect(obj.prop.valueOf()).toEqual([2, 3, 4, 5]);
+      expect(obj.prop.valueOf()).toEqual([2, 3, 4, 5]);
 
-    array[2] = 5;
-    expect(obj.prop.valueOf()).toEqual([2, 5, 4, 5]);
+      array[2] = 5;
+      expect(obj.prop.valueOf()).toEqual([2, 5, 4, 5]);
 
-    array.shift();
-    expect(obj.prop.valueOf()).toEqual([5, 4, 5, 6]);
+      array.shift();
+      expect(obj.prop.valueOf()).toEqual([5, 4, 5, 6]);
+    });
+
+    it('on list changes the produced value is updated', function () {
+      var array = new Pro.Array(1, 2, 3, 4, 5, 6, 7),
+          sliced = array.slice(2, 4);
+
+      expect(sliced.valueOf()).toEqual([3, 4]);
+
+      array[3] = 8;
+      expect(sliced.valueOf()).toEqual([3, 8]);
+      array[5] = 9;
+      expect(sliced.valueOf()).toEqual([3, 8]);
+      array[1] = 10;
+      expect(sliced.valueOf()).toEqual([3, 8]);
+      array[2] = 11;
+      expect(sliced.valueOf()).toEqual([11, 8]);
+      console.log(array.toArray())
+    });
   });
 
   it('#reverse updates depending properties', function () {
@@ -1295,7 +1314,6 @@ describe('Pro.Array', function () {
 
     array.reverse();
     expect(obj.prop).toEqual(6);
-
   });
 
   it('#sort updates depending properties', function () {

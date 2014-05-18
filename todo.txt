@@ -1,7 +1,3 @@
 [4mRunning "todo:src" (todo) task[24m
 
-src/js/arrays/pro_array.js
-
-	line 378  TODO  Reactivate
-
 [32mDone, without errors.[39m

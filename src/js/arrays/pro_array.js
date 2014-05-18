@@ -375,12 +375,11 @@ Pro.Array.prototype.valueOf = function () {
   return this.toArray();
 };
 
-// TODO Reactivate
 Pro.Array.prototype.slice = function () {
-  this.addIndexCaller();
-  this.addLengthCaller();
+  var sliced = new Pro.Array(slice.apply(this._array, arguments));
+  this.addListener(Pro.Array.Listeners.slice(sliced, this, arguments));
 
-  return new Pro.Array(slice.apply(this._array, arguments));
+  return sliced;
 };
 
 Pro.Array.prototype.reverse = function () {

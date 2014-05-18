@@ -437,3 +437,24 @@ Pro.Array.Listeners.lastIndexOf = function (val, original, args) {
     }
   };
 };
+
+Pro.Array.Listeners.slice = function (sliced, original, args) {
+  var s = args[0], e = args[1], hasEnd = !!e;
+  return function (event) {
+    Pro.Array.Listeners.check(event);
+    var op  = event.args[0],
+        ind = event.args[1],
+        ov  = event.args[2],
+        nv  = event.args[3],
+        osl;
+    if (op === Pro.Array.Operations.set) {
+      if (ind >= s && (!hasEnd || ind < e)) {
+        sliced[ind - s] = nv;
+      }
+    } else {
+      osl = sliced._array;
+      sliced._array = slice.apply(original._array, args);
+      sliced.updateByDiff(osl);
+    }
+  };
+};
