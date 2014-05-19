@@ -2,7 +2,7 @@
   "name": "projs",
   "title": "Pro.js",
   "description": "Reactive JavaScript objects and properties.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": "meddle0x53",
   "devDependencies": {
     "grunt": "~0.4.2",

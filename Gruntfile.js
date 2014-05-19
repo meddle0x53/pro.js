@@ -119,6 +119,7 @@ module.exports = function(grunt) {
           'flow/queue',
           'flow/queues',
           'flow/flow',
+          'events/pro_event',
           'arrays/pro_array',
           'arrays/listeners',
           'properties/property',

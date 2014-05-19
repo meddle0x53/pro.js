@@ -27,6 +27,17 @@ describe('Pro', function () {
       expect(obj.__pro__).not.toBe(null);
       expect(typeof(obj.__pro__)).toBe('object');
     });
+
+    it ('creates fully reactive Pro.Arrays from simple arrays', function () {
+      var array = Pro.prob([1, 2, 3, 4, 5]),
+          joined = array.pjoin('-');
+
+      expect(Pro.Utils.isProArray(array)).toBe(true);
+      expect(joined.v).toEqual('1-2-3-4-5');
+
+      array[2] = 30;
+      expect(joined.v).toEqual('1-2-30-4-5');
+    });
   });
 
 });
