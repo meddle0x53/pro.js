@@ -1,4 +1,4 @@
-# pro.js (0.1.0)
+# pro.js (0.1.1)
 
 ## Download
  * [Development](https://raw.github.com/meddle0x53/pro.js/master/dist/js/pro.js)
@@ -25,7 +25,21 @@ or
   <script src="pro.min.js" type="text/javascript"></script>
   <!-- Pro will be global object -->
 ```
-  
+
+### Use as Node.js module
+  npm install pro.js
+
+```javascript
+  var Pro = require('pro.js');
+```
+
+### Build from source
+  * Install Node.js and its package manager 'npm'
+  * Clone or fork and clone this project - for example ```git clone https://github.com/meddle0x53/pro.js.git```
+  * Go to the clonned project and run ``` npm install ``` to install the project dependencies. 
+  * Run ``` grunt spec ``` to run the specs, should pass.
+  * Run ``` grunt build ``` to build the project - the build will be located in {project_folder}/dist
+
 ## Examples
 
 ### The reactive sum:
