@@ -1,5 +1,9 @@
 ;(function (pro) {
-	window.Pro = pro();
+	if (typeof module === "object" && typeof module.exports === "object") {
+		module.exports = pro();
+	} else {
+		window.Pro = pro();
+	}
 }(function() {
 	var Pro = {},
 	    array_proto = Array.prototype,

@@ -18,9 +18,15 @@ module.exports = function(grunt) {
       modules: {
         src: [fileToBuild],
         options: {
-          wrapper: [';(function (pro) {\n' +
-            '\twindow.Pro = pro();\n' +
-            '}(function() {', '\treturn Pro;\n}));'],
+          wrapper: [
+            ';(function (pro) {\n' +
+            '\tif (typeof module === "object" && typeof module.exports === "object") {\n' +
+            '\t\tmodule.exports = pro();\n' +
+            '\t} else {\n' +
+            '\t\twindow.Pro = pro();\n' +
+            '\t}\n' +
+            '}(function() {', '\treturn Pro;\n}));'
+          ],
           indent: '\t',
           separator: '\n'
         }

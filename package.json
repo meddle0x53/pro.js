@@ -2,8 +2,27 @@
   "name": "projs",
   "title": "Pro.js",
   "description": "Reactive JavaScript objects and properties.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "meddle0x53",
+  "main": "dist/js/pro.min.js",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/meddle0x53/pro.js.git"
+  },
+  "scripts": {
+    "test": "grunt spec"
+  },
+  "keywords": [
+    "reactive",
+    "pro",
+    "object",
+    "flow",
+    "array",
+    "listeners",
+    "observe"
+  ],
   "devDependencies": {
     "grunt": "~0.4.2",
     "grunt-cli": "0.1.11",
