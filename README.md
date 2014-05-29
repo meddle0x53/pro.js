@@ -104,3 +104,17 @@ Of course we can use the reactive properties of an object to observe changes. I 
   
   obj.a = "other value"; // We will see the alert.
 ```
+
+This can be accomplished by adding listeners to a property too:
+
+```javascript
+  var obj = Pro.prob({
+    a: "initial value of a"
+  });
+  
+  obj.p('a').addListener(function (e) {
+    alert("a changed to " + obj.a);
+  });
+  
+  obj.a = 'GO!'; // We will see the alert. This is the right method for obsserving btw :)
+```
