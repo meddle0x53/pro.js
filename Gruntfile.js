@@ -100,6 +100,7 @@ module.exports = function(grunt) {
       src : [
         'spec/unit/flow/flow.spec.js',
         'spec/unit/arrays/pro_array.spec.js',
+        'src/js/streams/stream.js',
         'src/js/arrays/pro_array.js',
         'src/js/arrays/listeners.js',
         'src/js/properties/property.js',
@@ -125,7 +126,9 @@ module.exports = function(grunt) {
           'flow/queue',
           'flow/queues',
           'flow/flow',
+          'objects/observable',
           'events/pro_event',
+          'streams/stream',
           'arrays/pro_array',
           'arrays/listeners',
           'properties/property',

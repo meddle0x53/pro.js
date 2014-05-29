@@ -20,12 +20,13 @@ Pro.Property = function (proObject, property, getter, setter) {
 
   this.oldVal = null;
   this.val = proObject[property];
-  this.listeners = [];
   this.transformators = [];
 
   this.state = Pro.States.init;
   this.g = this.get;
   this.s = this.set;
+
+  Pro.Observable.call(this); // Super!
 
   this.init();
 };
@@ -64,9 +65,7 @@ Pro.Property.DEFAULT_SETTER = function (property) {
     property.oldVal = property.val;
     property.val = Pro.Property.transform(property, newVal);
 
-    Pro.flow.run(function () {
-      property.willUpdate();
-    });
+    property.update();
   };
 };
 
@@ -78,6 +77,9 @@ Pro.Property.defineProp = function (obj, prop, get, set) {
     configurable: true
   });
 };
+
+Pro.Property.prototype = Object.create(Pro.Observable.prototype);
+Pro.Property.prototype.constructor = Pro.Property;
 
 Pro.Property.prototype.type = function () {
   return Pro.Property.Types.simple;
@@ -130,40 +132,6 @@ Pro.Property.prototype.addTransformator = function (transformator) {
   this.transformators.push(transformator);
 
   return this;
-};
-
-Pro.Property.prototype.addListener = function (listener) {
-  this.listeners.push(listener);
-};
-
-Pro.Property.prototype.removeListener = function (listener) {
-  var i;
-  for (i = 0; i < this.listeners.length; i++) {
-    if (this.listeners[i] == listener) {
-      this.listeners.splice(i, 1);
-      break;
-    }
-  }
-};
-
-Pro.Property.prototype.willUpdate = function (source) {
-  var i, listener,
-      listeners = this.listeners,
-      length = listeners.length,
-      event = new Pro.Event(source, this, Pro.Event.Types.value);
-  for (i = 0; i < length; i++) {
-    listener = listeners[i];
-
-    if (Pro.Utils.isFunction(listener)) {
-      Pro.flow.pushOnce(listener, [event]);
-    } else {
-      Pro.flow.pushOnce(listener, listener.call, [event]);
-    }
-
-    if (listener.property) {
-      listener.property.willUpdate(event);
-    }
-  }
 };
 
 Pro.Property.prototype.toString = function () {
