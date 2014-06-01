@@ -6,13 +6,15 @@ Pro.Stream = function (source, transforms) {
 
   var stream = this;
   this.listener = function (event) {
-    stream.trigger(event);
+    stream.trigger(event, true);
   }
 
   if (source) {
     this.addSource(source);
   }
 };
+
+Pro.Stream.BadValue = '<><>BAD_VAL<><>';
 
 Pro.Stream.prototype = Object.create(Pro.Observable.prototype);
 Pro.Stream.prototype.constructor = Pro.Stream;
@@ -21,11 +23,17 @@ Pro.Stream.prototype.makeEvent = function (source) {
   return source;
 };
 
-Pro.Stream.prototype.trigger = function (event) {
+Pro.Stream.prototype.trigger = function (event, useTransformations) {
   var i, tr = this.transforms, ln = tr.length;
 
-  for (i = 0; i < ln; i++) {
-    event = tr[i].call(this, event);
+  if (useTransformations) {
+    for (i = 0; i < ln; i++) {
+      event = tr[i].call(this, event);
+    }
+  }
+
+  if (event === Pro.Stream.BadValue) {
+    return false;
   }
 
   this.update(event);
@@ -50,4 +58,27 @@ Pro.Stream.prototype.removeSource = function (source) {
 
 Pro.Stream.prototype.map = function (f) {
   return new Pro.Stream(this, [f]);
+};
+
+Pro.Stream.prototype.filter = function (f) {
+  var _this = this, filter;
+
+  filter = function (val) {
+    if (f.call(_this, val)) {
+      return val;
+    }
+    return Pro.Stream.BadValue;
+  };
+  return new Pro.Stream(this, [filter]);
+};
+
+Pro.Stream.prototype.accumulate = function (initVal, f) {
+  var _this = this, accumulator, val = initVal;
+
+  accumulator = function (newVal) {
+    val = f.call(_this, val, newVal)
+    return val;
+  };
+
+  return new Pro.Stream(this, [accumulator]);
 };

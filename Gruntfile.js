@@ -100,6 +100,7 @@ module.exports = function(grunt) {
       src : [
         'spec/unit/flow/flow.spec.js',
         'spec/unit/arrays/pro_array.spec.js',
+        'src/js/objects/observable.js',
         'src/js/streams/stream.js',
         'src/js/arrays/pro_array.js',
         'src/js/arrays/listeners.js',

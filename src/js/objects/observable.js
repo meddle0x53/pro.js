@@ -2,12 +2,33 @@ Pro.Observable = function () {
   this.listeners = [];
 };
 
+// TODO Deprecated!
 Pro.Observable.prototype.addListener = function (listener) {
   this.listeners.push(listener);
 };
 
-Pro.Observable.prototype.onVal = Pro.Observable.prototype.addListener;
+Pro.Observable.prototype.on = function (action, callback) {
+  if (!Pro.Utils.isString(action)) {
+    callback = action;
+  }
 
+  this.listeners.push(callback);
+};
+
+Pro.Observable.prototype.off = function (action, callback) {
+  if (!action && !callback) {
+    this.listeners = [];
+    return;
+  }
+
+  if (!Pro.Utils.isString(action)) {
+    callback = action;
+  }
+
+  this.removeListener(callback);
+};
+
+// TODO This should use special array method.
 Pro.Observable.prototype.removeListener = function (listener) {
   var i;
   for (i = 0; i < this.listeners.length; i++) {

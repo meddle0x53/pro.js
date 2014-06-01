@@ -1,3 +1,38 @@
 [4mRunning "todo:src" (todo) task[24m
 
 [32mDone, without errors.[39m
+[4mRunning "todo:src" (todo) task[24m
+
+src/js/objects/observable.js
+
+	line 19  TODO  This should use special array method.
+
+src/js/streams/stream.js
+
+	line 39  TODO  Remove object from array!
+
+[32mDone, without errors.[39m
+[4mRunning "todo:src" (todo) task[24m
+
+src/js/objects/observable.js
+
+	line 5   TODO  Remove!
+	line 20  TODO  This should use special array method.
+
+src/js/streams/stream.js
+
+	line 39  TODO  Remove object from array!
+
+[32mDone, without errors.[39m
+[4mRunning "todo:src" (todo) task[24m
+
+src/js/objects/observable.js
+
+	line 5   TODO  Deprecated!
+	line 20  TODO  This should use special array method.
+
+src/js/streams/stream.js
+
+	line 39  TODO  Remove object from array!
+
+[32mDone, without errors.[39m
