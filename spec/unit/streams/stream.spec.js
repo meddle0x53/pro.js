@@ -155,4 +155,25 @@ describe('Pro.Stream', function () {
       expect(res).toEqual([1, 3, 24]);
     });
   });
+
+  describe('#merge', function () {
+    it ('merges two streams events into one stream of events', function () {
+      var stream1 = new Pro.Stream(),
+          stream2 = new Pro.Stream(),
+          stream3 = stream1.merge(stream2),
+          res = [];
+
+      stream3.on(function (e) {
+        res.push(e);
+      });
+
+      expect(res).toEqual([]);
+
+      stream1.trigger(1);
+      expect(res).toEqual([1]);
+
+      stream2.trigger(1);
+      expect(res).toEqual([1, 1]);
+    });
+  });
 });

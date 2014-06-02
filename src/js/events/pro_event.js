@@ -7,5 +7,7 @@ Pro.Event = function (source, target, type) {
 
 Pro.Event.Types = {
   value: 0,
-  array: 1
+  array: 1,
+  close: 2,
+  error: 3
 };

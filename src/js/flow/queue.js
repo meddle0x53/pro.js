@@ -52,6 +52,7 @@ Pro.Queue.prototype.pushOnce = function (obj, method, args) {
 Pro.Queue.prototype.go = function (once) {
   var queue = this._queue,
       options = this.options,
+      runs = this.runs,
       length = queue.length,
       before = options && options.before,
       after = options && options.after,
@@ -59,7 +60,6 @@ Pro.Queue.prototype.go = function (once) {
       i, l = length, going = true, priority = 1,
       tl = l,
       obj, method, args, prio;
-
 
   if (length && before) {
     before(this);

@@ -56,6 +56,14 @@ Pro.Observable.prototype.update = function (source) {
   }
 };
 
+Pro.Observable.prototype.defer = function (event, callback) {
+  if (Pro.Utils.isFunction(callback)) {
+    Pro.flow.pushOnce(callback, [event]);
+  } else {
+    Pro.flow.pushOnce(callback, callback.call, [event]);
+  }
+};
+
 Pro.Observable.prototype.willUpdate = function (source) {
   var i, listener,
       listeners = this.listeners,
@@ -64,11 +72,7 @@ Pro.Observable.prototype.willUpdate = function (source) {
   for (i = 0; i < length; i++) {
     listener = listeners[i];
 
-    if (Pro.Utils.isFunction(listener)) {
-      Pro.flow.pushOnce(listener, [event]);
-    } else {
-      Pro.flow.pushOnce(listener, listener.call, [event]);
-    }
+    this.defer(event, listener);
 
     if (listener.property) {
       listener.property.willUpdate(event);

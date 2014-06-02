@@ -7,20 +7,28 @@ Pro.Stream = function (source, transforms) {
   var stream = this;
   this.listener = function (event) {
     stream.trigger(event, true);
-  }
+  };
 
   if (source) {
     this.addSource(source);
   }
 };
 
-Pro.Stream.BadValue = '<><>BAD_VAL<><>';
+Pro.Stream.BadValue = {badValue: '<><>BAD_VAL<><>'};
 
 Pro.Stream.prototype = Object.create(Pro.Observable.prototype);
 Pro.Stream.prototype.constructor = Pro.Stream;
 
 Pro.Stream.prototype.makeEvent = function (source) {
   return source;
+};
+
+Pro.Stream.prototype.defer = function (event, callback) {
+  if (Pro.Utils.isFunction(callback)) {
+    Pro.flow.push(callback, [event]);
+  } else {
+    Pro.flow.push(callback, callback.call, [event]);
+  }
 };
 
 Pro.Stream.prototype.trigger = function (event, useTransformations) {
@@ -42,6 +50,8 @@ Pro.Stream.prototype.trigger = function (event, useTransformations) {
 Pro.Stream.prototype.addSource = function (source) {
   this.sources.push(source);
   source.addListener(this.listener);
+
+  return this;
 };
 
 // TODO Remove object from array!
@@ -81,4 +91,8 @@ Pro.Stream.prototype.accumulate = function (initVal, f) {
   };
 
   return new Pro.Stream(this, [accumulator]);
+};
+
+Pro.Stream.prototype.merge = function (stream) {
+  return new Pro.Stream(this).addSource(stream);
 };
