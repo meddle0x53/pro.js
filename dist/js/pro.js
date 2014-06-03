@@ -187,6 +187,7 @@
 	Pro.Queue.prototype.go = function (once) {
 	  var queue = this._queue,
 	      options = this.options,
+	      runs = this.runs,
 	      length = queue.length,
 	      before = options && options.before,
 	      after = options && options.after,
@@ -194,7 +195,6 @@
 	      i, l = length, going = true, priority = 1,
 	      tl = l,
 	      obj, method, args, prio;
-	
 	
 	  if (length && before) {
 	    before(this);
@@ -476,6 +476,120 @@
 	
 	Pro.flow = new Pro.Flow(['proq']);
 	
+	Pro.Observable = function () {
+	  this.listeners = [];
+	  this.sources = [];
+	
+	  this.listener = null;
+	};
+	
+	Pro.Observable.prototype.makeListener = function () {
+	  return null;
+	};
+	
+	// TODO Deprecated!
+	Pro.Observable.prototype.addListener = function (listener) {
+	  this.listeners.push(listener);
+	};
+	
+	Pro.Observable.prototype.on = function (action, callback) {
+	  if (!Pro.Utils.isString(action)) {
+	    callback = action;
+	  }
+	
+	  this.listeners.push(callback);
+	};
+	
+	Pro.Observable.prototype.off = function (action, callback) {
+	  if (!action && !callback) {
+	    this.listeners = [];
+	    return;
+	  }
+	
+	  if (!Pro.Utils.isString(action)) {
+	    callback = action;
+	  }
+	
+	  this.removeListener(callback);
+	};
+	
+	Pro.Observable.prototype.in = function (source) {
+	  this.sources.push(source);
+	  source.addListener(this.makeListener());
+	
+	  return this;
+	};
+	
+	Pro.Observable.prototype.out = function (destination) {
+	  destination.in(this);
+	
+	  return this;
+	};
+	
+	// TODO Remove object from array!
+	Pro.Observable.prototype.offSource = function (source) {
+	  var i, s = this.sources, sln = s.length;
+	  for (i = 0; i < sln; i++) {
+	    if (s[i] === source) {
+	      s.splice(i, 1);
+	      break;
+	    }
+	  }
+	  source.removeListener(this.listener);
+	};
+	
+	// TODO This should use special array method.
+	Pro.Observable.prototype.removeListener = function (listener) {
+	  var i;
+	  for (i = 0; i < this.listeners.length; i++) {
+	    if (this.listeners[i] == listener) {
+	      this.listeners.splice(i, 1);
+	      break;
+	    }
+	  }
+	};
+	
+	Pro.Observable.prototype.makeEvent = function (source) {
+	  return new Pro.Event(source, this, Pro.Event.Types.value);
+	};
+	
+	Pro.Observable.prototype.map = function (f) {};
+	
+	Pro.Observable.prototype.update = function (source) {
+	  var observable = this;
+	  if (!Pro.flow.isRunning()) {
+	    Pro.flow.run(function () {
+	      observable.willUpdate(source);
+	    });
+	  } else {
+	    observable.willUpdate(source);
+	  }
+	};
+	
+	Pro.Observable.prototype.defer = function (event, callback) {
+	  if (Pro.Utils.isFunction(callback)) {
+	    Pro.flow.pushOnce(callback, [event]);
+	  } else {
+	    Pro.flow.pushOnce(callback, callback.call, [event]);
+	  }
+	};
+	
+	Pro.Observable.prototype.willUpdate = function (source) {
+	  var i, listener,
+	      listeners = this.listeners,
+	      length = listeners.length,
+	      event = this.makeEvent(source);
+	  for (i = 0; i < length; i++) {
+	    listener = listeners[i];
+	
+	    this.defer(event, listener);
+	
+	    if (listener.property) {
+	      listener.property.willUpdate(event);
+	    }
+	  }
+	};
+	
 	Pro.Event = function (source, target, type) {
 	  this.source = source;
 	  this.target = target;
@@ -485,7 +599,99 @@
 	
 	Pro.Event.Types = {
 	  value: 0,
-	  array: 1
+	  array: 1,
+	  close: 2,
+	  error: 3
+	};
+	
+	Pro.Stream = function (source, transforms) {
+	  this.transforms = transforms ? transforms : [];
+	
+	  Pro.Observable.call(this);
+	
+	  if (source) {
+	    this.in(source);
+	  }
+	};
+	
+	Pro.Stream.BadValue = {};
+	
+	Pro.Stream.prototype = Object.create(Pro.Observable.prototype);
+	Pro.Stream.prototype.constructor = Pro.Stream;
+	
+	Pro.Stream.prototype.makeEvent = function (source) {
+	  return source;
+	};
+	
+	Pro.Stream.prototype.makeListener = function (source) {
+	  if (!this.listener) {
+	    var stream = this;
+	    this.listener = function (event) {
+	      stream.trigger(event, true);
+	    };
+	  }
+	
+	  return this.listener;
+	};
+	
+	Pro.Stream.prototype.defer = function (event, callback) {
+	  if (callback.property) {
+	    Pro.Observable.prototype.defer.call(this, event, callback);
+	    return;
+	  }
+	
+	  if (Pro.Utils.isFunction(callback)) {
+	    Pro.flow.push(callback, [event]);
+	  } else {
+	    Pro.flow.push(callback, callback.call, [event]);
+	  }
+	};
+	
+	Pro.Stream.prototype.trigger = function (event, useTransformations) {
+	  var i, tr = this.transforms, ln = tr.length;
+	
+	  if (useTransformations) {
+	    for (i = 0; i < ln; i++) {
+	      event = tr[i].call(this, event);
+	    }
+	  }
+	
+	  if (event === Pro.Stream.BadValue) {
+	    return false;
+	  }
+	
+	  this.update(event);
+	};
+	
+	Pro.Stream.prototype.map = function (f) {
+	  return new Pro.Stream(this, [f]);
+	};
+	
+	Pro.Stream.prototype.filter = function (f) {
+	  var _this = this, filter;
+	
+	  filter = function (val) {
+	    if (f.call(_this, val)) {
+	      return val;
+	    }
+	    return Pro.Stream.BadValue;
+	  };
+	  return new Pro.Stream(this, [filter]);
+	};
+	
+	Pro.Stream.prototype.accumulate = function (initVal, f) {
+	  var _this = this, accumulator, val = initVal;
+	
+	  accumulator = function (newVal) {
+	    val = f.call(_this, val, newVal)
+	    return val;
+	  };
+	
+	  return new Pro.Stream(this, [accumulator]);
+	};
+	
+	Pro.Stream.prototype.merge = function (stream) {
+	  return new Pro.Stream(this).in(stream);
 	};
 	
 	Pro.Array = function () {
@@ -1490,12 +1696,13 @@
 	
 	  this.oldVal = null;
 	  this.val = proObject[property];
-	  this.listeners = [];
 	  this.transformators = [];
 	
 	  this.state = Pro.States.init;
 	  this.g = this.get;
 	  this.s = this.set;
+	
+	  Pro.Observable.call(this); // Super!
 	
 	  this.init();
 	};
@@ -1534,9 +1741,7 @@
 	    property.oldVal = property.val;
 	    property.val = Pro.Property.transform(property, newVal);
 	
-	    Pro.flow.run(function () {
-	      property.willUpdate();
-	    });
+	    property.update();
 	  };
 	};
 	
@@ -1549,8 +1754,26 @@
 	  });
 	};
 	
+	Pro.Property.prototype = Object.create(Pro.Observable.prototype);
+	Pro.Property.prototype.constructor = Pro.Property;
+	
 	Pro.Property.prototype.type = function () {
 	  return Pro.Property.Types.simple;
+	};
+	
+	Pro.Property.prototype.makeListener = function () {
+	  if (!this.listener) {
+	    var _this = this;
+	    this.listener = {
+	      property: _this,
+	      call: function (newVal) {
+	        _this.oldVal = _this.val;
+	        _this.val = Pro.Property.transform(_this, newVal);
+	      }
+	    };
+	  }
+	
+	  return this.listener;
 	};
 	
 	Pro.Property.prototype.init = function () {
@@ -1602,42 +1825,22 @@
 	  return this;
 	};
 	
-	Pro.Property.prototype.addListener = function (listener) {
-	  this.listeners.push(listener);
-	};
-	
-	Pro.Property.prototype.removeListener = function (listener) {
-	  var i;
-	  for (i = 0; i < this.listeners.length; i++) {
-	    if (this.listeners[i] == listener) {
-	      this.listeners.splice(i, 1);
-	      break;
-	    }
-	  }
-	};
-	
-	Pro.Property.prototype.willUpdate = function (source) {
-	  var i, listener,
-	      listeners = this.listeners,
-	      length = listeners.length,
-	      event = new Pro.Event(source, this, Pro.Event.Types.value);
-	  for (i = 0; i < length; i++) {
-	    listener = listeners[i];
-	
-	    if (Pro.Utils.isFunction(listener)) {
-	      Pro.flow.pushOnce(listener, [event]);
-	    } else {
-	      Pro.flow.pushOnce(listener, listener.call, [event]);
-	    }
-	
-	    if (listener.property) {
-	      listener.property.willUpdate(event);
-	    }
-	  }
-	};
-	
 	Pro.Property.prototype.toString = function () {
 	  return this.val;
+	};
+	
+	Pro.NullProperty = function (proObject, property) {
+	  var _this = this;
+	
+	  Pro.Property.call(this, proObject, property, null, function () {});
+	};
+	
+	
+	Pro.NullProperty.prototype = Object.create(Pro.Property.prototype);;
+	Pro.NullProperty.prototype.constructor = Pro.NullProperty;
+	
+	Pro.NullProperty.prototype.type = function () {
+	  return Pro.Property.Types.nil;
 	};
 	
 	Pro.AutoProperty = function (proObject, property) {
@@ -1650,13 +1853,7 @@
 	        get = Pro.Property.DEFAULT_GETTER(_this),
 	        set = Pro.Property.DEFAULT_SETTER(_this);
 	
-	    Pro.currentCaller = {
-	      property: _this,
-	      call: function () {
-	        _this.oldVal = _this.val;
-	        _this.val = Pro.Property.transform(_this, _this.func.call(proObject));
-	      }
-	    };
+	    Pro.currentCaller = _this.makeListener();
 	    _this.val = _this.func.apply(_this.proObject, arguments);
 	    Pro.currentCaller = oldCaller;
 	
@@ -1676,6 +1873,21 @@
 	
 	Pro.AutoProperty.prototype.type = function () {
 	  return Pro.Property.Types.auto;
+	};
+	
+	Pro.AutoProperty.prototype.makeListener = function () {
+	  if (!this.listener) {
+	    var _this = this;
+	    this.listener = {
+	      property: _this,
+	      call: function () {
+	        _this.oldVal = _this.val;
+	        _this.val = Pro.Property.transform(_this, _this.func.call(_this.proObject));
+	      }
+	    };
+	  }
+	
+	  return this.listener;
 	};
 	
 	Pro.AutoProperty.prototype.afterInit = function () {};

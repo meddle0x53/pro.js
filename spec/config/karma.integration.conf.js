@@ -6,6 +6,7 @@ module.exports = function(karma) {
     files: [
       'dist/js/pro.js',
       'spec/spec_helper.js',
+      'spec/unit/**/*.spec.js',
       'spec/integration/**/*.spec.js'
     ],
 

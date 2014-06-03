@@ -1,5 +1,12 @@
 Pro.Observable = function () {
   this.listeners = [];
+  this.sources = [];
+
+  this.listener = null;
+};
+
+Pro.Observable.prototype.makeListener = function () {
+  return null;
 };
 
 // TODO Deprecated!
@@ -26,6 +33,31 @@ Pro.Observable.prototype.off = function (action, callback) {
   }
 
   this.removeListener(callback);
+};
+
+Pro.Observable.prototype.in = function (source) {
+  this.sources.push(source);
+  source.addListener(this.makeListener());
+
+  return this;
+};
+
+Pro.Observable.prototype.out = function (destination) {
+  destination.in(this);
+
+  return this;
+};
+
+// TODO Remove object from array!
+Pro.Observable.prototype.offSource = function (source) {
+  var i, s = this.sources, sln = s.length;
+  for (i = 0; i < sln; i++) {
+    if (s[i] === source) {
+      s.splice(i, 1);
+      break;
+    }
+  }
+  source.removeListener(this.listener);
 };
 
 // TODO This should use special array method.

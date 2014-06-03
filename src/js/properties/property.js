@@ -85,6 +85,21 @@ Pro.Property.prototype.type = function () {
   return Pro.Property.Types.simple;
 };
 
+Pro.Property.prototype.makeListener = function () {
+  if (!this.listener) {
+    var _this = this;
+    this.listener = {
+      property: _this,
+      call: function (newVal) {
+        _this.oldVal = _this.val;
+        _this.val = Pro.Property.transform(_this, newVal);
+      }
+    };
+  }
+
+  return this.listener;
+};
+
 Pro.Property.prototype.init = function () {
   if (this.state !== Pro.States.init) {
     return;

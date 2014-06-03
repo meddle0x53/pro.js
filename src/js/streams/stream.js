@@ -1,20 +1,14 @@
 Pro.Stream = function (source, transforms) {
   this.transforms = transforms ? transforms : [];
-  this.sources = [];
 
   Pro.Observable.call(this);
 
-  var stream = this;
-  this.listener = function (event) {
-    stream.trigger(event, true);
-  };
-
   if (source) {
-    this.addSource(source);
+    this.in(source);
   }
 };
 
-Pro.Stream.BadValue = {badValue: '<><>BAD_VAL<><>'};
+Pro.Stream.BadValue = {};
 
 Pro.Stream.prototype = Object.create(Pro.Observable.prototype);
 Pro.Stream.prototype.constructor = Pro.Stream;
@@ -23,7 +17,23 @@ Pro.Stream.prototype.makeEvent = function (source) {
   return source;
 };
 
+Pro.Stream.prototype.makeListener = function (source) {
+  if (!this.listener) {
+    var stream = this;
+    this.listener = function (event) {
+      stream.trigger(event, true);
+    };
+  }
+
+  return this.listener;
+};
+
 Pro.Stream.prototype.defer = function (event, callback) {
+  if (callback.property) {
+    Pro.Observable.prototype.defer.call(this, event, callback);
+    return;
+  }
+
   if (Pro.Utils.isFunction(callback)) {
     Pro.flow.push(callback, [event]);
   } else {
@@ -45,25 +55,6 @@ Pro.Stream.prototype.trigger = function (event, useTransformations) {
   }
 
   this.update(event);
-};
-
-Pro.Stream.prototype.addSource = function (source) {
-  this.sources.push(source);
-  source.addListener(this.listener);
-
-  return this;
-};
-
-// TODO Remove object from array!
-Pro.Stream.prototype.removeSource = function (source) {
-  var i, s = this.sources, sln = s.length;
-  for (i = 0; i < sln; i++) {
-    if (s[i] === source) {
-      s.splice(i, 1);
-      break;
-    }
-  }
-  source.removeListener(this.listener);
 };
 
 Pro.Stream.prototype.map = function (f) {
@@ -94,5 +85,5 @@ Pro.Stream.prototype.accumulate = function (initVal, f) {
 };
 
 Pro.Stream.prototype.merge = function (stream) {
-  return new Pro.Stream(this).addSource(stream);
+  return new Pro.Stream(this).in(stream);
 };

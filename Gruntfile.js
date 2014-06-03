@@ -133,6 +133,7 @@ module.exports = function(grunt) {
           'arrays/pro_array',
           'arrays/listeners',
           'properties/property',
+          'properties/null_property',
           'properties/auto_property',
           'properties/object_property',
           'properties/array_property',
