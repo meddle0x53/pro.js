@@ -15,6 +15,8 @@ Pro.Observable.prototype.on = function (action, callback) {
   }
 
   this.listeners.push(callback);
+
+  return this;
 };
 
 Pro.Observable.prototype.off = function (action, callback) {
@@ -28,6 +30,8 @@ Pro.Observable.prototype.off = function (action, callback) {
   }
 
   Pro.U.remove(this.listeners, callback);
+
+  return this;
 };
 
 Pro.Observable.prototype.in = function (source) {

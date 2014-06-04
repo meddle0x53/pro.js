@@ -9,6 +9,13 @@ describe('Pro.Val', function () {
       expect(Pro.Utils.isProObject(val)).toBe(true);
       expect(val.v).toBe(3);
     });
+
+    it ('the constructed val can be empty', function () {
+      var val = new Pro.Val();
+
+      expect(Pro.Utils.isProObject(val)).toBe(true);
+      expect(val.v).toBe(null);
+    });
   });
 
   describe('#type', function () {

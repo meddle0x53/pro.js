@@ -108,6 +108,20 @@ describe('Pro.Stream', function () {
     });
   });
 
+  describe('#reduce', function () {
+    it ('creates a Pro.Val that listens to accumulations', function () {
+      var stream = new Pro.Stream(),
+          reduced = stream.reduce(0, function (x, y) {return x + y;});
+      expect(reduced.v).toEqual(0);
+
+      stream.trigger(1);
+      expect(reduced.v).toEqual(1);
+
+      stream.trigger(2);
+      expect(reduced.v).toEqual(3);
+    });
+  });
+
   describe('#accumulate', function () {
     it ('accumulates values using the passed function', function () {
       var stream1 = new Pro.Stream(),

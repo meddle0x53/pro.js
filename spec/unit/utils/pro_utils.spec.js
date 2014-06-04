@@ -13,7 +13,7 @@ describe('Pro.Utils', function () {
       Pro.Utils.remove(arr, a);
       expect(arr).toEqual([1, 3]);
     });
-  }),
+  });
 
   describe('#diff' , function () {
     it ('creates a diff between sub-array and array', function () {

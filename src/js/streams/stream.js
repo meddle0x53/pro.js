@@ -84,6 +84,10 @@ Pro.Stream.prototype.accumulate = function (initVal, f) {
   return new Pro.Stream(this, [accumulator]);
 };
 
+Pro.Stream.prototype.reduce = function (initVal, f) {
+  return new Pro.Val(initVal).in(this.accumulate(initVal, f));
+};
+
 Pro.Stream.prototype.merge = function (stream) {
   return new Pro.Stream(this).in(stream);
 };
