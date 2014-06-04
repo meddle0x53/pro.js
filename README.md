@@ -1,4 +1,4 @@
-# pro.js (0.1.1)
+# pro.js (0.2.0)
 
 ## Download
  * [Development](https://raw.github.com/meddle0x53/pro.js/master/dist/js/pro.js)
@@ -112,7 +112,7 @@ This can be accomplished by adding listeners to a property too:
     a: "initial value of a"
   });
   
-  obj.p('a').addListener(function (e) {
+  obj.p('a').on(function (e) {
     alert("a changed to " + obj.a);
   });
   

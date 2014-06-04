@@ -2,7 +2,7 @@
   "name": "pro.js",
   "title": "Pro.js",
   "description": "Reactive JavaScript objects and properties.",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "author": "meddle0x53",
   "main": "dist/js/pro.min.js",
   "license": "MIT",
