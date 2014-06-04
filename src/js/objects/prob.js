@@ -1,7 +1,6 @@
 Pro.prob = function (object, meta) {
-  if (!object) {
-    throw Error('Pro objects should not be empty or null!');
-    return undefined;
+  if (object === null || (!Pro.U.isObject(object) && !Pro.U.isArray(object))) {
+    return new Pro.Val(object);
   }
 
   var property,

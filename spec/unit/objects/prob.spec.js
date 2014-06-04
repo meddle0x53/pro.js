@@ -7,7 +7,42 @@ describe('Pro.prob', function () {
       keyprops: true,
       keypropList: ['p']
     };
-  }),
+  });
+
+  it ('turns number to a Pro.Val with value the number', function () {
+    var val = Pro.prob(5);
+
+    expect(Pro.Utils.isProVal(val)).toBe(true);
+    expect(val.v).toBe(5);
+  });
+
+  it ('turns string to a Pro.Val with value the string', function () {
+    var val = Pro.prob('5');
+
+    expect(Pro.Utils.isProVal(val)).toBe(true);
+    expect(val.v).toBe('5');
+  });
+
+  it ('turns boolean to a Pro.Val with value the boolean', function () {
+    var val = Pro.prob(false);
+
+    expect(Pro.Utils.isProVal(val)).toBe(true);
+    expect(val.v).toBe(false);
+  });
+
+  it ('turns null to a Pro.Val with value null', function () {
+    var val = Pro.prob(null);
+
+    expect(Pro.Utils.isProVal(val)).toBe(true);
+    expect(val.v).toBe(null);
+  });
+
+  it ('turns undefined to a Pro.Val with value null', function () {
+    var val = Pro.prob(undefined);
+
+    expect(Pro.Utils.isProVal(val)).toBe(true);
+    expect(val.v).toBe(null);
+  });
 
   it('makes normal object with simple properties a Pro object.', function () {
     var obj = {
@@ -229,6 +264,7 @@ describe('Pro.prob', function () {
 
     proArray = Pro.prob(array);
     expect(Pro.Utils.isProArray(proArray)).toBe(true);
+    expect(proArray.valueOf()).toEqual([1, '2', 3.0, true, null]);
   });
 
 });

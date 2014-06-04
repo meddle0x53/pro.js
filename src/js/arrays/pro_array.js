@@ -127,6 +127,7 @@ Pro.Array.prototype.defineIndexProp = function (i) {
   if (isA(array[i])) {
     new Pro.ArrayProperty(array, i);
   } else if (isF(array[i])) {
+  } else if (array[i] === null) {
   } else if (isO(array[i])) {
     new Pro.ObjectProperty(array, i);
   }
