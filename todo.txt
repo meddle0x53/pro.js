@@ -1,9 +1,3 @@
 [4mRunning "todo:src" (todo) task[24m
 
-src/js/objects/observable.js
-
-	line 12  TODO  Deprecated!
-	line 51  TODO  Remove object from array!
-	line 63  TODO  This should use special array method.
-
 [32mDone, without errors.[39m

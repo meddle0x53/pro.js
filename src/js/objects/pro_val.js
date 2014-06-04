@@ -7,8 +7,8 @@ Pro.Val.prototype.type = function () {
   return this.__pro__.properties.v.type();
 };
 
-Pro.Val.prototype.addListener = function (listener) {
-  this.__pro__.properties.v.addListener(listener);
+Pro.Val.prototype.on = function (listener) {
+  this.__pro__.properties.v.on(listener);
 };
 
 Pro.Val.prototype.addTransformator = function (transformator) {

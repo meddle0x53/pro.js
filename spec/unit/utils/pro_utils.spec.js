@@ -1,6 +1,20 @@
 'use strict';
 
 describe('Pro.Utils', function () {
+  describe('#remove', function () {
+    it ('removes element from array', function () {
+      var arr = [1], obj = {a: 2}, a = [5];
+
+      arr.push(obj, a, 3);
+
+      Pro.Utils.remove(arr, obj);
+      expect(arr).toEqual([1, a, 3]);
+
+      Pro.Utils.remove(arr, a);
+      expect(arr).toEqual([1, 3]);
+    });
+  }),
+
   describe('#diff' , function () {
     it ('creates a diff between sub-array and array', function () {
       var a1 = [1, 2, 3],

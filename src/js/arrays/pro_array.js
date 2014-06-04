@@ -111,7 +111,7 @@ Pro.Array.prototype.addIndexCaller = function () {
   }
 };
 
-Pro.Array.prototype.addListener = function (listener) {
+Pro.Array.prototype.on = function (listener) {
   this.addIndexListener(listener);
   this.addLengthListener(listener);
 };
@@ -222,10 +222,10 @@ Pro.Array.prototype.concat = function () {
 
   res = new Pro.Array(concat.apply(this._array, arguments));
   if (rightProArray) {
-    this.addListener(Pro.Array.Listeners.leftConcat(res, this, rightProArray));
-    rightProArray.addListener(Pro.Array.Listeners.rightConcat(res, this, rightProArray));
+    this.on(Pro.Array.Listeners.leftConcat(res, this, rightProArray));
+    rightProArray.on(Pro.Array.Listeners.rightConcat(res, this, rightProArray));
   } else {
-    this.addListener(Pro.Array.Listeners.leftConcat(res, this, slice.call(arguments, 0)));
+    this.on(Pro.Array.Listeners.leftConcat(res, this, slice.call(arguments, 0)));
   }
 
   return res;
@@ -241,7 +241,7 @@ Pro.Array.prototype.every = function () {
 Pro.Array.prototype.pevery = function (fun, thisArg) {
   var val = new Pro.Val(every.apply(this._array, arguments));
 
-  this.addListener(Pro.Array.Listeners.every(val, this, arguments));
+  this.on(Pro.Array.Listeners.every(val, this, arguments));
 
   return val;
 };
@@ -256,7 +256,7 @@ Pro.Array.prototype.some = function () {
 Pro.Array.prototype.psome = function (fun, thisArg) {
   var val = new Pro.Val(some.apply(this._array, arguments));
 
-  this.addListener(Pro.Array.Listeners.some(val, this, arguments));
+  this.on(Pro.Array.Listeners.some(val, this, arguments));
 
   return val;
 };
@@ -270,14 +270,14 @@ Pro.Array.prototype.forEach = function (fun /*, thisArg */) {
 
 Pro.Array.prototype.filter = function (fun, thisArg) {
   var filtered = new Pro.Array(filter.apply(this._array, arguments));
-  this.addListener(Pro.Array.Listeners.filter(filtered, this, arguments));
+  this.on(Pro.Array.Listeners.filter(filtered, this, arguments));
 
   return filtered;
 };
 
 Pro.Array.prototype.map = function (fun, thisArg) {
   var mapped = new Pro.Array(map.apply(this._array, arguments));
-  this.addListener(Pro.Array.Listeners.map(mapped, this, arguments));
+  this.on(Pro.Array.Listeners.map(mapped, this, arguments));
 
   return mapped;
 };
@@ -291,7 +291,7 @@ Pro.Array.prototype.reduce = function (fun /*, initialValue */) {
 
 Pro.Array.prototype.preduce = function (fun /*, initialValue */) {
   var val = new Pro.Val(reduce.apply(this._array, arguments));
-  this.addListener(Pro.Array.Listeners.reduce(val, this, arguments));
+  this.on(Pro.Array.Listeners.reduce(val, this, arguments));
 
   return val;
 };
@@ -305,7 +305,7 @@ Pro.Array.prototype.reduceRight = function (fun /*, initialValue */) {
 
 Pro.Array.prototype.preduceRight = function (fun /*, initialValue */) {
   var val = new Pro.Val(reduceRight.apply(this._array, arguments));
-  this.addListener(Pro.Array.Listeners.reduceRight(val, this, arguments));
+  this.on(Pro.Array.Listeners.reduceRight(val, this, arguments));
 
   return val;
 };
@@ -319,7 +319,7 @@ Pro.Array.prototype.indexOf = function () {
 
 Pro.Array.prototype.pindexOf = function () {
   var val = new Pro.Val(indexOf.apply(this._array, arguments));
-  this.addListener(Pro.Array.Listeners.indexOf(val, this, arguments));
+  this.on(Pro.Array.Listeners.indexOf(val, this, arguments));
 
   return val;
 };
@@ -333,7 +333,7 @@ Pro.Array.prototype.lastIndexOf = function () {
 
 Pro.Array.prototype.plastindexOf = function () {
   var val = new Pro.Val(lastIndexOf.apply(this._array, arguments));
-  this.addListener(Pro.Array.Listeners.lastIndexOf(val, this, arguments));
+  this.on(Pro.Array.Listeners.lastIndexOf(val, this, arguments));
 
   return val;
 };
@@ -377,7 +377,7 @@ Pro.Array.prototype.valueOf = function () {
 
 Pro.Array.prototype.slice = function () {
   var sliced = new Pro.Array(slice.apply(this._array, arguments));
-  this.addListener(Pro.Array.Listeners.slice(sliced, this, arguments));
+  this.on(Pro.Array.Listeners.slice(sliced, this, arguments));
 
   return sliced;
 };

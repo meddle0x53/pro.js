@@ -29,94 +29,91 @@ Pro.States = {
   error: 4
 };
 
-Pro.Utils = {};
-
-Pro.Utils.isFunction = function (property) {
-  return typeof(property) === 'function';
-};
-
-Pro.Utils.isString = function (property) {
-  return typeof(property) === 'string';
-};
-
-Pro.Utils.isObject = function (property) {
-  return typeof(property) === 'object';
-};
-
-Pro.Utils.isArray = function (property) {
-  return Pro.Utils.isObject(property) && Object.prototype.toString.call(property) === '[object Array]';
-};
-
-Pro.Utils.isProArray = function (property) {
-  return property !== null && Pro.Utils.isObject(property) && Pro.Utils.isArray(property._array) && property.length !== undefined;
-};
-
-Pro.Utils.isArrayObject = function (property) {
-  return Pro.Utils.isArray(property) || Pro.Utils.isProArray(property);
-};
-
-Pro.Utils.isProObject = function (property) {
-  return Pro.Utils.isObject(property) && property.__pro__ !== undefined && Pro.Utils.isObject(property.__pro__.properties);
-};
-
-Pro.Utils.isProVal = function (property) {
-  return this.isProObject(property) && property.__pro__.properties.v !== undefined;
-};
-
-Pro.Utils.contains = function (array, value) {
-  var i = array.length;
-  while (i--) {
-    if (array[i] === value) {
-      return true;
-    }
-  }
-
-  return false;
-};
-
-Pro.Utils.diff = function (array1, array2) {
-  var i, e1, e2,
-      index = -1,
-      l1 = array1.length,
-      l2 = array2.length,
-      diff = {};
-
-  if (l1 >= l2) {
-    for (i = 0; i < l2; i++) {
-      e1 = array1[i];
-      e2 = array2[i];
-
-      if (e1 !== e2) {
-        if (index === -1) {
-          index = i;
-        }
-        diff[index] = diff[index] || {o: [], n: []};
-        diff[index].o.push(e1);
-        diff[index].n.push(e2);
-      } else {
-        index = -1;
+Pro.Utils = Pro.U = {
+  isFunction: function (property) {
+    return typeof(property) === 'function';
+  },
+  isString: function (property) {
+    return typeof(property) === 'string';
+  },
+  isObject: function (property) {
+    return typeof(property) === 'object';
+  },
+  isArray: function (property) {
+    return Pro.U.isObject(property) && Object.prototype.toString.call(property) === '[object Array]';
+  },
+  isProArray: function (property) {
+    return property !== null && Pro.U.isObject(property) && Pro.U.isArray(property._array) && property.length !== undefined;
+  },
+  isArrayObject: function (property) {
+    return Pro.U.isArray(property) || Pro.U.isProArray(property);
+  },
+  isProObject: function (property) {
+    return Pro.U.isObject(property) && property.__pro__ !== undefined && Pro.U.isObject(property.__pro__.properties);
+  },
+  isProVal: function (property) {
+    return this.isProObject(property) && property.__pro__.properties.v !== undefined;
+  },
+  contains: function (array, value) {
+    var i = array.length;
+    while (i--) {
+      if (array[i] === value) {
+        return true;
       }
     }
 
-    if (index === -1) {
-      index = i;
+    return false;
+  },
+  remove: function (array, value) {
+    var i = array.indexOf(value);
+    if (i > -1) {
+      array.splice(i, 1);
     }
-    diff[index] = diff[index] || {o: [], n: []};
-    for (; i < l1; i++) {
-      e1 = array1[i];
-      diff[index].o.push(e1);
-    }
-  } else if (l2 > l1) {
-    diff = Pro.Utils.diff(array2, array1)
-    for (i in diff) {
-      el1 = diff[i];
-      el2 = el1.n;
-      el1.n = el1.o;
-      el1.o = el2;
-    }
-  }
+  },
+  diff: function (array1, array2) {
+    var i, e1, e2,
+        index = -1,
+        l1 = array1.length,
+        l2 = array2.length,
+        diff = {};
 
-  return diff;
+    if (l1 >= l2) {
+      for (i = 0; i < l2; i++) {
+        e1 = array1[i];
+        e2 = array2[i];
+
+        if (e1 !== e2) {
+          if (index === -1) {
+            index = i;
+          }
+          diff[index] = diff[index] || {o: [], n: []};
+          diff[index].o.push(e1);
+          diff[index].n.push(e2);
+        } else {
+          index = -1;
+        }
+      }
+
+      if (index === -1) {
+        index = i;
+      }
+      diff[index] = diff[index] || {o: [], n: []};
+      for (; i < l1; i++) {
+        e1 = array1[i];
+        diff[index].o.push(e1);
+      }
+    } else if (l2 > l1) {
+      diff = Pro.U.diff(array2, array1)
+      for (i in diff) {
+        el1 = diff[i];
+        el2 = el1.n;
+        el1.n = el1.o;
+        el1.o = el2;
+      }
+    }
+
+    return diff;
+  }
 };
 
 Pro.Configuration = {

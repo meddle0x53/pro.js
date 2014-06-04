@@ -133,7 +133,7 @@ describe('Pro.Property', function () {
   describe('#willUpdate', function () {
     it('must be called in a flow', function () {
       var property = new Pro.Property(obj, 'a'), go;
-      property.addListener(function () {});
+      property.on(function () {});
       go = function () {
         property.willUpdate();
       };
@@ -143,7 +143,7 @@ describe('Pro.Property', function () {
 
     it('executes the listeners of a property and passes to them a value Pro.Event', function () {
       var property = new Pro.Property(obj, 'a'), called = false;
-      property.addListener(function (event) {
+      property.on(function (event) {
         called = true;
 
         expect(event instanceof Pro.Event).toBe(true);
@@ -166,7 +166,7 @@ describe('Pro.Property', function () {
       var propertyA = new Pro.Property(obj, 'a'),
           propertyB = new Pro.Property(obj, 'b'),
           called = false, ev;
-      propertyA.addListener({
+      propertyA.on({
         call: function (event) {
           ev = event;
           propertyB.oldVal = 5;
@@ -175,7 +175,7 @@ describe('Pro.Property', function () {
         property: propertyB
       });
 
-      propertyB.addListener(function (event) {
+      propertyB.on(function (event) {
         called = true;
 
         expect(event instanceof Pro.Event).toBe(true);

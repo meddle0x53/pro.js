@@ -44,7 +44,7 @@ Pro.ObjectProperty = function (proObject, property) {
                     }
                   }
                   if (toAdd) {
-                    newProp.addListener(oldListeners[i]);
+                    newProp.on(oldListeners[i]);
                     toRemove.push(i);
                   }
                 }

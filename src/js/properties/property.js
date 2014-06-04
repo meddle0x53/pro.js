@@ -119,7 +119,7 @@ Pro.Property.prototype.addCaller = function () {
       caller = Pro.currentCaller;
 
   if (caller && caller.property !== this) {
-    this.addListener(caller);
+    this.on(caller);
   }
 };
 
