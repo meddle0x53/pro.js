@@ -36,94 +36,91 @@
 	  error: 4
 	};
 	
-	Pro.Utils = {};
-	
-	Pro.Utils.isFunction = function (property) {
-	  return typeof(property) === 'function';
-	};
-	
-	Pro.Utils.isString = function (property) {
-	  return typeof(property) === 'string';
-	};
-	
-	Pro.Utils.isObject = function (property) {
-	  return typeof(property) === 'object';
-	};
-	
-	Pro.Utils.isArray = function (property) {
-	  return Pro.Utils.isObject(property) && Object.prototype.toString.call(property) === '[object Array]';
-	};
-	
-	Pro.Utils.isProArray = function (property) {
-	  return property !== null && Pro.Utils.isObject(property) && Pro.Utils.isArray(property._array) && property.length !== undefined;
-	};
-	
-	Pro.Utils.isArrayObject = function (property) {
-	  return Pro.Utils.isArray(property) || Pro.Utils.isProArray(property);
-	};
-	
-	Pro.Utils.isProObject = function (property) {
-	  return Pro.Utils.isObject(property) && property.__pro__ !== undefined && Pro.Utils.isObject(property.__pro__.properties);
-	};
-	
-	Pro.Utils.isProVal = function (property) {
-	  return this.isProObject(property) && property.__pro__.properties.v !== undefined;
-	};
-	
-	Pro.Utils.contains = function (array, value) {
-	  var i = array.length;
-	  while (i--) {
-	    if (array[i] === value) {
-	      return true;
-	    }
-	  }
-	
-	  return false;
-	};
-	
-	Pro.Utils.diff = function (array1, array2) {
-	  var i, e1, e2,
-	      index = -1,
-	      l1 = array1.length,
-	      l2 = array2.length,
-	      diff = {};
-	
-	  if (l1 >= l2) {
-	    for (i = 0; i < l2; i++) {
-	      e1 = array1[i];
-	      e2 = array2[i];
-	
-	      if (e1 !== e2) {
-	        if (index === -1) {
-	          index = i;
-	        }
-	        diff[index] = diff[index] || {o: [], n: []};
-	        diff[index].o.push(e1);
-	        diff[index].n.push(e2);
-	      } else {
-	        index = -1;
+	Pro.Utils = Pro.U = {
+	  isFunction: function (property) {
+	    return typeof(property) === 'function';
+	  },
+	  isString: function (property) {
+	    return typeof(property) === 'string';
+	  },
+	  isObject: function (property) {
+	    return typeof(property) === 'object';
+	  },
+	  isArray: function (property) {
+	    return Pro.U.isObject(property) && Object.prototype.toString.call(property) === '[object Array]';
+	  },
+	  isProArray: function (property) {
+	    return property !== null && Pro.U.isObject(property) && Pro.U.isArray(property._array) && property.length !== undefined;
+	  },
+	  isArrayObject: function (property) {
+	    return Pro.U.isArray(property) || Pro.U.isProArray(property);
+	  },
+	  isProObject: function (property) {
+	    return Pro.U.isObject(property) && property.__pro__ !== undefined && Pro.U.isObject(property.__pro__.properties);
+	  },
+	  isProVal: function (property) {
+	    return this.isProObject(property) && property.__pro__.properties.v !== undefined;
+	  },
+	  contains: function (array, value) {
+	    var i = array.length;
+	    while (i--) {
+	      if (array[i] === value) {
+	        return true;
 	      }
 	    }
 	
-	    if (index === -1) {
-	      index = i;
+	    return false;
+	  },
+	  remove: function (array, value) {
+	    var i = array.indexOf(value);
+	    if (i > -1) {
+	      array.splice(i, 1);
 	    }
-	    diff[index] = diff[index] || {o: [], n: []};
-	    for (; i < l1; i++) {
-	      e1 = array1[i];
-	      diff[index].o.push(e1);
-	    }
-	  } else if (l2 > l1) {
-	    diff = Pro.Utils.diff(array2, array1)
-	    for (i in diff) {
-	      el1 = diff[i];
-	      el2 = el1.n;
-	      el1.n = el1.o;
-	      el1.o = el2;
-	    }
-	  }
+	  },
+	  diff: function (array1, array2) {
+	    var i, e1, e2,
+	        index = -1,
+	        l1 = array1.length,
+	        l2 = array2.length,
+	        diff = {};
 	
-	  return diff;
+	    if (l1 >= l2) {
+	      for (i = 0; i < l2; i++) {
+	        e1 = array1[i];
+	        e2 = array2[i];
+	
+	        if (e1 !== e2) {
+	          if (index === -1) {
+	            index = i;
+	          }
+	          diff[index] = diff[index] || {o: [], n: []};
+	          diff[index].o.push(e1);
+	          diff[index].n.push(e2);
+	        } else {
+	          index = -1;
+	        }
+	      }
+	
+	      if (index === -1) {
+	        index = i;
+	      }
+	      diff[index] = diff[index] || {o: [], n: []};
+	      for (; i < l1; i++) {
+	        e1 = array1[i];
+	        diff[index].o.push(e1);
+	      }
+	    } else if (l2 > l1) {
+	      diff = Pro.U.diff(array2, array1)
+	      for (i in diff) {
+	        el1 = diff[i];
+	        el2 = el1.n;
+	        el1.n = el1.o;
+	        el1.o = el2;
+	      }
+	    }
+	
+	    return diff;
+	  }
 	};
 	
 	Pro.Configuration = {
@@ -487,17 +484,14 @@
 	  return null;
 	};
 	
-	// TODO Deprecated!
-	Pro.Observable.prototype.addListener = function (listener) {
-	  this.listeners.push(listener);
-	};
-	
 	Pro.Observable.prototype.on = function (action, callback) {
-	  if (!Pro.Utils.isString(action)) {
+	  if (!Pro.U.isString(action)) {
 	    callback = action;
 	  }
 	
 	  this.listeners.push(callback);
+	
+	  return this;
 	};
 	
 	Pro.Observable.prototype.off = function (action, callback) {
@@ -506,16 +500,18 @@
 	    return;
 	  }
 	
-	  if (!Pro.Utils.isString(action)) {
+	  if (!Pro.U.isString(action)) {
 	    callback = action;
 	  }
 	
-	  this.removeListener(callback);
+	  Pro.U.remove(this.listeners, callback);
+	
+	  return this;
 	};
 	
 	Pro.Observable.prototype.in = function (source) {
 	  this.sources.push(source);
-	  source.addListener(this.makeListener());
+	  source.on(this.makeListener());
 	
 	  return this;
 	};
@@ -526,27 +522,9 @@
 	  return this;
 	};
 	
-	// TODO Remove object from array!
 	Pro.Observable.prototype.offSource = function (source) {
-	  var i, s = this.sources, sln = s.length;
-	  for (i = 0; i < sln; i++) {
-	    if (s[i] === source) {
-	      s.splice(i, 1);
-	      break;
-	    }
-	  }
-	  source.removeListener(this.listener);
-	};
-	
-	// TODO This should use special array method.
-	Pro.Observable.prototype.removeListener = function (listener) {
-	  var i;
-	  for (i = 0; i < this.listeners.length; i++) {
-	    if (this.listeners[i] == listener) {
-	      this.listeners.splice(i, 1);
-	      break;
-	    }
-	  }
+	  Pro.U.remove(this.sources, source);
+	  source.off(this.listener);
 	};
 	
 	Pro.Observable.prototype.makeEvent = function (source) {
@@ -567,7 +545,7 @@
 	};
 	
 	Pro.Observable.prototype.defer = function (event, callback) {
-	  if (Pro.Utils.isFunction(callback)) {
+	  if (Pro.U.isFunction(callback)) {
 	    Pro.flow.pushOnce(callback, [event]);
 	  } else {
 	    Pro.flow.pushOnce(callback, callback.call, [event]);
@@ -690,6 +668,10 @@
 	  return new Pro.Stream(this, [accumulator]);
 	};
 	
+	Pro.Stream.prototype.reduce = function (initVal, f) {
+	  return new Pro.Val(initVal).in(this.accumulate(initVal, f));
+	};
+	
 	Pro.Stream.prototype.merge = function (stream) {
 	  return new Pro.Stream(this).in(stream);
 	};
@@ -697,7 +679,7 @@
 	Pro.Array = function () {
 	  if (arguments.length === 0) {
 	    this._array = [];
-	  } else if (arguments.length === 1 && Pro.Utils.isArray(arguments[0])) {
+	  } else if (arguments.length === 1 && Pro.U.isArray(arguments[0])) {
 	    this._array = arguments[0];
 	  } else {
 	    this._array = slice.call(arguments);
@@ -788,7 +770,7 @@
 	Pro.Array.prototype.addLengthCaller = function () {
 	  var caller = Pro.currentCaller;
 	
-	  if (caller && this.lastLengthCaller !== caller && !Pro.Utils.contains(this.lengthListeners, caller)) {
+	  if (caller && this.lastLengthCaller !== caller && !Pro.U.contains(this.lengthListeners, caller)) {
 	    this.addLengthListener(caller);
 	    this.lastLengthCaller = caller;
 	  }
@@ -801,13 +783,13 @@
 	Pro.Array.prototype.addIndexCaller = function () {
 	  var caller = Pro.currentCaller;
 	
-	  if (caller && this.lastIndexCaller !== caller && !Pro.Utils.contains(this.indexListeners, caller)) {
+	  if (caller && this.lastIndexCaller !== caller && !Pro.U.contains(this.indexListeners, caller)) {
 	    this.addIndexListener(caller);
 	    this.lastIndexCaller = caller;
 	  }
 	};
 	
-	Pro.Array.prototype.addListener = function (listener) {
+	Pro.Array.prototype.on = function (listener) {
 	  this.addIndexListener(listener);
 	  this.addLengthListener(listener);
 	};
@@ -816,13 +798,14 @@
 	  var proArray = this,
 	      array = proArray._array,
 	      oldVal,
-	      isA = Pro.Utils.isArray,
-	      isO = Pro.Utils.isObject,
-	      isF = Pro.Utils.isFunction;
+	      isA = Pro.U.isArray,
+	      isO = Pro.U.isObject,
+	      isF = Pro.U.isFunction;
 	
 	  if (isA(array[i])) {
 	    new Pro.ArrayProperty(array, i);
 	  } else if (isF(array[i])) {
+	  } else if (array[i] === null) {
 	  } else if (isO(array[i])) {
 	    new Pro.ObjectProperty(array, i);
 	  }
@@ -881,7 +864,7 @@
 	  for (i = 0; i < length; i++) {
 	    listener = listeners[i];
 	
-	    if (Pro.Utils.isFunction(listener)) {
+	    if (Pro.U.isFunction(listener)) {
 	      Pro.flow.pushOnce(listener, [event]);
 	    } else {
 	      Pro.flow.pushOnce(listener, listener.call, [event]);
@@ -895,7 +878,7 @@
 	
 	Pro.Array.prototype.updateByDiff = function (array) {
 	  var _this = this,
-	      j, diff = Pro.Utils.diff(array, this._array), cdiff;
+	      j, diff = Pro.U.diff(array, this._array), cdiff;
 	
 	  Pro.flow.run(function () {
 	    for (j in diff) {
@@ -911,17 +894,17 @@
 	Pro.Array.prototype.concat = function () {
 	  var res, rightProArray;
 	
-	  if (arguments.length === 1 && Pro.Utils.isProArray(arguments[0])) {
+	  if (arguments.length === 1 && Pro.U.isProArray(arguments[0])) {
 	    rightProArray = arguments[0];
 	    arguments[0] = rightProArray._array;
 	  }
 	
 	  res = new Pro.Array(concat.apply(this._array, arguments));
 	  if (rightProArray) {
-	    this.addListener(Pro.Array.Listeners.leftConcat(res, this, rightProArray));
-	    rightProArray.addListener(Pro.Array.Listeners.rightConcat(res, this, rightProArray));
+	    this.on(Pro.Array.Listeners.leftConcat(res, this, rightProArray));
+	    rightProArray.on(Pro.Array.Listeners.rightConcat(res, this, rightProArray));
 	  } else {
-	    this.addListener(Pro.Array.Listeners.leftConcat(res, this, slice.call(arguments, 0)));
+	    this.on(Pro.Array.Listeners.leftConcat(res, this, slice.call(arguments, 0)));
 	  }
 	
 	  return res;
@@ -937,7 +920,7 @@
 	Pro.Array.prototype.pevery = function (fun, thisArg) {
 	  var val = new Pro.Val(every.apply(this._array, arguments));
 	
-	  this.addListener(Pro.Array.Listeners.every(val, this, arguments));
+	  this.on(Pro.Array.Listeners.every(val, this, arguments));
 	
 	  return val;
 	};
@@ -952,7 +935,7 @@
 	Pro.Array.prototype.psome = function (fun, thisArg) {
 	  var val = new Pro.Val(some.apply(this._array, arguments));
 	
-	  this.addListener(Pro.Array.Listeners.some(val, this, arguments));
+	  this.on(Pro.Array.Listeners.some(val, this, arguments));
 	
 	  return val;
 	};
@@ -966,14 +949,14 @@
 	
 	Pro.Array.prototype.filter = function (fun, thisArg) {
 	  var filtered = new Pro.Array(filter.apply(this._array, arguments));
-	  this.addListener(Pro.Array.Listeners.filter(filtered, this, arguments));
+	  this.on(Pro.Array.Listeners.filter(filtered, this, arguments));
 	
 	  return filtered;
 	};
 	
 	Pro.Array.prototype.map = function (fun, thisArg) {
 	  var mapped = new Pro.Array(map.apply(this._array, arguments));
-	  this.addListener(Pro.Array.Listeners.map(mapped, this, arguments));
+	  this.on(Pro.Array.Listeners.map(mapped, this, arguments));
 	
 	  return mapped;
 	};
@@ -987,7 +970,7 @@
 	
 	Pro.Array.prototype.preduce = function (fun /*, initialValue */) {
 	  var val = new Pro.Val(reduce.apply(this._array, arguments));
-	  this.addListener(Pro.Array.Listeners.reduce(val, this, arguments));
+	  this.on(Pro.Array.Listeners.reduce(val, this, arguments));
 	
 	  return val;
 	};
@@ -1001,7 +984,7 @@
 	
 	Pro.Array.prototype.preduceRight = function (fun /*, initialValue */) {
 	  var val = new Pro.Val(reduceRight.apply(this._array, arguments));
-	  this.addListener(Pro.Array.Listeners.reduceRight(val, this, arguments));
+	  this.on(Pro.Array.Listeners.reduceRight(val, this, arguments));
 	
 	  return val;
 	};
@@ -1015,7 +998,7 @@
 	
 	Pro.Array.prototype.pindexOf = function () {
 	  var val = new Pro.Val(indexOf.apply(this._array, arguments));
-	  this.addListener(Pro.Array.Listeners.indexOf(val, this, arguments));
+	  this.on(Pro.Array.Listeners.indexOf(val, this, arguments));
 	
 	  return val;
 	};
@@ -1029,7 +1012,7 @@
 	
 	Pro.Array.prototype.plastindexOf = function () {
 	  var val = new Pro.Val(lastIndexOf.apply(this._array, arguments));
-	  this.addListener(Pro.Array.Listeners.lastIndexOf(val, this, arguments));
+	  this.on(Pro.Array.Listeners.lastIndexOf(val, this, arguments));
 	
 	  return val;
 	};
@@ -1073,7 +1056,7 @@
 	
 	Pro.Array.prototype.slice = function () {
 	  var sliced = new Pro.Array(slice.apply(this._array, arguments));
-	  this.addListener(Pro.Array.Listeners.slice(sliced, this, arguments));
+	  this.on(Pro.Array.Listeners.slice(sliced, this, arguments));
 	
 	  return sliced;
 	};
@@ -1195,7 +1178,7 @@
 	
 	Pro.Array.prototype.toArray = function () {
 	  var result = [], i, ar = this._array, ln = ar.length, el,
-	      isPA = Pro.Utils.isProArray;
+	      isPA = Pro.U.isProArray;
 	
 	  for (i = 0; i < ln; i++) {
 	    el = ar[i];
@@ -1795,7 +1778,7 @@
 	      caller = Pro.currentCaller;
 	
 	  if (caller && caller.property !== this) {
-	    this.addListener(caller);
+	    this.on(caller);
 	  }
 	};
 	
@@ -1938,7 +1921,7 @@
 	                    }
 	                  }
 	                  if (toAdd) {
-	                    newProp.addListener(oldListeners[i]);
+	                    newProp.on(oldListeners[i]);
 	                    toRemove.push(i);
 	                  }
 	                }
@@ -2060,6 +2043,10 @@
 	
 	Pro.Val = function (val) {
 	  this.v = val;
+	  if (this.v === undefined) {
+	    this.v = null;
+	  }
+	
 	  Pro.prob(this);
 	};
 	
@@ -2067,22 +2054,29 @@
 	  return this.__pro__.properties.v.type();
 	};
 	
-	Pro.Val.prototype.addListener = function (listener) {
-	  this.__pro__.properties.v.addListener(listener);
+	Pro.Val.prototype.on = function (listener) {
+	  this.__pro__.properties.v.on(listener);
+	  return this;
 	};
 	
 	Pro.Val.prototype.addTransformator = function (transformator) {
 	  this.__pro__.properties.v.addTransformator(transformator);
-	
 	  return this;
 	};
 	
-	Pro.Val.prototype.removeListener = function (listener) {
-	  this.__pro__.properties.v.removeListener(listener);
+	Pro.Val.prototype.off = function (listener) {
+	  this.__pro__.properties.v.off(listener);
+	  return this;
+	};
+	
+	Pro.Val.prototype.in = function (observable) {
+	  this.__pro__.properties.v.in(observable);
+	  return this;
 	};
 	
 	Pro.Val.prototype.willUpdate = function (source) {
 	  this.__pro__.properties.v.willUpdate(source);
+	  return this;
 	};
 	
 	Pro.Val.prototype.valueOf = function () {
@@ -2094,9 +2088,8 @@
 	};
 	
 	Pro.prob = function (object, meta) {
-	  if (!object) {
-	    throw Error('Pro objects should not be empty or null!');
-	    return undefined;
+	  if (object === null || (!Pro.U.isObject(object) && !Pro.U.isArray(object))) {
+	    return new Pro.Val(object);
 	  }
 	
 	  var property,

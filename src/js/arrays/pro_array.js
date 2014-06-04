@@ -1,7 +1,7 @@
 Pro.Array = function () {
   if (arguments.length === 0) {
     this._array = [];
-  } else if (arguments.length === 1 && Pro.Utils.isArray(arguments[0])) {
+  } else if (arguments.length === 1 && Pro.U.isArray(arguments[0])) {
     this._array = arguments[0];
   } else {
     this._array = slice.call(arguments);
@@ -92,7 +92,7 @@ Pro.Array.prototype.addLengthListener = function (listener) {
 Pro.Array.prototype.addLengthCaller = function () {
   var caller = Pro.currentCaller;
 
-  if (caller && this.lastLengthCaller !== caller && !Pro.Utils.contains(this.lengthListeners, caller)) {
+  if (caller && this.lastLengthCaller !== caller && !Pro.U.contains(this.lengthListeners, caller)) {
     this.addLengthListener(caller);
     this.lastLengthCaller = caller;
   }
@@ -105,7 +105,7 @@ Pro.Array.prototype.addIndexListener = function (listener) {
 Pro.Array.prototype.addIndexCaller = function () {
   var caller = Pro.currentCaller;
 
-  if (caller && this.lastIndexCaller !== caller && !Pro.Utils.contains(this.indexListeners, caller)) {
+  if (caller && this.lastIndexCaller !== caller && !Pro.U.contains(this.indexListeners, caller)) {
     this.addIndexListener(caller);
     this.lastIndexCaller = caller;
   }
@@ -120,9 +120,9 @@ Pro.Array.prototype.defineIndexProp = function (i) {
   var proArray = this,
       array = proArray._array,
       oldVal,
-      isA = Pro.Utils.isArray,
-      isO = Pro.Utils.isObject,
-      isF = Pro.Utils.isFunction;
+      isA = Pro.U.isArray,
+      isO = Pro.U.isObject,
+      isF = Pro.U.isFunction;
 
   if (isA(array[i])) {
     new Pro.ArrayProperty(array, i);
@@ -186,7 +186,7 @@ Pro.Array.prototype.willUpdateListeners = function (listeners, op, ind, oldVal, 
   for (i = 0; i < length; i++) {
     listener = listeners[i];
 
-    if (Pro.Utils.isFunction(listener)) {
+    if (Pro.U.isFunction(listener)) {
       Pro.flow.pushOnce(listener, [event]);
     } else {
       Pro.flow.pushOnce(listener, listener.call, [event]);
@@ -200,7 +200,7 @@ Pro.Array.prototype.willUpdateListeners = function (listeners, op, ind, oldVal, 
 
 Pro.Array.prototype.updateByDiff = function (array) {
   var _this = this,
-      j, diff = Pro.Utils.diff(array, this._array), cdiff;
+      j, diff = Pro.U.diff(array, this._array), cdiff;
 
   Pro.flow.run(function () {
     for (j in diff) {
@@ -216,7 +216,7 @@ Pro.Array.prototype.updateByDiff = function (array) {
 Pro.Array.prototype.concat = function () {
   var res, rightProArray;
 
-  if (arguments.length === 1 && Pro.Utils.isProArray(arguments[0])) {
+  if (arguments.length === 1 && Pro.U.isProArray(arguments[0])) {
     rightProArray = arguments[0];
     arguments[0] = rightProArray._array;
   }
@@ -500,7 +500,7 @@ Pro.Array.prototype.unshift = function () {
 
 Pro.Array.prototype.toArray = function () {
   var result = [], i, ar = this._array, ln = ar.length, el,
-      isPA = Pro.Utils.isProArray;
+      isPA = Pro.U.isProArray;
 
   for (i = 0; i < ln; i++) {
     el = ar[i];
