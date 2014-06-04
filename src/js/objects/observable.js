@@ -27,7 +27,7 @@ Pro.Observable.prototype.off = function (action, callback) {
     callback = action;
   }
 
-  this.removeListener(callback);
+  Pro.U.remove(this.listeners, callback);
 };
 
 Pro.Observable.prototype.in = function (source) {
@@ -46,10 +46,6 @@ Pro.Observable.prototype.out = function (destination) {
 Pro.Observable.prototype.offSource = function (source) {
   Pro.U.remove(this.sources, source);
   source.off(this.listener);
-};
-
-Pro.Observable.prototype.removeListener = function (listener) {
-  Pro.U.remove(this.listeners, listener);
 };
 
 Pro.Observable.prototype.makeEvent = function (source) {

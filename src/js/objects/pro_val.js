@@ -17,8 +17,8 @@ Pro.Val.prototype.addTransformator = function (transformator) {
   return this;
 };
 
-Pro.Val.prototype.removeListener = function (listener) {
-  this.__pro__.properties.v.removeListener(listener);
+Pro.Val.prototype.off = function (listener) {
+  this.__pro__.properties.v.off(listener);
 };
 
 Pro.Val.prototype.willUpdate = function (source) {
