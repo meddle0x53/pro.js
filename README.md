@@ -118,3 +118,8 @@ This can be accomplished by adding listeners to a property too:
   
   obj.a = 'GO!'; // We will see the alert. This is the right method for obsserving btw :)
 ```
+
+### Streaming
+
+Here is an example for implementation of click counter using Pro.Val and streams for click events:
+[fiddle](http://jsfiddle.net/meddle/2Wrfq/)
