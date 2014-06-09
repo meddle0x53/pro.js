@@ -1,10 +1,14 @@
 Pro.Stream = function (source, transforms) {
   this.transforms = transforms ? transforms : [];
 
+  this.buffer = [];
+  this.delay = null;
+  this.delayId = null;
+
   Pro.Observable.call(this);
 
   if (source) {
-    this.in(source);
+    this.into(source);
   }
 };
 
@@ -42,6 +46,14 @@ Pro.Stream.prototype.defer = function (event, callback) {
 };
 
 Pro.Stream.prototype.trigger = function (event, useTransformations) {
+  if (this.delay !== null) {
+    this.buffer.push(event, useTransformations);
+  } else {
+    this.go(event, useTransformations);
+  }
+};
+
+Pro.Stream.prototype.go = function (event, useTransformations) {
   var i, tr = this.transforms, ln = tr.length;
 
   if (useTransformations) {
@@ -85,9 +97,32 @@ Pro.Stream.prototype.accumulate = function (initVal, f) {
 };
 
 Pro.Stream.prototype.reduce = function (initVal, f) {
-  return new Pro.Val(initVal).in(this.accumulate(initVal, f));
+  return new Pro.Val(initVal).into(this.accumulate(initVal, f));
 };
 
 Pro.Stream.prototype.merge = function (stream) {
-  return new Pro.Stream(this).in(stream);
+  return new Pro.Stream(this).into(stream);
+};
+
+Pro.Stream.prototype.flush = function () {
+  var _this = this, i, b = this.buffer, ln = b.length;
+  Pro.flow.run(function () {
+    for (i = 0; i < ln; i+= 2) {
+      _this.go(b[i], b[i+1]);
+    }
+  });
+};
+
+Pro.Stream.prototype.bufferDelay = function (delay) {
+  this.delay = delay;
+
+  if (this.delay !== null) {
+    var _this = this;
+    this.delayId = setInterval(function () {
+      _this.flush();
+    }, this.delay);
+  } else if (this.delayId !== null){
+    clearInterval(this.delayId);
+    this.delayId = null;
+  }
 };

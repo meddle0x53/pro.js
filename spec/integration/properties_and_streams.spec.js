@@ -8,7 +8,7 @@ describe('Pro.Property & Pro.Stream', function () {
           a: 4
         });
 
-    obj.p('a').in(stream);
+    obj.p('a').into(stream);
 
     stream.trigger(5);
     expect(obj.a).toEqual(5);
@@ -22,7 +22,7 @@ describe('Pro.Property & Pro.Stream', function () {
           a: 4
         });
 
-    obj.p('a').in(stream3);
+    obj.p('a').into(stream3);
 
     stream1.trigger(5);
     expect(obj.a).toEqual(4);
@@ -62,10 +62,41 @@ describe('Pro.Property & Pro.Stream', function () {
         property: p
       }
     };
-    p.in(s4);
+    p.into(s4);
 
     s1.trigger('hey!');
     expect(res).toEqual(['hey!'])
+  });
+
+  it ('auto property updates from buffered event are applied only once', function () {
+    var s = new Pro.Stream(),
+        res = [],
+        obj = Pro.prob({
+          prop: 4,
+          pp: function () {
+            res.push(this.prop);
+            return this.prop * 5;
+          }
+        });
+    obj.p('prop').into(s);
+
+    expect(obj.pp).toEqual(20)
+    expect(res).toEqual([4])
+
+    s.bufferDelay(110);
+    s.trigger(3);
+    s.trigger(2);
+    s.trigger(1);
+
+    expect(obj.pp).toEqual(20)
+    expect(res).toEqual([4])
+
+    waits(120);
+    runs(function () {
+      expect(obj.pp).toEqual(5)
+      expect(res).toEqual([4, 1])
+    });
+
   });
 
 });

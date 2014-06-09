@@ -128,6 +128,8 @@
 	  keypropList: ['p']
 	};
 	
+	Pro.N = function () {};
+	
 	Pro.currentCaller = null;
 	
 	Pro.Queue = function (name, options) {
@@ -480,90 +482,93 @@
 	  this.listener = null;
 	};
 	
-	Pro.Observable.prototype.makeListener = function () {
-	  return null;
-	};
+	Pro.Observable.prototype = {
+	  constructor: Pro.Observable,
 	
-	Pro.Observable.prototype.on = function (action, callback) {
-	  if (!Pro.U.isString(action)) {
-	    callback = action;
-	  }
+	  makeListener: function () {
+	    return null;
+	  },
 	
-	  this.listeners.push(callback);
+	  makeEvent: function (source) {
+	    return new Pro.Event(source, this, Pro.Event.Types.value);
+	  },
 	
-	  return this;
-	};
+	  on: function (action, callback) {
+	    if (!Pro.U.isString(action)) {
+	      callback = action;
+	    }
 	
-	Pro.Observable.prototype.off = function (action, callback) {
-	  if (!action && !callback) {
-	    this.listeners = [];
-	    return;
-	  }
+	    this.listeners.push(callback);
 	
-	  if (!Pro.U.isString(action)) {
-	    callback = action;
-	  }
+	    return this;
+	  },
 	
-	  Pro.U.remove(this.listeners, callback);
+	  off: function (action, callback) {
+	    if (!action && !callback) {
+	      this.listeners = [];
+	      return;
+	    }
+	    if (!Pro.U.isString(action)) {
+	      callback = action;
+	    }
 	
-	  return this;
-	};
+	    Pro.U.remove(this.listeners, callback);
 	
-	Pro.Observable.prototype.in = function (source) {
-	  this.sources.push(source);
-	  source.on(this.makeListener());
+	    return this;
+	  },
 	
-	  return this;
-	};
+	  into: function (source) {
+	    this.sources.push(source);
+	    source.on(this.makeListener());
 	
-	Pro.Observable.prototype.out = function (destination) {
-	  destination.in(this);
+	    return this;
+	  },
 	
-	  return this;
-	};
+	  out: function (destination) {
+	    destination.into(this);
 	
-	Pro.Observable.prototype.offSource = function (source) {
-	  Pro.U.remove(this.sources, source);
-	  source.off(this.listener);
-	};
+	    return this;
+	  },
 	
-	Pro.Observable.prototype.makeEvent = function (source) {
-	  return new Pro.Event(source, this, Pro.Event.Types.value);
-	};
+	  offSource: function (source) {
+	    Pro.U.remove(this.sources, source);
+	    source.off(this.listener);
+	  },
 	
-	Pro.Observable.prototype.map = function (f) {};
+	  map: Pro.N,
 	
-	Pro.Observable.prototype.update = function (source) {
-	  var observable = this;
-	  if (!Pro.flow.isRunning()) {
-	    Pro.flow.run(function () {
+	  update: function (source) {
+	    var observable = this;
+	    if (!Pro.flow.isRunning()) {
+	      Pro.flow.run(function () {
+	        observable.willUpdate(source);
+	      });
+	    } else {
 	      observable.willUpdate(source);
-	    });
-	  } else {
-	    observable.willUpdate(source);
-	  }
-	};
+	    }
+	  },
 	
-	Pro.Observable.prototype.defer = function (event, callback) {
-	  if (Pro.U.isFunction(callback)) {
-	    Pro.flow.pushOnce(callback, [event]);
-	  } else {
-	    Pro.flow.pushOnce(callback, callback.call, [event]);
-	  }
-	};
+	  willUpdate: function (source) {
+	    var i, listener,
+	        listeners = this.listeners,
+	        length = listeners.length,
+	        event = this.makeEvent(source);
+	    for (i = 0; i < length; i++) {
+	      listener = listeners[i];
 	
-	Pro.Observable.prototype.willUpdate = function (source) {
-	  var i, listener,
-	      listeners = this.listeners,
-	      length = listeners.length,
-	      event = this.makeEvent(source);
-	  for (i = 0; i < length; i++) {
-	    listener = listeners[i];
+	      this.defer(event, listener);
 	
-	    this.defer(event, listener);
+	      if (listener.property) {
+	        listener.property.willUpdate(event);
+	      }
+	    }
+	  },
 	
-	    if (listener.property) {
-	      listener.property.willUpdate(event);
+	  defer: function (event, callback) {
+	    if (Pro.U.isFunction(callback)) {
+	      Pro.flow.pushOnce(callback, [event]);
+	    } else {
+	      Pro.flow.pushOnce(callback, callback.call, [event]);
 	    }
 	  }
 	};
@@ -585,10 +590,14 @@
 	Pro.Stream = function (source, transforms) {
 	  this.transforms = transforms ? transforms : [];
 	
+	  this.buffer = [];
+	  this.delay = null;
+	  this.delayId = null;
+	
 	  Pro.Observable.call(this);
 	
 	  if (source) {
-	    this.in(source);
+	    this.into(source);
 	  }
 	};
 	
@@ -626,6 +635,14 @@
 	};
 	
 	Pro.Stream.prototype.trigger = function (event, useTransformations) {
+	  if (this.delay !== null) {
+	    this.buffer.push(event, useTransformations);
+	  } else {
+	    this.go(event, useTransformations);
+	  }
+	};
+	
+	Pro.Stream.prototype.go = function (event, useTransformations) {
 	  var i, tr = this.transforms, ln = tr.length;
 	
 	  if (useTransformations) {
@@ -669,11 +686,34 @@
 	};
 	
 	Pro.Stream.prototype.reduce = function (initVal, f) {
-	  return new Pro.Val(initVal).in(this.accumulate(initVal, f));
+	  return new Pro.Val(initVal).into(this.accumulate(initVal, f));
 	};
 	
 	Pro.Stream.prototype.merge = function (stream) {
-	  return new Pro.Stream(this).in(stream);
+	  return new Pro.Stream(this).into(stream);
+	};
+	
+	Pro.Stream.prototype.flush = function () {
+	  var _this = this, i, b = this.buffer, ln = b.length;
+	  Pro.flow.run(function () {
+	    for (i = 0; i < ln; i+= 2) {
+	      _this.go(b[i], b[i+1]);
+	    }
+	  });
+	};
+	
+	Pro.Stream.prototype.bufferDelay = function (delay) {
+	  this.delay = delay;
+	
+	  if (this.delay !== null) {
+	    var _this = this;
+	    this.delayId = setInterval(function () {
+	      _this.flush();
+	    }, this.delay);
+	  } else if (this.delayId !== null){
+	    clearInterval(this.delayId);
+	    this.delayId = null;
+	  }
 	};
 	
 	Pro.Array = function () {
@@ -2069,8 +2109,8 @@
 	  return this;
 	};
 	
-	Pro.Val.prototype.in = function (observable) {
-	  this.__pro__.properties.v.in(observable);
+	Pro.Val.prototype.into = function (observable) {
+	  this.__pro__.properties.v.into(observable);
 	  return this;
 	};
 	

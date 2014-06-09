@@ -121,4 +121,6 @@ Pro.Configuration = {
   keypropList: ['p']
 };
 
+Pro.N = function () {};
+
 Pro.currentCaller = null;

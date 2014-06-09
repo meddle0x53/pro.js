@@ -5,90 +5,93 @@ Pro.Observable = function () {
   this.listener = null;
 };
 
-Pro.Observable.prototype.makeListener = function () {
-  return null;
-};
+Pro.Observable.prototype = {
+  constructor: Pro.Observable,
 
-Pro.Observable.prototype.on = function (action, callback) {
-  if (!Pro.U.isString(action)) {
-    callback = action;
-  }
+  makeListener: function () {
+    return null;
+  },
 
-  this.listeners.push(callback);
+  makeEvent: function (source) {
+    return new Pro.Event(source, this, Pro.Event.Types.value);
+  },
 
-  return this;
-};
+  on: function (action, callback) {
+    if (!Pro.U.isString(action)) {
+      callback = action;
+    }
 
-Pro.Observable.prototype.off = function (action, callback) {
-  if (!action && !callback) {
-    this.listeners = [];
-    return;
-  }
+    this.listeners.push(callback);
 
-  if (!Pro.U.isString(action)) {
-    callback = action;
-  }
+    return this;
+  },
 
-  Pro.U.remove(this.listeners, callback);
+  off: function (action, callback) {
+    if (!action && !callback) {
+      this.listeners = [];
+      return;
+    }
+    if (!Pro.U.isString(action)) {
+      callback = action;
+    }
 
-  return this;
-};
+    Pro.U.remove(this.listeners, callback);
 
-Pro.Observable.prototype.in = function (source) {
-  this.sources.push(source);
-  source.on(this.makeListener());
+    return this;
+  },
 
-  return this;
-};
+  into: function (source) {
+    this.sources.push(source);
+    source.on(this.makeListener());
 
-Pro.Observable.prototype.out = function (destination) {
-  destination.in(this);
+    return this;
+  },
 
-  return this;
-};
+  out: function (destination) {
+    destination.into(this);
 
-Pro.Observable.prototype.offSource = function (source) {
-  Pro.U.remove(this.sources, source);
-  source.off(this.listener);
-};
+    return this;
+  },
 
-Pro.Observable.prototype.makeEvent = function (source) {
-  return new Pro.Event(source, this, Pro.Event.Types.value);
-};
+  offSource: function (source) {
+    Pro.U.remove(this.sources, source);
+    source.off(this.listener);
+  },
 
-Pro.Observable.prototype.map = function (f) {};
+  map: Pro.N,
 
-Pro.Observable.prototype.update = function (source) {
-  var observable = this;
-  if (!Pro.flow.isRunning()) {
-    Pro.flow.run(function () {
+  update: function (source) {
+    var observable = this;
+    if (!Pro.flow.isRunning()) {
+      Pro.flow.run(function () {
+        observable.willUpdate(source);
+      });
+    } else {
       observable.willUpdate(source);
-    });
-  } else {
-    observable.willUpdate(source);
-  }
-};
+    }
+  },
 
-Pro.Observable.prototype.defer = function (event, callback) {
-  if (Pro.U.isFunction(callback)) {
-    Pro.flow.pushOnce(callback, [event]);
-  } else {
-    Pro.flow.pushOnce(callback, callback.call, [event]);
-  }
-};
+  willUpdate: function (source) {
+    var i, listener,
+        listeners = this.listeners,
+        length = listeners.length,
+        event = this.makeEvent(source);
+    for (i = 0; i < length; i++) {
+      listener = listeners[i];
 
-Pro.Observable.prototype.willUpdate = function (source) {
-  var i, listener,
-      listeners = this.listeners,
-      length = listeners.length,
-      event = this.makeEvent(source);
-  for (i = 0; i < length; i++) {
-    listener = listeners[i];
+      this.defer(event, listener);
 
-    this.defer(event, listener);
+      if (listener.property) {
+        listener.property.willUpdate(event);
+      }
+    }
+  },
 
-    if (listener.property) {
-      listener.property.willUpdate(event);
+  defer: function (event, callback) {
+    if (Pro.U.isFunction(callback)) {
+      Pro.flow.pushOnce(callback, [event]);
+    } else {
+      Pro.flow.pushOnce(callback, callback.call, [event]);
     }
   }
 };

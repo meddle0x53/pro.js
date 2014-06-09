@@ -17,6 +17,7 @@ module.exports = function(grunt) {
     wrap: {
       modules: {
         src: [fileToBuild],
+        dest: '',
         options: {
           wrapper: [
             ';(function (pro) {\n' +

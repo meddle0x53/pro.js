@@ -26,8 +26,8 @@ Pro.Val.prototype.off = function (listener) {
   return this;
 };
 
-Pro.Val.prototype.in = function (observable) {
-  this.__pro__.properties.v.in(observable);
+Pro.Val.prototype.into = function (observable) {
+  this.__pro__.properties.v.into(observable);
   return this;
 };
 
