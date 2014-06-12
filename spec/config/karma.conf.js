@@ -11,6 +11,7 @@ module.exports = function(karma) {
       'src/js/objects/observable.js',
       'src/js/events/pro_event.js',
       'src/js/streams/stream.js',
+      'src/js/streams/buffered_stream.js',
       'src/js/arrays/pro_array.js',
       'src/js/arrays/listeners.js',
       'src/js/properties/property.js',

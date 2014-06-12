@@ -69,7 +69,7 @@ describe('Pro.Property & Pro.Stream', function () {
   });
 
   it ('auto property updates from buffered event are applied only once', function () {
-    var s = new Pro.Stream(),
+    var s = new Pro.BufferedStream(),
         res = [],
         obj = Pro.prob({
           prop: 4,

@@ -131,6 +131,7 @@ module.exports = function(grunt) {
           'objects/observable',
           'events/pro_event',
           'streams/stream',
+          'streams/buffered_stream',
           'arrays/pro_array',
           'arrays/listeners',
           'properties/property',
