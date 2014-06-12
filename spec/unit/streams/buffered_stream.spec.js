@@ -1,11 +1,10 @@
 'use strict';
 
 describe('Pro.BufferedStream', function () {
-    describe('#bufferDelay', function () {
+    describe('#delay', function () {
       it ('fires all the buffered events', function () {
-        var stream = new Pro.BufferedStream(null, null, null, 100), res = [];
+        var stream = new Pro.Stream().delay(100), res = [];
 
-        stream.bufferDelay(100);
         stream.on(function (el) {
           res.push(el);
         });
@@ -25,9 +24,8 @@ describe('Pro.BufferedStream', function () {
 
     describe('#throttle', function () {
       it ('can trigger the same event in a given time tunnel only once', function () {
-        var stream = new Pro.BufferedStream(), res = [];
+        var stream = new Pro.Stream().throttle(100), res = [];
 
-        stream.throttle(100);
         stream.on(function (el) {
           res.push(el);
         });
@@ -56,37 +54,36 @@ describe('Pro.BufferedStream', function () {
 
     describe('#debounce', function () {
       it ('an event should be triggered only onle in the passed time period, or the period will grow', function () {
-        var stream = new Pro.BufferedStream(), res = [];
+        var stream = new Pro.Stream().debounce(50), res = [];
 
-        stream.debounce(100);
         stream.on(function (el) {
           res.push(el);
         });
 
-        waits(30);
+        waits(15);
         runs(function () {
           stream.trigger('a');
           stream.trigger('b');
         });
 
-        waits(50);
+        waits(25);
         runs(function () {
           stream.trigger('c');
           stream.trigger('a');
         });
 
-        waits(90);
+        waits(45);
         runs(function () {
           stream.trigger('g');
         });
 
-        waits(90);
+        waits(45);
         runs(function () {
           stream.trigger('f');
         });
 
         expect(res).toEqual([]);
-        waits(110);
+        waits(55);
         runs(function () {
           expect(res).toEqual(['f']);
 
@@ -94,21 +91,21 @@ describe('Pro.BufferedStream', function () {
           stream.trigger('a');
         });
 
-        waits(90);
+        waits(45);
         runs(function () {
           stream.trigger('p');
         });
 
-        waits(100);
+        waits(50);
         runs(function () {
           expect(res).toEqual(['f', 'p']);
         });
       });
     });
 
-    describe('#bufferSize', function () {
+    describe('#buffer', function () {
       it ('fires all the buffered events', function () {
-        var stream = new Pro.BufferedStream(null, null, 5), res = [];
+        var stream = new Pro.Stream().bufferit(5), res = [];
 
         stream.on(function (el) {
           res.push(el);

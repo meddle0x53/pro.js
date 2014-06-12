@@ -69,7 +69,7 @@ describe('Pro.Property & Pro.Stream', function () {
   });
 
   it ('auto property updates from buffered event are applied only once', function () {
-    var s = new Pro.BufferedStream(),
+    var s = new Pro.Stream().delay(110),
         res = [],
         obj = Pro.prob({
           prop: 4,
@@ -83,7 +83,6 @@ describe('Pro.Property & Pro.Stream', function () {
     expect(obj.pp).toEqual(20)
     expect(res).toEqual([4])
 
-    s.bufferDelay(110);
     s.trigger(3);
     s.trigger(2);
     s.trigger(1);

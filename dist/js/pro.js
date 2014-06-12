@@ -439,7 +439,7 @@
 	
 	Pro.Flow.prototype.run = function (obj, method) {
 	  var options = this.options,
-	      onError = options.onError;
+	      err = options.err;
 	
 	  this.start();
 	  if (!method) {
@@ -448,11 +448,11 @@
 	  }
 	
 	  try {
-	    if (onError) {
+	    if (err) {
 	      try {
 	        method.call(obj);
 	      } catch (e) {
-	        onError(e);
+	        err(e);
 	      }
 	    } else {
 	      method.call(obj);
@@ -608,23 +608,23 @@
 	
 	Pro.Stream.BadValue = {};
 	
-	Pro.Stream.prototype = Object.create(Pro.Observable.prototype);
-	Pro.Stream.prototype.constructor = Pro.Stream;
+	Pro.Stream.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
+	  makeEvent: function (source) {
+	    return source;
+	  },
+	  makeListener: function (source) {
+	    if (!this.listener) {
+	      var stream = this;
+	      this.listener = function (event) {
+	        stream.trigger(event, true);
+	      };
+	    }
 	
-	Pro.Stream.prototype.makeEvent = function (source) {
-	  return source;
-	};
-	
-	Pro.Stream.prototype.makeListener = function (source) {
-	  if (!this.listener) {
-	    var stream = this;
-	    this.listener = function (event) {
-	      stream.trigger(event, true);
-	    };
+	    return this.listener;
 	  }
 	
-	  return this.listener;
-	};
+	});
+	Pro.Stream.prototype.constructor = Pro.Stream;
 	
 	Pro.Stream.prototype.defer = function (event, callback) {
 	  if (callback.property) {
@@ -696,61 +696,136 @@
 	
 	Pro.BufferedStream = function (source, transforms, size, delay) {
 	  Pro.Stream.call(this, source, transforms);
-	
 	  this.buffer = [];
-	  this.delay = (delay !== undefined) ? delay : null;
-	  this.delayId = null;
-	  this.size = (size !== undefined) ? size : null;
-	
-	  this.buff(size, delay);
 	};
 	
 	Pro.BufferedStream.prototype = Pro.U.ex(Object.create(Pro.Stream.prototype), {
-	  trigger: function (event, useTransformations) {
-	    if (this.delay !== null || this.size !== null) {
-	      this.buffer.push(event, useTransformations);
-	
-	      if (this.size !== null && (this.buffer.length / 2) === this.size) {
-	        this.flush();
-	      }
-	    } else {
-	      this.go(event, useTransformations);
-	    }
-	  },
 	  flush: function () {
 	    var _this = this, i, b = this.buffer, ln = b.length;
 	    Pro.flow.run(function () {
 	      for (i = 0; i < ln; i+= 2) {
 	        _this.go(b[i], b[i+1]);
 	      }
+	      _this.buffer = [];
 	    });
-	  },
-	  bufferDelay: function (delay) {
-	    this.delay = delay;
+	  }
+	});
+	Pro.BufferedStream.prototype.constructor = Pro.BufferedStream;
 	
+	Pro.SizeBufferedStream = function (source, transforms, size) {
+	  if (arguments.length === 1 && typeof source === 'number') {
+	    size = source;
+	    source = null;
+	  } else if (arguments.length === 2 && typeof transforms === 'number') {
+	    size = transforms;
+	    transforms = null;
+	  }
+	  Pro.BufferedStream.call(this, source, transforms);
+	
+	  if (!size) {
+	    throw new Error('SizeBufferedStream must contain size!');
+	  }
+	
+	  this.size = size;
+	};
+	
+	Pro.SizeBufferedStream.prototype = Pro.U.ex(Object.create(Pro.BufferedStream.prototype), {
+	  trigger: function (event, useTransformations) {
+	    this.buffer.push(event, useTransformations);
+	
+	    if (this.size !== null && (this.buffer.length / 2) === this.size) {
+	      this.flush();
+	    }
+	  }
+	});
+	Pro.SizeBufferedStream.prototype.constructor = Pro.SizeBufferedStream;
+	
+	Pro.U.ex(Pro.Stream.prototype, {
+	  bufferit: function (size) {
+	    return new Pro.SizeBufferedStream(this, size);
+	  }
+	});
+	
+	Pro.DelayedStream = function (source, transforms, delay) {
+	  if (typeof source === 'number') {
+	    delay = source;
+	    source = null;
+	  } else if (Pro.U.isObject(source) && typeof transforms === 'number') {
+	    delay = transforms;
+	    transforms = null;
+	  }
+	  Pro.BufferedStream.call(this, source, transforms);
+	
+	  this.delayId = null;
+	  this.setDelay(delay);
+	};
+	
+	Pro.DelayedStream.prototype = Pro.U.ex(Object.create(Pro.BufferedStream.prototype), {
+	  trigger: function (event, useTransformations) {
+	    this.buffer.push(event, useTransformations);
+	  },
+	  cancelDelay: function () {
 	    if (this.delayId !== null){
 	      clearInterval(this.delayId);
 	      this.delayId = null;
 	    }
-	
-	    if (this.delay !== null) {
-	      var _this = this;
-	      this.delayId = setInterval(function () {
-	        _this.flush();
-	      }, this.delay);
-	    }
 	  },
-	  bufferSize: function (size) {
-	    this.size = size;
+	  setDelay: function (delay) {
+	    this.delay = delay;
 	
-	    if (this.size === null || this.size === 0) {
-	      this.size = null;
-	      this.flush();
+	    if (!this.delay) {
+	      throw new Error('DelayedStream must contain delay!');
 	    }
-	  },
-	  buff: function (size, delay) {
-	    this.bufferSize(size);
-	    this.bufferDelay(delay);
+	
+	    var _this = this;
+	    this.delayId = setInterval(function () {
+	      _this.flush();
+	    }, this.delay);
+	  }
+	});
+	Pro.DelayedStream.prototype.constructor = Pro.DelayedStream;
+	
+	Pro.U.ex(Pro.Stream.prototype, {
+	  delay: function (delay) {
+	    return new Pro.DelayedStream(this, delay);
+	  }
+	});
+	
+	Pro.ThrottlingStream = function (source, transforms, delay) {
+	  Pro.DelayedStream.call(this, source, transforms, delay);
+	};
+	
+	Pro.ThrottlingStream.prototype = Pro.U.ex(Object.create(Pro.DelayedStream.prototype), {
+	  trigger: function (event, useTransformations) {
+	    this.buffer = [];
+	    this.buffer.push(event, useTransformations);
+	  }
+	});
+	Pro.ThrottlingStream.prototype.constructor = Pro.ThrottlingStream;
+	
+	Pro.U.ex(Pro.Stream.prototype, {
+	  throttle: function (delay) {
+	    return new Pro.ThrottlingStream(this, delay);
+	  }
+	});
+	
+	Pro.DebouncingStream = function (source, transforms, delay) {
+	  Pro.DelayedStream.call(this, source, transforms, delay);
+	};
+	
+	Pro.DebouncingStream.prototype = Pro.U.ex(Object.create(Pro.DelayedStream.prototype), {
+	  trigger: function (event, useTransformations) {
+	    this.buffer = [];
+	    this.cancelDelay();
+	    this.setDelay(this.delay);
+	    this.buffer.push(event, useTransformations);
+	  }
+	});
+	Pro.DebouncingStream.prototype.constructor = Pro.DebouncingStream;
+	
+	Pro.U.ex(Pro.Stream.prototype, {
+	  debounce: function (delay) {
+	    return new Pro.DebouncingStream(this, delay);
 	  }
 	});
 	

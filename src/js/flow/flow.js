@@ -54,7 +54,7 @@ Pro.Flow.prototype.end = function () {
 
 Pro.Flow.prototype.run = function (obj, method) {
   var options = this.options,
-      onError = options.onError;
+      err = options.err;
 
   this.start();
   if (!method) {
@@ -63,11 +63,11 @@ Pro.Flow.prototype.run = function (obj, method) {
   }
 
   try {
-    if (onError) {
+    if (err) {
       try {
         method.call(obj);
       } catch (e) {
-        onError(e);
+        err(e);
       }
     } else {
       method.call(obj);

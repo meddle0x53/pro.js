@@ -10,23 +10,23 @@ Pro.Stream = function (source, transforms) {
 
 Pro.Stream.BadValue = {};
 
-Pro.Stream.prototype = Object.create(Pro.Observable.prototype);
-Pro.Stream.prototype.constructor = Pro.Stream;
+Pro.Stream.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
+  makeEvent: function (source) {
+    return source;
+  },
+  makeListener: function (source) {
+    if (!this.listener) {
+      var stream = this;
+      this.listener = function (event) {
+        stream.trigger(event, true);
+      };
+    }
 
-Pro.Stream.prototype.makeEvent = function (source) {
-  return source;
-};
-
-Pro.Stream.prototype.makeListener = function (source) {
-  if (!this.listener) {
-    var stream = this;
-    this.listener = function (event) {
-      stream.trigger(event, true);
-    };
+    return this.listener;
   }
 
-  return this.listener;
-};
+});
+Pro.Stream.prototype.constructor = Pro.Stream;
 
 Pro.Stream.prototype.defer = function (event, callback) {
   if (callback.property) {

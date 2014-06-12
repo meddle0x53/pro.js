@@ -147,7 +147,7 @@ describe('Pro.Flow', function () {
         }
       }, errCounter = 0;
       expect(flow.options).toEqual({});
-      flow.options.onError = runObj.onError;
+      flow.options.err = runObj.onError;
 
       spyOn(flow, 'start');
       spyOn(runObj, 'run').andThrow(new Error('test'));
