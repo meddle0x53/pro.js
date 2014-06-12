@@ -103,6 +103,7 @@ module.exports = function(grunt) {
         'spec/unit/arrays/pro_array.spec.js',
         'src/js/objects/observable.js',
         'src/js/streams/stream.js',
+        'src/js/streams/buffered_stream.js',
         'src/js/arrays/pro_array.js',
         'src/js/arrays/listeners.js',
         'src/js/properties/property.js',

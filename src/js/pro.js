@@ -54,6 +54,15 @@ Pro.Utils = Pro.U = {
   isProVal: function (property) {
     return this.isProObject(property) && property.__pro__.properties.v !== undefined;
   },
+  ex: function(destination, source) {
+    var p;
+    for (p in source) {
+      if (source.hasOwnProperty(p)) {
+        destination[p] = source[p];
+      }
+    }
+    return destination;
+  },
   contains: function (array, value) {
     var i = array.length;
     while (i--) {
