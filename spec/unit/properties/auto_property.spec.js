@@ -66,13 +66,19 @@ describe('Pro.AutoProperty', function () {
     var counterHash = {},
         object = {
           a: 0,
-          c: function () {
+          c: function (v) {
+            if (v !== undefined) {
+              return v;
+            }
             counterHash['c'] = counterHash['c'] || 0;
             counterHash['c'] += 1;
 
             return this.b + this.a + this.d;
           },
-          b: function () {
+          b: function (v) {
+            if (v !== undefined) {
+              return v;
+            }
             counterHash['b'] = counterHash['b'] || 0;
             counterHash['b'] += 1;
 
@@ -146,4 +152,24 @@ describe('Pro.AutoProperty', function () {
       expect(obj.ep).toBe(8);
     });
   });
+
+  describe('#set', function () {
+    it ('can be set like a normal Pro.Property', function () {
+      var obj = {
+            ap: function (v) {
+              if (v !== undefined) {
+                return v;
+              }
+              return 9;
+            }
+          };
+
+      new Pro.AutoProperty(obj, 'ap');
+      expect(obj.ap).toEqual(9);
+
+      obj.ap = 5;
+      expect(obj.ap).toEqual(5);
+    });
+  });
+
 });

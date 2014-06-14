@@ -82,47 +82,47 @@ describe('Pro.Flow', function () {
     });
   });
 
-  describe('#end', function () {
+  describe('#stop', function () {
     it ('nullifies the flow queuse instance', function () {
       expect(flow.flowInstance).toBe(null);
       flow.flowInstance = new Pro.Queues();
 
-      flow.end();
+      flow.stop();
       expect(flow.flowInstance).toBe(null);
     });
 
-    it ('calls the end callback passed to the flow options', function () {
-      var endParam = null, pastFlowInstance;
+    it ('calls the stop callback passed to the flow options', function () {
+      var stopParam = null, pastFlowInstance;
 
       expect(flow.options).toEqual({});
-      flow.options.end= function (flowInstance) {
-        endParam = flowInstance;
+      flow.options.stop= function (flowInstance) {
+        stopParam = flowInstance;
       };
       pastFlowInstance = flow.flowInstance = new Pro.Queues();
 
-      flow.end();
+      flow.stop();
 
       expect(flow.flowInstance).toBe(null);
-      expect(endParam).not.toBe(null);
-      expect(endParam).toBe(pastFlowInstance);
+      expect(stopParam).not.toBe(null);
+      expect(stopParam).toBe(pastFlowInstance);
     });
 
     it ('multiple calls do nothing', function () {
-      var endCounter = 0;
+      var stopCounter = 0;
 
       expect(flow.options).toEqual({});
-      flow.options.end= function (flowInstance) {
-        endCounter++;
+      flow.options.stop= function (flowInstance) {
+        stopCounter++;
       };
       flow.flowInstance = new Pro.Queues();
-      flow.end();
-      flow.end();
-      flow.end();
-      flow.end();
-      flow.end();
+      flow.stop();
+      flow.stop();
+      flow.stop();
+      flow.stop();
+      flow.stop();
 
       expect(flow.flowInstance).toBe(null);
-      expect(endCounter).toBe(1);
+      expect(stopCounter).toBe(1);
     });
 
     it ('executes the flowInstance\'s #go method.', function () {
@@ -131,14 +131,14 @@ describe('Pro.Flow', function () {
       flowInstance = flow.flowInstance = new Pro.Queues();
 
       spyOn(flowInstance, 'go');
-      flow.end();
+      flow.stop();
 
       expect(flowInstance.go).toHaveBeenCalled();
     });
   });
 
   describe('#run', function () {
-    it('starts and ends the flow', function () {
+    it('starts and stops the flow', function () {
       var runObj = {
         run: function () {
         },
@@ -151,13 +151,13 @@ describe('Pro.Flow', function () {
 
       spyOn(flow, 'start');
       spyOn(runObj, 'run').andThrow(new Error('test'));
-      spyOn(flow, 'end');
+      spyOn(flow, 'stop');
 
       flow.run(runObj, runObj.run);
 
       expect(flow.start).toHaveBeenCalled();
       expect(runObj.run).toHaveBeenCalled();
-      expect(flow.end).toHaveBeenCalled();
+      expect(flow.stop).toHaveBeenCalled();
 
       expect(errCounter).toBe(1);
     });

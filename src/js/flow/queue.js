@@ -5,118 +5,117 @@ Pro.Queue = function (name, options) {
   this._queue = [];
 };
 
-Pro.Queue.prototype = {
+Pro.Queue.runAction = function (queue, context, action, args, errHandler) {
+  if (args && args.length > 0) {
+    if (errHandler) {
+      try {
+        action.apply(context, args);
+      } catch (e) {
+        errHandler(queue, e);
+      }
+    } else {
+      action.apply(context, args);
+    }
+  } else {
+    if (errHandler) {
+      try {
+        action.call(context);
+      } catch(e) {
+        errHandler(queue, e);
+      }
+    } else {
+      action.call(context);
+    }
+  }
+};
+
+Pro.U.ex(Pro.Queue.prototype, {
   constructor: Pro.Queue,
   length: function () {
     return this._queue.length / 4;
-  }
-};
-
-Pro.Queue.prototype.isEmpty = function () {
-  return this.length() === 0;
-};
-
-Pro.Queue.prototype.push = function (obj, method, args) {
-  if (obj && Pro.Utils.isFunction(obj)) {
-    args = method;
-    method = obj;
-    obj = null;
-  }
-
-  this._queue.push(obj, method, args, 1);
-};
-
-Pro.Queue.prototype.pushOnce = function (obj, method, args) {
-  if (obj && Pro.Utils.isFunction(obj)) {
-    args = method;
-    method = obj;
-    obj = null;
-  }
-
-  var queue = this._queue, current, currentMethod,
-      i, length = queue.length;
-
-  for (i = 0; i < length; i += 4) {
-    current = queue[i];
-    currentMethod = queue[i + 1];
-
-    if (current === obj && currentMethod === method) {
-      queue[i + 2] = args;
-      queue[i + 3] = queue[i + 3] + 1;
-      return;
+  },
+  isEmpty: function () {
+    return this.length() === 0;
+  },
+  push: function (obj, method, args) {
+    if (obj && Pro.Utils.isFunction(obj)) {
+      args = method;
+      method = obj;
+      obj = null;
     }
-  }
 
-  this.push(obj, method, args);
-};
+    this._queue.push(obj, method, args, 1);
+  },
+  pushOnce: function (obj, method, args) {
+    if (obj && Pro.Utils.isFunction(obj)) {
+      args = method;
+      method = obj;
+      obj = null;
+    }
 
-Pro.Queue.prototype.go = function (once) {
-  var queue = this._queue,
-      options = this.options,
-      runs = this.runs,
-      length = queue.length,
-      before = options && options.before,
-      after = options && options.after,
-      err = options && options.err,
-      i, l = length, going = true, priority = 1,
-      tl = l,
-      obj, method, args, prio;
+    var queue = this._queue, current, currentMethod,
+        i, length = queue.length;
 
-  if (length && before) {
-    before(this);
-  }
+    for (i = 0; i < length; i += 4) {
+      current = queue[i];
+      currentMethod = queue[i + 1];
 
-  while (going) {
-    going = false;
-    l = tl;
-    for (i = 0; i < l; i += 4) {
-      obj = queue[i];
-      method = queue[i + 1];
-      args = queue[i + 2];
-      prio = queue[i + 3];
-
-      if (prio === priority) {
-        if (args && args.length > 0) {
-          if (err) {
-            try {
-              method.apply(obj, args);
-            } catch (e) {
-              err(this, e);
-            }
-          } else {
-            method.apply(obj, args);
-          }
-        } else {
-          if (err) {
-            try {
-              method.call(obj);
-            } catch(e) {
-              err(this, e);
-            }
-          } else {
-            method.call(obj);
-          }
-        }
-      } else if (prio > priority) {
-        going = true;
-        tl = i + 4;
+      if (current === obj && currentMethod === method) {
+        queue[i + 2] = args;
+        queue[i + 3] = queue[i + 3] + 1;
+        return;
       }
     }
-    priority = priority + 1;
-  }
 
-  if (length && after) {
-    after(this);
-  }
+    this.push(obj, method, args);
+  },
+  go: function (once) {
+    var queue = this._queue,
+        options = this.options,
+        runs = this.runs,
+        length = queue.length,
+        before = options && options.before,
+        after = options && options.after,
+        err = options && options.err,
+        i, l = length, going = true, priority = 1,
+        tl = l,
+        obj, method, args, prio;
 
-  if (queue.length > length) {
-    this._queue = queue.slice(length);
-
-    if (!once) {
-      this.go();
+    if (length && before) {
+      before(this);
     }
-  } else {
-    this._queue.length = 0;
-  }
 
-};
+    while (going) {
+      going = false;
+      l = tl;
+      for (i = 0; i < l; i += 4) {
+        obj = queue[i];
+        method = queue[i + 1];
+        args = queue[i + 2];
+        prio = queue[i + 3];
+
+        if (prio === priority) {
+          Pro.Queue.runAction(this, obj, method, args, err);
+        } else if (prio > priority) {
+          going = true;
+          tl = i + 4;
+        }
+      }
+      priority = priority + 1;
+    }
+
+    if (length && after) {
+      after(this);
+    }
+
+    if (queue.length > length) {
+      this._queue = queue.slice(length);
+
+      if (!once) {
+        this.go();
+      }
+    } else {
+      this._queue.length = 0;
+    }
+  }
+});

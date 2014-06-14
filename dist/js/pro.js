@@ -151,121 +151,120 @@
 	  this._queue = [];
 	};
 	
-	Pro.Queue.prototype = {
+	Pro.Queue.runAction = function (queue, context, action, args, errHandler) {
+	  if (args && args.length > 0) {
+	    if (errHandler) {
+	      try {
+	        action.apply(context, args);
+	      } catch (e) {
+	        errHandler(queue, e);
+	      }
+	    } else {
+	      action.apply(context, args);
+	    }
+	  } else {
+	    if (errHandler) {
+	      try {
+	        action.call(context);
+	      } catch(e) {
+	        errHandler(queue, e);
+	      }
+	    } else {
+	      action.call(context);
+	    }
+	  }
+	};
+	
+	Pro.U.ex(Pro.Queue.prototype, {
 	  constructor: Pro.Queue,
 	  length: function () {
 	    return this._queue.length / 4;
-	  }
-	};
-	
-	Pro.Queue.prototype.isEmpty = function () {
-	  return this.length() === 0;
-	};
-	
-	Pro.Queue.prototype.push = function (obj, method, args) {
-	  if (obj && Pro.Utils.isFunction(obj)) {
-	    args = method;
-	    method = obj;
-	    obj = null;
-	  }
-	
-	  this._queue.push(obj, method, args, 1);
-	};
-	
-	Pro.Queue.prototype.pushOnce = function (obj, method, args) {
-	  if (obj && Pro.Utils.isFunction(obj)) {
-	    args = method;
-	    method = obj;
-	    obj = null;
-	  }
-	
-	  var queue = this._queue, current, currentMethod,
-	      i, length = queue.length;
-	
-	  for (i = 0; i < length; i += 4) {
-	    current = queue[i];
-	    currentMethod = queue[i + 1];
-	
-	    if (current === obj && currentMethod === method) {
-	      queue[i + 2] = args;
-	      queue[i + 3] = queue[i + 3] + 1;
-	      return;
+	  },
+	  isEmpty: function () {
+	    return this.length() === 0;
+	  },
+	  push: function (obj, method, args) {
+	    if (obj && Pro.Utils.isFunction(obj)) {
+	      args = method;
+	      method = obj;
+	      obj = null;
 	    }
-	  }
 	
-	  this.push(obj, method, args);
-	};
+	    this._queue.push(obj, method, args, 1);
+	  },
+	  pushOnce: function (obj, method, args) {
+	    if (obj && Pro.Utils.isFunction(obj)) {
+	      args = method;
+	      method = obj;
+	      obj = null;
+	    }
 	
-	Pro.Queue.prototype.go = function (once) {
-	  var queue = this._queue,
-	      options = this.options,
-	      runs = this.runs,
-	      length = queue.length,
-	      before = options && options.before,
-	      after = options && options.after,
-	      err = options && options.err,
-	      i, l = length, going = true, priority = 1,
-	      tl = l,
-	      obj, method, args, prio;
+	    var queue = this._queue, current, currentMethod,
+	        i, length = queue.length;
 	
-	  if (length && before) {
-	    before(this);
-	  }
+	    for (i = 0; i < length; i += 4) {
+	      current = queue[i];
+	      currentMethod = queue[i + 1];
 	
-	  while (going) {
-	    going = false;
-	    l = tl;
-	    for (i = 0; i < l; i += 4) {
-	      obj = queue[i];
-	      method = queue[i + 1];
-	      args = queue[i + 2];
-	      prio = queue[i + 3];
-	
-	      if (prio === priority) {
-	        if (args && args.length > 0) {
-	          if (err) {
-	            try {
-	              method.apply(obj, args);
-	            } catch (e) {
-	              err(this, e);
-	            }
-	          } else {
-	            method.apply(obj, args);
-	          }
-	        } else {
-	          if (err) {
-	            try {
-	              method.call(obj);
-	            } catch(e) {
-	              err(this, e);
-	            }
-	          } else {
-	            method.call(obj);
-	          }
-	        }
-	      } else if (prio > priority) {
-	        going = true;
-	        tl = i + 4;
+	      if (current === obj && currentMethod === method) {
+	        queue[i + 2] = args;
+	        queue[i + 3] = queue[i + 3] + 1;
+	        return;
 	      }
 	    }
-	    priority = priority + 1;
-	  }
 	
-	  if (length && after) {
-	    after(this);
-	  }
+	    this.push(obj, method, args);
+	  },
+	  go: function (once) {
+	    var queue = this._queue,
+	        options = this.options,
+	        runs = this.runs,
+	        length = queue.length,
+	        before = options && options.before,
+	        after = options && options.after,
+	        err = options && options.err,
+	        i, l = length, going = true, priority = 1,
+	        tl = l,
+	        obj, method, args, prio;
 	
-	  if (queue.length > length) {
-	    this._queue = queue.slice(length);
-	
-	    if (!once) {
-	      this.go();
+	    if (length && before) {
+	      before(this);
 	    }
-	  } else {
-	    this._queue.length = 0;
-	  }
 	
-	};
+	    while (going) {
+	      going = false;
+	      l = tl;
+	      for (i = 0; i < l; i += 4) {
+	        obj = queue[i];
+	        method = queue[i + 1];
+	        args = queue[i + 2];
+	        prio = queue[i + 3];
+	
+	        if (prio === priority) {
+	          Pro.Queue.runAction(this, obj, method, args, err);
+	        } else if (prio > priority) {
+	          going = true;
+	          tl = i + 4;
+	        }
+	      }
+	      priority = priority + 1;
+	    }
+	
+	    if (length && after) {
+	      after(this);
+	    }
+	
+	    if (queue.length > length) {
+	      this._queue = queue.slice(length);
+	
+	      if (!once) {
+	        this.go();
+	      }
+	    } else {
+	      this._queue.length = 0;
+	    }
+	  }
+	});
 	
 	Pro.Queues = function (queueNames, options) {
 	  if (!queueNames) {
@@ -397,6 +396,8 @@
 	
 	  this.flowInstance = null;
 	  this.flowInstances = [];
+	
+	  this.pauseMode = false;
 	};
 	
 	Pro.Flow.prototype = {
@@ -416,10 +417,10 @@
 	      start(this.flowInstance);
 	    }
 	  },
-	  end: function () {
+	  stop: function () {
 	    var queues = this.flowInstance,
 	        options = this.options,
-	        end = options && options.end,
+	        stop = options && options.stop,
 	        nextQueues;
 	
 	    if (queues) {
@@ -433,57 +434,64 @@
 	          this.flowInstance = nextQueues;
 	        }
 	
-	        if (end) {
-	          end(queues);
+	        if (stop) {
+	          stop(queues);
 	        }
 	      }
 	    }
-	  }
-	};
+	  },
+	  pause: function () {
+	    this.pauseMode = true;
+	  },
+	  resume: function () {
+	    this.pauseMode = false;
+	  },
+	  run: function (obj, method) {
+	    var options = this.options,
+	        err = options.err;
 	
-	Pro.Flow.prototype.run = function (obj, method) {
-	  var options = this.options,
-	      err = options.err;
-	
-	  this.start();
-	  if (!method) {
-	    method = obj;
-	    obj = null;
-	  }
-	
-	  try {
-	    if (err) {
-	      try {
-	        method.call(obj);
-	      } catch (e) {
-	        err(e);
-	      }
-	    } else {
-	      method.call(obj);
+	    this.start();
+	    if (!method) {
+	      method = obj;
+	      obj = null;
 	    }
-	  } finally {
-	    this.end();
+	
+	    try {
+	      if (err) {
+	        try {
+	          method.call(obj);
+	        } catch (e) {
+	          err(e);
+	        }
+	      } else {
+	        method.call(obj);
+	      }
+	    } finally {
+	      this.stop();
+	    }
+	  },
+	  isRunning: function () {
+	    return this.flowInstance !== null && this.flowInstance !== undefined;
+	  },
+	  isPaused: function () {
+	    return this.isRunning() && this.pauseMode;
+	  },
+	  push: function (queueName, obj, method, args) {
+	    if (!this.flowInstance) {
+	      throw new Error('Not in running flow!');
+	    }
+	    if (!this.isPaused()) {
+	      this.flowInstance.push(queueName, obj, method, args);
+	    }
+	  },
+	  pushOnce: function (queueName, obj, method, args) {
+	    if (!this.flowInstance) {
+	      throw new Error('Not in running flow!');
+	    }
+	    if (!this.isPaused()) {
+	      this.flowInstance.pushOnce(queueName, obj, method, args);
+	    }
 	  }
-	};
-	
-	Pro.Flow.prototype.isRunning = function () {
-	  return this.flowInstance !== null && this.flowInstance !== undefined;
-	};
-	
-	Pro.Flow.prototype.push = function (queueName, obj, method, args) {
-	  if (!this.flowInstance) {
-	    throw new Error('Not in running flow!');
-	  }
-	
-	  this.flowInstance.push(queueName, obj, method, args);
-	};
-	
-	Pro.Flow.prototype.pushOnce = function (queueName, obj, method, args) {
-	  if (!this.flowInstance) {
-	    throw new Error('Not in running flow!');
-	  }
-	
-	  this.flowInstance.pushOnce(queueName, obj, method, args);
 	};
 	
 	Pro.flow = new Pro.Flow(['proq'], {
@@ -1943,14 +1951,18 @@
 	  };
 	};
 	
-	Pro.Property.DEFAULT_SETTER = function (property) {
+	Pro.Property.DEFAULT_SETTER = function (property, setter) {
 	  return function (newVal) {
 	    if (property.val === newVal) {
 	      return;
 	    }
 	
 	    property.oldVal = property.val;
-	    property.val = Pro.Property.transform(property, newVal);
+	    if (setter) {
+	      property.val = setter.call(property.proObject, newVal);
+	    } else {
+	      property.val = Pro.Property.transform(property, newVal);
+	    }
 	
 	    property.update();
 	  };
@@ -1965,27 +1977,26 @@
 	  });
 	};
 	
-	Pro.Property.prototype = Object.create(Pro.Observable.prototype);
-	Pro.Property.prototype.constructor = Pro.Property;
+	Pro.Property.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
+	  constructor: Pro.Property,
+	  type: function () {
+	    return Pro.Property.Types.simple;
+	  },
+	  makeListener: function () {
+	    if (!this.listener) {
+	      var _this = this;
+	      this.listener = {
+	        property: _this,
+	        call: function (newVal) {
+	          _this.oldVal = _this.val;
+	          _this.val = Pro.Property.transform(_this, newVal);
+	        }
+	      };
+	    }
 	
-	Pro.Property.prototype.type = function () {
-	  return Pro.Property.Types.simple;
-	};
-	
-	Pro.Property.prototype.makeListener = function () {
-	  if (!this.listener) {
-	    var _this = this;
-	    this.listener = {
-	      property: _this,
-	      call: function (newVal) {
-	        _this.oldVal = _this.val;
-	        _this.val = Pro.Property.transform(_this, newVal);
-	      }
-	    };
+	    return this.listener;
 	  }
-	
-	  return this.listener;
-	};
+	});
 	
 	Pro.Property.prototype.init = function () {
 	  if (this.state !== Pro.States.init) {
@@ -2046,7 +2057,6 @@
 	  Pro.Property.call(this, proObject, property, null, function () {});
 	};
 	
-	
 	Pro.NullProperty.prototype = Object.create(Pro.Property.prototype);;
 	Pro.NullProperty.prototype.constructor = Pro.NullProperty;
 	
@@ -2059,58 +2069,58 @@
 	
 	  var _this = this,
 	      getter = function () {
-	    _this.addCaller();
-	    var oldCaller = Pro.currentCaller,
-	        get = Pro.Property.DEFAULT_GETTER(_this),
-	        set = Pro.Property.DEFAULT_SETTER(_this),
-	        args = arguments,
-	        autoFunction;
+	        _this.addCaller();
+	        var oldCaller = Pro.currentCaller,
+	            get = Pro.Property.DEFAULT_GETTER(_this),
+	            set = Pro.Property.DEFAULT_SETTER(_this, function (newVal) {
+	              return _this.func.call(_this.proObject, newVal);
+	            }),
+	            args = arguments,
+	            autoFunction;
 	
-	    Pro.currentCaller = _this.makeListener();
+	        Pro.currentCaller = _this.makeListener();
 	
-	    autoFunction = function () {
-	      _this.val = _this.func.apply(_this.proObject, args);
-	    };
-	    Pro.flow.run(function () {
-	      Pro.flow.pushOnce(autoFunction);
-	    });
+	        autoFunction = function () {
+	          _this.val = _this.func.apply(_this.proObject, args);
+	        };
+	        Pro.flow.run(function () {
+	          Pro.flow.pushOnce(autoFunction);
+	        });
 	
-	    Pro.currentCaller = oldCaller;
+	        Pro.currentCaller = oldCaller;
 	
-	    Pro.Property.defineProp(_this.proObject, _this.property, get, set);
+	        Pro.Property.defineProp(_this.proObject, _this.property, get, set);
 	
-	    _this.state = Pro.States.ready;
+	        _this.state = Pro.States.ready;
 	
-	    _this.val = Pro.Property.transform(_this, _this.val);
-	    return _this.val;
-	  };
+	        _this.val = Pro.Property.transform(_this, _this.val);
+	        return _this.val;
+	      };
 	
 	  Pro.Property.call(this, proObject, property, getter, function () {});
 	};
 	
-	Pro.AutoProperty.prototype = Object.create(Pro.Property.prototype);
-	Pro.AutoProperty.prototype.constructor = Pro.AutoProperty;
+	Pro.AutoProperty.prototype = Pro.U.ex(Object.create(Pro.Property.prototype), {
+	  constructor: Pro.AutoProperty,
+	  type: function () {
+	    return Pro.Property.Types.auto;
+	  },
+	  makeListener: function () {
+	    if (!this.listener) {
+	      var _this = this;
+	      this.listener = {
+	        property: _this,
+	        call: function () {
+	          _this.oldVal = _this.val;
+	          _this.val = Pro.Property.transform(_this, _this.func.call(_this.proObject));
+	        }
+	      };
+	    }
 	
-	Pro.AutoProperty.prototype.type = function () {
-	  return Pro.Property.Types.auto;
-	};
-	
-	Pro.AutoProperty.prototype.makeListener = function () {
-	  if (!this.listener) {
-	    var _this = this;
-	    this.listener = {
-	      property: _this,
-	      call: function () {
-	        _this.oldVal = _this.val;
-	        _this.val = Pro.Property.transform(_this, _this.func.call(_this.proObject));
-	      }
-	    };
-	  }
-	
-	  return this.listener;
-	};
-	
-	Pro.AutoProperty.prototype.afterInit = function () {};
+	    return this.listener;
+	  },
+	  afterInit: function () {}
+	});
 	
 	Pro.ObjectProperty = function (proObject, property) {
 	  var _this = this, getter;
@@ -2172,9 +2182,7 @@
 	            }
 	          }
 	
-	          Pro.flow.run(function () {
-	            _this.willUpdate();
-	          });
+	          _this.update();
 	        };
 	
 	    Pro.Property.defineProp(_this.proObject, _this.property, get, set);
@@ -2255,9 +2263,7 @@
 	            toRemove = [];
 	          }
 	
-	          Pro.flow.run(function () {
-	            _this.willUpdate();
-	          });
+	          _this.update();
 	        };
 	
 	    Pro.Property.defineProp(_this.proObject, _this.property, get, set);

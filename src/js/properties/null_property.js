@@ -4,7 +4,6 @@ Pro.NullProperty = function (proObject, property) {
   Pro.Property.call(this, proObject, property, null, function () {});
 };
 
-
 Pro.NullProperty.prototype = Object.create(Pro.Property.prototype);;
 Pro.NullProperty.prototype.constructor = Pro.NullProperty;
 

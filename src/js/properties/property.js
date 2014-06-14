@@ -56,14 +56,18 @@ Pro.Property.DEFAULT_GETTER = function (property) {
   };
 };
 
-Pro.Property.DEFAULT_SETTER = function (property) {
+Pro.Property.DEFAULT_SETTER = function (property, setter) {
   return function (newVal) {
     if (property.val === newVal) {
       return;
     }
 
     property.oldVal = property.val;
-    property.val = Pro.Property.transform(property, newVal);
+    if (setter) {
+      property.val = setter.call(property.proObject, newVal);
+    } else {
+      property.val = Pro.Property.transform(property, newVal);
+    }
 
     property.update();
   };
@@ -78,27 +82,26 @@ Pro.Property.defineProp = function (obj, prop, get, set) {
   });
 };
 
-Pro.Property.prototype = Object.create(Pro.Observable.prototype);
-Pro.Property.prototype.constructor = Pro.Property;
+Pro.Property.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
+  constructor: Pro.Property,
+  type: function () {
+    return Pro.Property.Types.simple;
+  },
+  makeListener: function () {
+    if (!this.listener) {
+      var _this = this;
+      this.listener = {
+        property: _this,
+        call: function (newVal) {
+          _this.oldVal = _this.val;
+          _this.val = Pro.Property.transform(_this, newVal);
+        }
+      };
+    }
 
-Pro.Property.prototype.type = function () {
-  return Pro.Property.Types.simple;
-};
-
-Pro.Property.prototype.makeListener = function () {
-  if (!this.listener) {
-    var _this = this;
-    this.listener = {
-      property: _this,
-      call: function (newVal) {
-        _this.oldVal = _this.val;
-        _this.val = Pro.Property.transform(_this, newVal);
-      }
-    };
+    return this.listener;
   }
-
-  return this.listener;
-};
+});
 
 Pro.Property.prototype.init = function () {
   if (this.state !== Pro.States.init) {

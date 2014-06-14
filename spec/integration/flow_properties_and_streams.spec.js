@@ -77,6 +77,32 @@ describe('Pro.Flow, Pro.Property and Pro.Stream', function () {
 
     obj.d;
     expect(errs.length).toBe(1);
+  });
 
+  it ('Pro.AutoProperty can use Pro.flow#pause and Pro.flow#resume to set the properties it depends on.', function () {
+    var computeCounter = 0,
+        obj = Pro.prob({
+          a: 0,
+          b: 0,
+          c: function (val) {
+            computeCounter++;
+            if (Pro.U.isArray(val) && val.length === 2) {
+              Pro.flow.pause();
+              this.a = val[0];
+              this.b = val[1];
+              Pro.flow.resume();
+            }
+            return this.a + this.b;
+          }
+        });
+
+    expect(obj.c).toEqual(0);
+    obj.c = [2, 3];
+
+    expect(obj.a).toEqual(2);
+    expect(obj.b).toEqual(3);
+    expect(obj.c).toEqual(5);
+
+    expect(computeCounter).toEqual(2); // Initial compute and update compute.
   });
 });

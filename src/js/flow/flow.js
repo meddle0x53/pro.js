@@ -8,6 +8,8 @@ Pro.Flow = function (queueNames, options) {
 
   this.flowInstance = null;
   this.flowInstances = [];
+
+  this.pauseMode = false;
 };
 
 Pro.Flow.prototype = {
@@ -27,10 +29,10 @@ Pro.Flow.prototype = {
       start(this.flowInstance);
     }
   },
-  end: function () {
+  stop: function () {
     var queues = this.flowInstance,
         options = this.options,
-        end = options && options.end,
+        stop = options && options.stop,
         nextQueues;
 
     if (queues) {
@@ -44,57 +46,64 @@ Pro.Flow.prototype = {
           this.flowInstance = nextQueues;
         }
 
-        if (end) {
-          end(queues);
+        if (stop) {
+          stop(queues);
         }
       }
     }
-  }
-};
+  },
+  pause: function () {
+    this.pauseMode = true;
+  },
+  resume: function () {
+    this.pauseMode = false;
+  },
+  run: function (obj, method) {
+    var options = this.options,
+        err = options.err;
 
-Pro.Flow.prototype.run = function (obj, method) {
-  var options = this.options,
-      err = options.err;
-
-  this.start();
-  if (!method) {
-    method = obj;
-    obj = null;
-  }
-
-  try {
-    if (err) {
-      try {
-        method.call(obj);
-      } catch (e) {
-        err(e);
-      }
-    } else {
-      method.call(obj);
+    this.start();
+    if (!method) {
+      method = obj;
+      obj = null;
     }
-  } finally {
-    this.end();
+
+    try {
+      if (err) {
+        try {
+          method.call(obj);
+        } catch (e) {
+          err(e);
+        }
+      } else {
+        method.call(obj);
+      }
+    } finally {
+      this.stop();
+    }
+  },
+  isRunning: function () {
+    return this.flowInstance !== null && this.flowInstance !== undefined;
+  },
+  isPaused: function () {
+    return this.isRunning() && this.pauseMode;
+  },
+  push: function (queueName, obj, method, args) {
+    if (!this.flowInstance) {
+      throw new Error('Not in running flow!');
+    }
+    if (!this.isPaused()) {
+      this.flowInstance.push(queueName, obj, method, args);
+    }
+  },
+  pushOnce: function (queueName, obj, method, args) {
+    if (!this.flowInstance) {
+      throw new Error('Not in running flow!');
+    }
+    if (!this.isPaused()) {
+      this.flowInstance.pushOnce(queueName, obj, method, args);
+    }
   }
-};
-
-Pro.Flow.prototype.isRunning = function () {
-  return this.flowInstance !== null && this.flowInstance !== undefined;
-};
-
-Pro.Flow.prototype.push = function (queueName, obj, method, args) {
-  if (!this.flowInstance) {
-    throw new Error('Not in running flow!');
-  }
-
-  this.flowInstance.push(queueName, obj, method, args);
-};
-
-Pro.Flow.prototype.pushOnce = function (queueName, obj, method, args) {
-  if (!this.flowInstance) {
-    throw new Error('Not in running flow!');
-  }
-
-  this.flowInstance.pushOnce(queueName, obj, method, args);
 };
 
 Pro.flow = new Pro.Flow(['proq'], {

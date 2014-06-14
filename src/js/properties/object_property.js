@@ -58,9 +58,7 @@ Pro.ObjectProperty = function (proObject, property) {
             }
           }
 
-          Pro.flow.run(function () {
-            _this.willUpdate();
-          });
+          _this.update();
         };
 
     Pro.Property.defineProp(_this.proObject, _this.property, get, set);
