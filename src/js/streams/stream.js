@@ -11,6 +11,7 @@ Pro.Stream = function (source, transforms) {
 Pro.Stream.BadValue = {};
 
 Pro.Stream.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
+  constructor: Pro.Stream,
   makeEvent: function (source) {
     return source;
   },
@@ -23,47 +24,61 @@ Pro.Stream.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
     }
 
     return this.listener;
+  },
+  makeErrListener: function (source) {
+    if (!this.errListener) {
+      var stream = this;
+      this.errListener = function (error) {
+        stream.triggerErr(error);
+      };
+    }
+
+    return this.errListener;
+  },
+  defer: function (event, callback) {
+    if (callback.property) {
+      Pro.Observable.prototype.defer.call(this, event, callback);
+      return;
+    }
+
+    if (Pro.Utils.isFunction(callback)) {
+      Pro.flow.push(callback, [event]);
+    } else {
+      Pro.flow.push(callback, callback.call, [event]);
+    }
+  },
+  trigger: function (event, useTransformations) {
+    this.go(event, useTransformations);
+  },
+  triggerErr: function (err) {
+    this.update(err, this.errListeners);
+  },
+  go: function (event, useTransformations) {
+    var i, tr = this.transforms, ln = tr.length;
+
+    if (useTransformations) {
+      try {
+        for (i = 0; i < ln; i++) {
+          event = tr[i].call(this, event);
+        }
+      } catch (e) {
+        this.triggerErr(e);
+        return false;
+      }
+    }
+
+    if (event === Pro.Stream.BadValue) {
+      return false;
+    }
+
+    this.update(event);
+  },
+  map: function (f) {
+    return new Pro.Stream(this, [f]);
   }
 
 });
-Pro.Stream.prototype.constructor = Pro.Stream;
 
-Pro.Stream.prototype.defer = function (event, callback) {
-  if (callback.property) {
-    Pro.Observable.prototype.defer.call(this, event, callback);
-    return;
-  }
-
-  if (Pro.Utils.isFunction(callback)) {
-    Pro.flow.push(callback, [event]);
-  } else {
-    Pro.flow.push(callback, callback.call, [event]);
-  }
-};
-
-Pro.Stream.prototype.trigger = function (event, useTransformations) {
-  this.go(event, useTransformations);
-};
-
-Pro.Stream.prototype.go = function (event, useTransformations) {
-  var i, tr = this.transforms, ln = tr.length;
-
-  if (useTransformations) {
-    for (i = 0; i < ln; i++) {
-      event = tr[i].call(this, event);
-    }
-  }
-
-  if (event === Pro.Stream.BadValue) {
-    return false;
-  }
-
-  this.update(event);
-};
-
-Pro.Stream.prototype.map = function (f) {
-  return new Pro.Stream(this, [f]);
-};
 
 Pro.Stream.prototype.filter = function (f) {
   var _this = this, filter;

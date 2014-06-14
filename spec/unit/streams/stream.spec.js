@@ -190,4 +190,68 @@ describe('Pro.Stream', function () {
       expect(res).toEqual([1, 1]);
     });
   });
+
+  describe('Errors', function () {
+    it ('can be triggered with #triggerErr and listen for with #onErr', function () {
+      var stream = new Pro.Stream(), res = [], resErr = [];
+
+      stream.onErr(function (error) {
+        resErr.push(error);
+      });
+      stream.on(function (error) {
+        res.push(error);
+      });
+
+      stream.triggerErr('error');
+      expect(res).toEqual([]);
+      expect(resErr).toEqual(['error']);
+
+      stream.trigger(1);
+      expect(res).toEqual([1]);
+      expect(resErr).toEqual(['error']);
+    });
+
+    it ('can be chained through many streams', function () {
+      var stream1 = new Pro.Stream(),
+          stream2 = new Pro.Stream(stream1),
+          resErr = [];
+
+      stream2.onErr(function (error) {
+        resErr.push(error);
+      });
+
+      stream1.triggerErr('error');
+      expect(resErr).toEqual(['error']);
+    });
+
+    it ('can be generated from transformations', function () {
+      var stream1 = new Pro.Stream(),
+          stream2 = stream1.map(function (v) {
+            if (v < 0) {
+              throw Error('no!');
+            }
+
+            return -v;
+          }),
+          res = [],
+          resErr = [];
+
+      stream2.onErr(function (error) {
+        resErr.push(error);
+      });
+      stream2.on(function (v) {
+        res.push(v);
+      });
+
+      stream1.trigger(5);
+      expect(res).toEqual([-5]);
+      expect(resErr).toEqual([]);
+
+      stream1.trigger(-5);
+      expect(res).toEqual([-5]);
+      expect(resErr.length).toEqual(1);
+      expect(resErr[0].message).toEqual('no!');
+    });
+
+  });
 });

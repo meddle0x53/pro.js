@@ -39,6 +39,9 @@ Pro.Utils = Pro.U = {
   isObject: function (property) {
     return typeof(property) === 'object';
   },
+  isError: function (property) {
+    return property !== null && Pro.U.isObject(property) && property.message && Object.prototype.toString.apply(property) === '[object Error]';
+  },
   isArray: function (property) {
     return Pro.U.isObject(property) && Object.prototype.toString.call(property) === '[object Array]';
   },
