@@ -70,12 +70,11 @@ Pro.ObjectProperty = function (proObject, property) {
   Pro.Property.call(this, proObject, property, getter, function () {});
 };
 
-
-Pro.ObjectProperty.prototype = Object.create(Pro.Property.prototype);;
-Pro.ObjectProperty.prototype.constructor = Pro.ObjectProperty;
-
-Pro.ObjectProperty.prototype.type = function () {
-  return Pro.Property.Types.object;
-};
+Pro.ObjectProperty.prototype = Pro.U.ex(Object.create(Pro.Property.prototype), {
+  constructor: Pro.ObjectProperty,
+  type: function () {
+    return Pro.Property.Types.object;
+  }
+});
 
 Pro.ObjectProperty.prototype.afterInit = function () {};

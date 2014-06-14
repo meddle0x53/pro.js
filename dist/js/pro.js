@@ -1926,56 +1926,68 @@
 	  this.init();
 	};
 	
-	Pro.Property.Types = {
-	  simple: 0, // strings, booleans and numbers
-	  auto: 1, // functions - dependent
-	  object: 2, // references Pro objects
-	  array: 3, // arrays
-	  nil: 4 // nulls
-	};
+	Pro.U.ex(Pro.Property, {
+	  Types: {
+	    simple: 0, // strings, booleans and numbers
+	    auto: 1, // functions - dependent
+	    object: 2, // references Pro objects
+	    array: 3, // arrays
+	    nil: 4, // nulls
 	
-	Pro.Property.transform = function (property, val) {
-	  var i, t = property.transformators, ln = t.length;
-	  for (i = 0; i < ln; i++) {
-	    val = t[i].call(property, val);
+	    type: function (value) {
+	      if (value === null) {
+	        return Pro.Property.Types.nil;
+	      } else if (Pro.U.isFunction(value)) {
+	        return Pro.Property.Types.auto;
+	      } else if (Pro.U.isArray(value)) {
+	        return Pro.Property.Types.array;
+	      } else if (Pro.U.isObject(value)) {
+	        return Pro.Property.Types.object;
+	      } else {
+	        return Pro.Property.Types.simple;
+	      }
+	    }
+	  },
+	  transform: function (property, val) {
+	    var i, t = property.transformators, ln = t.length;
+	    for (i = 0; i < ln; i++) {
+	      val = t[i].call(property, val);
+	    }
+	
+	    return val;
+	  },
+	  DEFAULT_GETTER: function (property) {
+	    return function () {
+	      property.addCaller();
+	
+	      return property.val;
+	    };
+	  },
+	  DEFAULT_SETTER: function (property, setter) {
+	    return function (newVal) {
+	      if (property.val === newVal) {
+	        return;
+	      }
+	
+	      property.oldVal = property.val;
+	      if (setter) {
+	        property.val = setter.call(property.proObject, newVal);
+	      } else {
+	        property.val = Pro.Property.transform(property, newVal);
+	      }
+	
+	      property.update();
+	    };
+	  },
+	  defineProp: function (obj, prop, get, set) {
+	    Object.defineProperty(obj, prop, {
+	      get: get,
+	      set: set,
+	      enumerable: true,
+	      configurable: true
+	    });
 	  }
-	
-	  return val;
-	};
-	
-	Pro.Property.DEFAULT_GETTER = function (property) {
-	  return function () {
-	    property.addCaller();
-	
-	    return property.val;
-	  };
-	};
-	
-	Pro.Property.DEFAULT_SETTER = function (property, setter) {
-	  return function (newVal) {
-	    if (property.val === newVal) {
-	      return;
-	    }
-	
-	    property.oldVal = property.val;
-	    if (setter) {
-	      property.val = setter.call(property.proObject, newVal);
-	    } else {
-	      property.val = Pro.Property.transform(property, newVal);
-	    }
-	
-	    property.update();
-	  };
-	};
-	
-	Pro.Property.defineProp = function (obj, prop, get, set) {
-	  Object.defineProperty(obj, prop, {
-	    get: get,
-	    set: set,
-	    enumerable: true,
-	    configurable: true
-	  });
-	};
+	});
 	
 	Pro.Property.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
 	  constructor: Pro.Property,
@@ -1995,74 +2007,86 @@
 	    }
 	
 	    return this.listener;
+	  },
+	  init: function () {
+	    if (this.state !== Pro.States.init) {
+	      return;
+	    }
+	
+	    Pro.Property.defineProp(this.proObject, this.property, this.get, this.set);
+	
+	    this.afterInit();
+	  },
+	  afterInit: function () {
+	    this.state = Pro.States.ready;
+	  },
+	  addCaller: function () {
+	    var _this = this,
+	        caller = Pro.currentCaller;
+	
+	    if (caller && caller.property !== this) {
+	      this.on(caller);
+	    }
+	  },
+	  destroy: function () {
+	    if (this.state === Pro.States.destroyed) {
+	      return;
+	    }
+	
+	    delete this.proObject['__pro__'].properties[this.property];
+	    this.listeners = undefined;
+	    this.oldVal = undefined;
+	
+	    Object.defineProperty(this.proObject, this.property, {
+	      value: this.val,
+	      enumerable: true,
+	      configurable: true
+	    });
+	    this.get = this.set = this.property = this.proObject = undefined;
+	    this.g = this.s = undefined;
+	    this.val = undefined;
+	    this.state = Pro.States.destroyed;
+	  },
+	  addTransformator: function (transformator) {
+	    this.transformators.push(transformator);
+	
+	    return this;
+	  },
+	  toString: function () {
+	    return this.val;
 	  }
 	});
 	
-	Pro.Property.prototype.init = function () {
-	  if (this.state !== Pro.States.init) {
-	    return;
-	  }
-	
-	  Pro.Property.defineProp(this.proObject, this.property, this.get, this.set);
-	
-	  this.afterInit();
-	};
-	
-	Pro.Property.prototype.afterInit = function () {
-	  this.state = Pro.States.ready;
-	};
-	
-	Pro.Property.prototype.addCaller = function () {
-	  var _this = this,
-	      caller = Pro.currentCaller;
-	
-	  if (caller && caller.property !== this) {
-	    this.on(caller);
-	  }
-	};
-	
-	Pro.Property.prototype.destroy = function () {
-	  if (this.state === Pro.States.destroyed) {
-	    return;
-	  }
-	
-	  delete this.proObject['__pro__'].properties[this.property];
-	  this.listeners = undefined;
-	  this.oldVal = undefined;
-	
-	  Object.defineProperty(this.proObject, this.property, {
-	    value: this.val,
-	    enumerable: true,
-	    configurable: true
-	  });
-	  this.get = this.set = this.property = this.proObject = undefined;
-	  this.g = this.s = undefined;
-	  this.val = undefined;
-	  this.state = Pro.States.destroyed;
-	};
-	
-	Pro.Property.prototype.addTransformator = function (transformator) {
-	  this.transformators.push(transformator);
-	
-	  return this;
-	};
-	
-	Pro.Property.prototype.toString = function () {
-	  return this.val;
-	};
-	
 	Pro.NullProperty = function (proObject, property) {
-	  var _this = this;
+	  var _this = this,
+	      set = Pro.Property.DEFAULT_SETTER(this),
+	      setter = function (newVal) {
+	        var result = set.call(_this.proObject, newVal),
+	            types = Pro.Property.Types,
+	            type = types.type(result),
+	            po = _this.proObject,
+	            p = _this.property,
+	            l = _this.listeners;
 	
-	  Pro.Property.call(this, proObject, property, null, function () {});
+	        if (type !== types.nil) {
+	          _this.destroy();
+	          Pro.makeProp(po, p);
+	          po.__pro__.properties[p].listeners = po.__pro__.properties[p].listeners.concat(l);
+	        }
+	
+	        return result;
+	      };
+	
+	  Pro.Property.call(this, proObject, property, Pro.Property.DEFAULT_GETTER(this), setter);
 	};
 	
-	Pro.NullProperty.prototype = Object.create(Pro.Property.prototype);;
-	Pro.NullProperty.prototype.constructor = Pro.NullProperty;
+	Pro.NullProperty.prototype = Pro.U.ex(Object.create(Pro.Property.prototype), {
+	  constructor: Pro.NullProperty,
 	
-	Pro.NullProperty.prototype.type = function () {
-	  return Pro.Property.Types.nil;
-	};
+	  type: function () {
+	    return Pro.Property.Types.nil;
+	  }
+	});
 	
 	Pro.AutoProperty = function (proObject, property) {
 	  this.func = proObject[property];
@@ -2194,13 +2218,12 @@
 	  Pro.Property.call(this, proObject, property, getter, function () {});
 	};
 	
-	
-	Pro.ObjectProperty.prototype = Object.create(Pro.Property.prototype);;
-	Pro.ObjectProperty.prototype.constructor = Pro.ObjectProperty;
-	
-	Pro.ObjectProperty.prototype.type = function () {
-	  return Pro.Property.Types.object;
-	};
+	Pro.ObjectProperty.prototype = Pro.U.ex(Object.create(Pro.Property.prototype), {
+	  constructor: Pro.ObjectProperty,
+	  type: function () {
+	    return Pro.Property.Types.object;
+	  }
+	});
 	
 	Pro.ObjectProperty.prototype.afterInit = function () {};
 	
@@ -2339,10 +2362,7 @@
 	      conf = Pro.Configuration,
 	      keyprops = conf.keyprops,
 	      keypropList = conf.keypropList
-	      isF = Pro.Utils.isFunction,
-	      isAr = Pro.Utils.isArray,
-	      isA = Pro.Utils.isArrayObject,
-	      isO = Pro.Utils.isObject;
+	      isAr = Pro.Utils.isArray;
 	
 	  if (isAr(object)) {
 	    return new Pro.Array(object);
@@ -2359,25 +2379,10 @@
 	    object.__pro__.state = Pro.States.init;
 	
 	    for (property in object) {
-	      if (keyprops && keypropList.indexOf(property) !== -1) {
-	        throw Error('The property name ' + property + ' is a key word for pro objects! Objects passed to Pro.prob can not contain properties named as keyword properties.');
-	        break;
-	      }
-	
-	      if (object.hasOwnProperty(property) && object[property] === null) {
-	        new Pro.NullProperty(object, property);
-	      } else if (object.hasOwnProperty(property) && !isF(object[property]) && !isA(object[property]) && !isO(object[property])) {
-	        new Pro.Property(object, property);
-	      } else if (object.hasOwnProperty(property) && isF(object[property])) {
-	        new Pro.AutoProperty(object, property);
-	      } else if (object.hasOwnProperty(property) && isA(object[property])) {
-	        new Pro.ArrayProperty(object, property);
-	      } else if (object.hasOwnProperty(property) && isO(object[property])) {
-	        new Pro.ObjectProperty(object, property);
-	      }
+	      Pro.makeProp(object, property);
 	    }
 	
-	    if (conf.keyprops && keypropList.indexOf('p') !== -1) {
+	    if (keyprops && keypropList.indexOf('p') !== -1) {
 	      Object.defineProperty(object, 'p', {
 	        enumerable: false,
 	        configurable: false,
@@ -2395,6 +2400,32 @@
 	  }
 	
 	  return object;
+	};
+	
+	Pro.makeProp = function (object, property) {
+	  var conf = Pro.Configuration,
+	      keyprops = conf.keyprops,
+	      keypropList = conf.keypropList
+	      isF = Pro.Utils.isFunction,
+	      isA = Pro.Utils.isArrayObject,
+	      isO = Pro.Utils.isObject;
+	
+	  if (keyprops && keypropList.indexOf(property) !== -1) {
+	    throw Error('The property name ' + property + ' is a key word for pro objects! Objects passed to Pro.prob can not contain properties named as keyword properties.');
+	    return;
+	  }
+	
+	  if (object.hasOwnProperty(property) && object[property] === null) {
+	    new Pro.NullProperty(object, property);
+	  } else if (object.hasOwnProperty(property) && !isF(object[property]) && !isA(object[property]) && !isO(object[property])) {
+	    new Pro.Property(object, property);
+	  } else if (object.hasOwnProperty(property) && isF(object[property])) {
+	    new Pro.AutoProperty(object, property);
+	  } else if (object.hasOwnProperty(property) && isA(object[property])) {
+	    new Pro.ArrayProperty(object, property);
+	  } else if (object.hasOwnProperty(property) && isO(object[property])) {
+	    new Pro.ObjectProperty(object, property);
+	  }
 	};
 	
 	return Pro;

@@ -7,10 +7,7 @@ Pro.prob = function (object, meta) {
       conf = Pro.Configuration,
       keyprops = conf.keyprops,
       keypropList = conf.keypropList
-      isF = Pro.Utils.isFunction,
-      isAr = Pro.Utils.isArray,
-      isA = Pro.Utils.isArrayObject,
-      isO = Pro.Utils.isObject;
+      isAr = Pro.Utils.isArray;
 
   if (isAr(object)) {
     return new Pro.Array(object);
@@ -27,25 +24,10 @@ Pro.prob = function (object, meta) {
     object.__pro__.state = Pro.States.init;
 
     for (property in object) {
-      if (keyprops && keypropList.indexOf(property) !== -1) {
-        throw Error('The property name ' + property + ' is a key word for pro objects! Objects passed to Pro.prob can not contain properties named as keyword properties.');
-        break;
-      }
-
-      if (object.hasOwnProperty(property) && object[property] === null) {
-        new Pro.NullProperty(object, property);
-      } else if (object.hasOwnProperty(property) && !isF(object[property]) && !isA(object[property]) && !isO(object[property])) {
-        new Pro.Property(object, property);
-      } else if (object.hasOwnProperty(property) && isF(object[property])) {
-        new Pro.AutoProperty(object, property);
-      } else if (object.hasOwnProperty(property) && isA(object[property])) {
-        new Pro.ArrayProperty(object, property);
-      } else if (object.hasOwnProperty(property) && isO(object[property])) {
-        new Pro.ObjectProperty(object, property);
-      }
+      Pro.makeProp(object, property);
     }
 
-    if (conf.keyprops && keypropList.indexOf('p') !== -1) {
+    if (keyprops && keypropList.indexOf('p') !== -1) {
       Object.defineProperty(object, 'p', {
         enumerable: false,
         configurable: false,
@@ -63,4 +45,30 @@ Pro.prob = function (object, meta) {
   }
 
   return object;
+};
+
+Pro.makeProp = function (object, property) {
+  var conf = Pro.Configuration,
+      keyprops = conf.keyprops,
+      keypropList = conf.keypropList
+      isF = Pro.Utils.isFunction,
+      isA = Pro.Utils.isArrayObject,
+      isO = Pro.Utils.isObject;
+
+  if (keyprops && keypropList.indexOf(property) !== -1) {
+    throw Error('The property name ' + property + ' is a key word for pro objects! Objects passed to Pro.prob can not contain properties named as keyword properties.');
+    return;
+  }
+
+  if (object.hasOwnProperty(property) && object[property] === null) {
+    new Pro.NullProperty(object, property);
+  } else if (object.hasOwnProperty(property) && !isF(object[property]) && !isA(object[property]) && !isO(object[property])) {
+    new Pro.Property(object, property);
+  } else if (object.hasOwnProperty(property) && isF(object[property])) {
+    new Pro.AutoProperty(object, property);
+  } else if (object.hasOwnProperty(property) && isA(object[property])) {
+    new Pro.ArrayProperty(object, property);
+  } else if (object.hasOwnProperty(property) && isO(object[property])) {
+    new Pro.ObjectProperty(object, property);
+  }
 };
