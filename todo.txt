@@ -1,7 +1,8 @@
 [4mRunning "todo:src" (todo) task[24m
 
-src/js/streams/buffered_stream.js
+src/js/flow/flow.js
 
-	line 1  TODO  Classes for every type of stream!
+	line 102  TODO  From error streams!
+	line 107  TODO  From error streams!
 
 [32mDone, without errors.[39m

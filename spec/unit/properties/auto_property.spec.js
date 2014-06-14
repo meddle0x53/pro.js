@@ -116,4 +116,34 @@ describe('Pro.AutoProperty', function () {
     expect(counterHash['b']).toBe(3);
     expect(counterHash['c']).toBe(5);
   });
+
+  describe('errors', function () {
+    it ('Errors does not break property flows after them', function () {
+      var obj = {
+            p: 3,
+            ep: function () {
+              if (this.p === 7) {
+                throw Error('my!');
+              }
+              return this.p;
+            },
+            op: function () {
+              return this.ep;
+            }
+          },
+          p = new Pro.Property(obj, 'p'),
+          ep = new Pro.AutoProperty(obj, 'ep'),
+          op = new Pro.AutoProperty(obj, 'op');
+
+      expect(obj.op).toBe(3);
+
+      obj.p = 7;
+      expect(obj.op).toBe(3);
+      expect(obj.ep).toBe(3);
+
+      obj.p = 8;
+      expect(obj.op).toBe(8);
+      expect(obj.ep).toBe(8);
+    });
+  });
 });

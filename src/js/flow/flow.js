@@ -97,4 +97,15 @@ Pro.Flow.prototype.pushOnce = function (queueName, obj, method, args) {
   this.flowInstance.pushOnce(queueName, obj, method, args);
 };
 
-Pro.flow = new Pro.Flow(['proq']);
+Pro.flow = new Pro.Flow(['proq'], {
+  err: function (e) {
+    // TODO From error streams!
+  },
+  flowInstance: {
+    queue: {
+      err: function (queue, e) {
+        // TODO From error streams!
+      }
+    }
+  }
+});

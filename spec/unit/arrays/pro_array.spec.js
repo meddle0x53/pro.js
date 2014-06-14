@@ -1297,7 +1297,6 @@ describe('Pro.Array', function () {
       expect(sliced.valueOf()).toEqual([3, 8]);
       array[2] = 11;
       expect(sliced.valueOf()).toEqual([11, 8]);
-      console.log(array.toArray())
     });
   });
 

@@ -6,10 +6,19 @@ Pro.AutoProperty = function (proObject, property) {
     _this.addCaller();
     var oldCaller = Pro.currentCaller,
         get = Pro.Property.DEFAULT_GETTER(_this),
-        set = Pro.Property.DEFAULT_SETTER(_this);
+        set = Pro.Property.DEFAULT_SETTER(_this),
+        args = arguments,
+        autoFunction;
 
     Pro.currentCaller = _this.makeListener();
-    _this.val = _this.func.apply(_this.proObject, arguments);
+
+    autoFunction = function () {
+      _this.val = _this.func.apply(_this.proObject, args);
+    };
+    Pro.flow.run(function () {
+      Pro.flow.pushOnce(autoFunction);
+    });
+
     Pro.currentCaller = oldCaller;
 
     Pro.Property.defineProp(_this.proObject, _this.property, get, set);
