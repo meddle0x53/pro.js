@@ -46,6 +46,9 @@
 	  isObject: function (property) {
 	    return typeof(property) === 'object';
 	  },
+	  isError: function (property) {
+	    return property !== null && Pro.U.isObject(property) && property.message && Object.prototype.toString.apply(property) === '[object Error]';
+	  },
 	  isArray: function (property) {
 	    return Pro.U.isObject(property) && Object.prototype.toString.call(property) === '[object Array]';
 	  },
@@ -148,10 +151,11 @@
 	  this._queue = [];
 	};
 	
-	Pro.Queue.prototype = {};
-	
-	Pro.Queue.prototype.length = function () {
-	  return this._queue.length / 4;
+	Pro.Queue.prototype = {
+	  constructor: Pro.Queue,
+	  length: function () {
+	    return this._queue.length / 4;
+	  }
 	};
 	
 	Pro.Queue.prototype.isEmpty = function () {
@@ -233,7 +237,7 @@
 	            try {
 	              method.call(obj);
 	            } catch(e) {
-	              err(e);
+	              err(this, e);
 	            }
 	          } else {
 	            method.call(obj);
@@ -395,43 +399,43 @@
 	  this.flowInstances = [];
 	};
 	
-	Pro.Flow.prototype = {};
+	Pro.Flow.prototype = {
+	  constructor: Pro.Flow,
+	  start: function () {
+	    var queues = this.flowInstance,
+	        options = this.options,
+	        start = options && options.start,
+	        queueNames = this.queueNames;
 	
-	Pro.Flow.prototype.start = function () {
-	  var queues = this.flowInstance,
-	      options = this.options,
-	      start = options && options.start,
-	      queueNames = this.queueNames;
+	    if (queues) {
+	      this.flowInstances.push(queues);
+	    }
 	
-	  if (queues) {
-	    this.flowInstances.push(queues);
-	  }
+	    this.flowInstance = new Pro.Queues(queueNames, options.flowInstance);
+	    if (start) {
+	      start(this.flowInstance);
+	    }
+	  },
+	  end: function () {
+	    var queues = this.flowInstance,
+	        options = this.options,
+	        end = options && options.end,
+	        nextQueues;
 	
-	  this.flowInstance = new Pro.Queues(queueNames, options.flowInstance);
-	  if (start) {
-	    start(this.flowInstance);
-	  }
-	};
+	    if (queues) {
+	      try {
+	        queues.go();
+	      } finally {
+	        this.flowInstance = null;
 	
-	Pro.Flow.prototype.end = function () {
-	  var queues = this.flowInstance,
-	      options = this.options,
-	      end = options && options.end,
-	      nextQueues;
+	        if (this.flowInstances.length) {
+	          nextQueues = this.flowInstances.pop();
+	          this.flowInstance = nextQueues;
+	        }
 	
-	  if (queues) {
-	    try {
-	      queues.go();
-	    } finally {
-	      this.flowInstance = null;
-	
-	      if (this.flowInstances.length) {
-	        nextQueues = this.flowInstances.pop();
-	        this.flowInstance = nextQueues;
-	      }
-	
-	      if (end) {
-	        end(queues);
+	        if (end) {
+	          end(queues);
+	        }
 	      }
 	    }
 	  }
@@ -482,13 +486,34 @@
 	  this.flowInstance.pushOnce(queueName, obj, method, args);
 	};
 	
-	Pro.flow = new Pro.Flow(['proq']);
+	Pro.flow = new Pro.Flow(['proq'], {
+	  err: function (e) {
+	    if (Pro.flow.errStream()) {
+	      Pro.flow.errStream().triggerErr(e);
+	    } else {
+	      console.log(e);
+	    }
+	  },
+	  flowInstance: {
+	    queue: {
+	      err: function (queue, e) {
+	        if (Pro.flow.errStream()) {
+	          Pro.flow.errStream().triggerErr(e);
+	        } else {
+	          console.log(e);
+	        }
+	      }
+	    }
+	  }
+	});
 	
 	Pro.Observable = function () {
 	  this.listeners = [];
+	  this.errListeners = [];
 	  this.sources = [];
 	
 	  this.listener = null;
+	  this.errListener = null;
 	};
 	
 	Pro.Observable.prototype = {
@@ -498,37 +523,62 @@
 	    return null;
 	  },
 	
+	  makeErrListener: function () {
+	    return null;
+	  },
+	
 	  makeEvent: function (source) {
 	    return new Pro.Event(source, this, Pro.Event.Types.value);
 	  },
 	
-	  on: function (action, callback) {
+	  on: function (action, callback, callbacks) {
 	    if (!Pro.U.isString(action)) {
 	      callback = action;
 	    }
 	
-	    this.listeners.push(callback);
+	    if (Pro.U.isArray(callbacks)) {
+	      callbacks.push(callback);
+	    } else {
+	      this.listeners.push(callback);
+	    }
 	
 	    return this;
 	  },
 	
-	  off: function (action, callback) {
+	  off: function (action, callback, callbacks) {
 	    if (!action && !callback) {
-	      this.listeners = [];
+	      if (Pro.U.isArray(callbacks)) {
+	        callbacks.length = 0;
+	      } else {
+	        this.listeners = [];
+	      }
 	      return;
 	    }
 	    if (!Pro.U.isString(action)) {
 	      callback = action;
 	    }
 	
-	    Pro.U.remove(this.listeners, callback);
+	    if (Pro.U.isArray(callbacks)) {
+	      Pro.U.remove(callbacks, callback);
+	    } else {
+	      Pro.U.remove(this.listeners, callback);
+	    }
 	
 	    return this;
+	  },
+	
+	  onErr: function (action, callback) {
+	    return this.on(action, callback, this.errListeners);
+	  },
+	
+	  offErr: function (action, callback) {
+	    return this.off(action, callback, this.errListeners);
 	  },
 	
 	  into: function (source) {
 	    this.sources.push(source);
 	    source.on(this.makeListener());
+	    source.onErr(this.makeErrListener());
 	
 	    return this;
 	  },
@@ -542,24 +592,28 @@
 	  offSource: function (source) {
 	    Pro.U.remove(this.sources, source);
 	    source.off(this.listener);
+	    source.offErr(this.errListener);
+	
+	    return this;
 	  },
 	
 	  map: Pro.N,
 	
-	  update: function (source) {
+	  update: function (source, callbacks) {
 	    var observable = this;
 	    if (!Pro.flow.isRunning()) {
 	      Pro.flow.run(function () {
-	        observable.willUpdate(source);
+	        observable.willUpdate(source, callbacks);
 	      });
 	    } else {
-	      observable.willUpdate(source);
+	      observable.willUpdate(source, callbacks);
 	    }
+	    return this;
 	  },
 	
-	  willUpdate: function (source) {
+	  willUpdate: function (source, callbacks) {
 	    var i, listener,
-	        listeners = this.listeners,
+	        listeners = Pro.U.isArray(callbacks) ? callbacks : this.listeners,
 	        length = listeners.length,
 	        event = this.makeEvent(source);
 	    for (i = 0; i < length; i++) {
@@ -571,6 +625,7 @@
 	        listener.property.willUpdate(event);
 	      }
 	    }
+	    return this;
 	  },
 	
 	  defer: function (event, callback) {
@@ -579,6 +634,7 @@
 	    } else {
 	      Pro.flow.pushOnce(callback, callback.call, [event]);
 	    }
+	    return this;
 	  }
 	};
 	
@@ -609,6 +665,7 @@
 	Pro.Stream.BadValue = {};
 	
 	Pro.Stream.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
+	  constructor: Pro.Stream,
 	  makeEvent: function (source) {
 	    return source;
 	  },
@@ -621,78 +678,96 @@
 	    }
 	
 	    return this.listener;
-	  }
-	
-	});
-	Pro.Stream.prototype.constructor = Pro.Stream;
-	
-	Pro.Stream.prototype.defer = function (event, callback) {
-	  if (callback.property) {
-	    Pro.Observable.prototype.defer.call(this, event, callback);
-	    return;
-	  }
-	
-	  if (Pro.Utils.isFunction(callback)) {
-	    Pro.flow.push(callback, [event]);
-	  } else {
-	    Pro.flow.push(callback, callback.call, [event]);
-	  }
-	};
-	
-	Pro.Stream.prototype.trigger = function (event, useTransformations) {
-	  this.go(event, useTransformations);
-	};
-	
-	Pro.Stream.prototype.go = function (event, useTransformations) {
-	  var i, tr = this.transforms, ln = tr.length;
-	
-	  if (useTransformations) {
-	    for (i = 0; i < ln; i++) {
-	      event = tr[i].call(this, event);
+	  },
+	  makeErrListener: function (source) {
+	    if (!this.errListener) {
+	      var stream = this;
+	      this.errListener = function (error) {
+	        stream.triggerErr(error);
+	      };
 	    }
-	  }
 	
-	  if (event === Pro.Stream.BadValue) {
-	    return false;
-	  }
+	    return this.errListener;
+	  },
+	  defer: function (event, callback) {
+	    if (callback.property) {
+	      Pro.Observable.prototype.defer.call(this, event, callback);
+	      return;
+	    }
 	
-	  this.update(event);
-	};
+	    if (Pro.Utils.isFunction(callback)) {
+	      Pro.flow.push(callback, [event]);
+	    } else {
+	      Pro.flow.push(callback, callback.call, [event]);
+	    }
+	  },
+	  trigger: function (event, useTransformations) {
+	    return this.go(event, useTransformations);
+	  },
+	  triggerErr: function (err) {
+	    return this.update(err, this.errListeners);
+	  },
+	  go: function (event, useTransformations) {
+	    var i, tr = this.transforms, ln = tr.length;
 	
-	Pro.Stream.prototype.map = function (f) {
-	  return new Pro.Stream(this, [f]);
-	};
+	    if (useTransformations) {
+	      try {
+	        for (i = 0; i < ln; i++) {
+	          event = tr[i].call(this, event);
+	        }
+	      } catch (e) {
+	        this.triggerErr(e);
+	        return this;
+	      }
+	    }
 	
-	Pro.Stream.prototype.filter = function (f) {
-	  var _this = this, filter;
+	    if (event === Pro.Stream.BadValue) {
+	      return this;
+	    }
 	
-	  filter = function (val) {
-	    if (f.call(_this, val)) {
+	    return this.update(event);
+	  },
+	  map: function (f) {
+	    return new Pro.Stream(this, [f]);
+	  },
+	  filter: function (f) {
+	    var _this = this, filter;
+	
+	    filter = function (val) {
+	      if (f.call(_this, val)) {
+	        return val;
+	      }
+	      return Pro.Stream.BadValue;
+	    };
+	    return new Pro.Stream(this, [filter]);
+	  },
+	  accumulate: function (initVal, f) {
+	    var _this = this, accumulator, val = initVal;
+	
+	    accumulator = function (newVal) {
+	      val = f.call(_this, val, newVal)
 	      return val;
+	    };
+	
+	    return new Pro.Stream(this, [accumulator]);
+	  },
+	  reduce: function (initVal, f) {
+	    return new Pro.Val(initVal).into(this.accumulate(initVal, f));
+	  },
+	  merge: function (stream) {
+	    return new Pro.Stream(this).into(stream);
+	  }
+	});
+	
+	Pro.U.ex(Pro.Flow.prototype, {
+	  errStream: function () {
+	    if (!this.errStreamVar) {
+	      this.errStreamVar = new Pro.Stream();
 	    }
-	    return Pro.Stream.BadValue;
-	  };
-	  return new Pro.Stream(this, [filter]);
-	};
 	
-	Pro.Stream.prototype.accumulate = function (initVal, f) {
-	  var _this = this, accumulator, val = initVal;
-	
-	  accumulator = function (newVal) {
-	    val = f.call(_this, val, newVal)
-	    return val;
-	  };
-	
-	  return new Pro.Stream(this, [accumulator]);
-	};
-	
-	Pro.Stream.prototype.reduce = function (initVal, f) {
-	  return new Pro.Val(initVal).into(this.accumulate(initVal, f));
-	};
-	
-	Pro.Stream.prototype.merge = function (stream) {
-	  return new Pro.Stream(this).into(stream);
-	};
+	    return this.errStreamVar;
+	  }
+	});
 	
 	Pro.BufferedStream = function (source, transforms, size, delay) {
 	  Pro.Stream.call(this, source, transforms);
@@ -1987,10 +2062,19 @@
 	    _this.addCaller();
 	    var oldCaller = Pro.currentCaller,
 	        get = Pro.Property.DEFAULT_GETTER(_this),
-	        set = Pro.Property.DEFAULT_SETTER(_this);
+	        set = Pro.Property.DEFAULT_SETTER(_this),
+	        args = arguments,
+	        autoFunction;
 	
 	    Pro.currentCaller = _this.makeListener();
-	    _this.val = _this.func.apply(_this.proObject, arguments);
+	
+	    autoFunction = function () {
+	      _this.val = _this.func.apply(_this.proObject, args);
+	    };
+	    Pro.flow.run(function () {
+	      Pro.flow.pushOnce(autoFunction);
+	    });
+	
 	    Pro.currentCaller = oldCaller;
 	
 	    Pro.Property.defineProp(_this.proObject, _this.property, get, set);

@@ -254,4 +254,7 @@ describe('Pro.Stream', function () {
     });
 
   });
+
+  describe('Pro.mainStream', function () {
+  });
 });

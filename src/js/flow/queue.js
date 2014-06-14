@@ -5,10 +5,11 @@ Pro.Queue = function (name, options) {
   this._queue = [];
 };
 
-Pro.Queue.prototype = {};
-
-Pro.Queue.prototype.length = function () {
-  return this._queue.length / 4;
+Pro.Queue.prototype = {
+  constructor: Pro.Queue,
+  length: function () {
+    return this._queue.length / 4;
+  }
 };
 
 Pro.Queue.prototype.isEmpty = function () {
@@ -90,7 +91,7 @@ Pro.Queue.prototype.go = function (once) {
             try {
               method.call(obj);
             } catch(e) {
-              err(e);
+              err(this, e);
             }
           } else {
             method.call(obj);

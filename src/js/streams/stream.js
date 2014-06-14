@@ -48,10 +48,10 @@ Pro.Stream.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
     }
   },
   trigger: function (event, useTransformations) {
-    this.go(event, useTransformations);
+    return this.go(event, useTransformations);
   },
   triggerErr: function (err) {
-    this.update(err, this.errListeners);
+    return this.update(err, this.errListeners);
   },
   go: function (event, useTransformations) {
     var i, tr = this.transforms, ln = tr.length;
@@ -63,50 +63,54 @@ Pro.Stream.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
         }
       } catch (e) {
         this.triggerErr(e);
-        return false;
+        return this;
       }
     }
 
     if (event === Pro.Stream.BadValue) {
-      return false;
+      return this;
     }
 
-    this.update(event);
+    return this.update(event);
   },
   map: function (f) {
     return new Pro.Stream(this, [f]);
-  }
+  },
+  filter: function (f) {
+    var _this = this, filter;
 
+    filter = function (val) {
+      if (f.call(_this, val)) {
+        return val;
+      }
+      return Pro.Stream.BadValue;
+    };
+    return new Pro.Stream(this, [filter]);
+  },
+  accumulate: function (initVal, f) {
+    var _this = this, accumulator, val = initVal;
+
+    accumulator = function (newVal) {
+      val = f.call(_this, val, newVal)
+      return val;
+    };
+
+    return new Pro.Stream(this, [accumulator]);
+  },
+  reduce: function (initVal, f) {
+    return new Pro.Val(initVal).into(this.accumulate(initVal, f));
+  },
+  merge: function (stream) {
+    return new Pro.Stream(this).into(stream);
+  }
 });
 
-
-Pro.Stream.prototype.filter = function (f) {
-  var _this = this, filter;
-
-  filter = function (val) {
-    if (f.call(_this, val)) {
-      return val;
+Pro.U.ex(Pro.Flow.prototype, {
+  errStream: function () {
+    if (!this.errStreamVar) {
+      this.errStreamVar = new Pro.Stream();
     }
-    return Pro.Stream.BadValue;
-  };
-  return new Pro.Stream(this, [filter]);
-};
 
-Pro.Stream.prototype.accumulate = function (initVal, f) {
-  var _this = this, accumulator, val = initVal;
-
-  accumulator = function (newVal) {
-    val = f.call(_this, val, newVal)
-    return val;
-  };
-
-  return new Pro.Stream(this, [accumulator]);
-};
-
-Pro.Stream.prototype.reduce = function (initVal, f) {
-  return new Pro.Val(initVal).into(this.accumulate(initVal, f));
-};
-
-Pro.Stream.prototype.merge = function (stream) {
-  return new Pro.Stream(this).into(stream);
-};
+    return this.errStreamVar;
+  }
+});

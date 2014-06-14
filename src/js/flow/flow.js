@@ -10,43 +10,43 @@ Pro.Flow = function (queueNames, options) {
   this.flowInstances = [];
 };
 
-Pro.Flow.prototype = {};
+Pro.Flow.prototype = {
+  constructor: Pro.Flow,
+  start: function () {
+    var queues = this.flowInstance,
+        options = this.options,
+        start = options && options.start,
+        queueNames = this.queueNames;
 
-Pro.Flow.prototype.start = function () {
-  var queues = this.flowInstance,
-      options = this.options,
-      start = options && options.start,
-      queueNames = this.queueNames;
+    if (queues) {
+      this.flowInstances.push(queues);
+    }
 
-  if (queues) {
-    this.flowInstances.push(queues);
-  }
+    this.flowInstance = new Pro.Queues(queueNames, options.flowInstance);
+    if (start) {
+      start(this.flowInstance);
+    }
+  },
+  end: function () {
+    var queues = this.flowInstance,
+        options = this.options,
+        end = options && options.end,
+        nextQueues;
 
-  this.flowInstance = new Pro.Queues(queueNames, options.flowInstance);
-  if (start) {
-    start(this.flowInstance);
-  }
-};
+    if (queues) {
+      try {
+        queues.go();
+      } finally {
+        this.flowInstance = null;
 
-Pro.Flow.prototype.end = function () {
-  var queues = this.flowInstance,
-      options = this.options,
-      end = options && options.end,
-      nextQueues;
+        if (this.flowInstances.length) {
+          nextQueues = this.flowInstances.pop();
+          this.flowInstance = nextQueues;
+        }
 
-  if (queues) {
-    try {
-      queues.go();
-    } finally {
-      this.flowInstance = null;
-
-      if (this.flowInstances.length) {
-        nextQueues = this.flowInstances.pop();
-        this.flowInstance = nextQueues;
-      }
-
-      if (end) {
-        end(queues);
+        if (end) {
+          end(queues);
+        }
       }
     }
   }
@@ -99,12 +99,20 @@ Pro.Flow.prototype.pushOnce = function (queueName, obj, method, args) {
 
 Pro.flow = new Pro.Flow(['proq'], {
   err: function (e) {
-    // TODO From error streams!
+    if (Pro.flow.errStream()) {
+      Pro.flow.errStream().triggerErr(e);
+    } else {
+      console.log(e);
+    }
   },
   flowInstance: {
     queue: {
       err: function (queue, e) {
-        // TODO From error streams!
+        if (Pro.flow.errStream()) {
+          Pro.flow.errStream().triggerErr(e);
+        } else {
+          console.log(e);
+        }
       }
     }
   }
