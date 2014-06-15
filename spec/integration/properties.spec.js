@@ -46,4 +46,47 @@ describe('Pro.Property, Pro.AutoProperty, Pro.ObjectProperty, Pro.ArrayProperty 
     obj.c = 0;
     expect(obj.k).toEqual(false);
   });
+
+  it ('null property can become auto property', function () {
+    expect(obj.k).toEqual(false);
+
+    obj.c = function () {
+      return this.a + this.e.a;
+    };
+    expect(obj.c).toEqual(2.1);
+    expect(obj.p('c').type()).toEqual(Pro.Property.Types.auto);
+    expect(obj.p('c').listeners.length).toEqual(1);
+    expect(obj.k).toEqual(true);
+
+    obj.e.a = 1;
+    expect(obj.c).toEqual(2);
+
+    obj.a = -1;
+    expect(obj.c).toEqual(0);
+    expect(obj.k).toEqual(false);
+  });
+
+  it ('null property can become array property', function () {
+    expect(obj.k).toEqual(false);
+
+    obj.c = [4];
+    expect(Pro.U.isProArray(obj.c)).toBe(true);
+    expect(obj.c.valueOf()).toEqual([4]);
+    expect(obj.p('c').type()).toEqual(Pro.Property.Types.array);
+    expect(obj.p('c').listeners.length).toEqual(1);
+    expect(obj.k).toEqual(true);
+  });
+
+  it ('null property can become object property', function () {
+    expect(obj.k).toEqual(false);
+
+    obj.c = {a: 'null'};
+    expect(Pro.U.isProObject(obj.c)).toBe(true);
+    expect(obj.c.a).toEqual('null');
+    expect(obj.p('c').type()).toEqual(Pro.Property.Types.object);
+    expect(obj.p('c').listeners.length).toEqual(1);
+    expect(obj.k).toEqual(true);
+
+    obj.c = {};
+  });
 });

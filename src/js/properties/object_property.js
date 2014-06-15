@@ -30,6 +30,9 @@ Pro.ObjectProperty = function (proObject, property) {
             for (oldPropName in oldProps) {
               if (oldProps.hasOwnProperty(oldPropName)) {
                 newProp = newProps[oldPropName];
+                if (!newProp) {
+                  continue;
+                }
                 newListeners = newProp.listeners;
 
                 oldProp = oldProps[oldPropName];
@@ -74,7 +77,6 @@ Pro.ObjectProperty.prototype = Pro.U.ex(Object.create(Pro.Property.prototype), {
   constructor: Pro.ObjectProperty,
   type: function () {
     return Pro.Property.Types.object;
-  }
+  },
+  afterInit: function () {}
 });
-
-Pro.ObjectProperty.prototype.afterInit = function () {};

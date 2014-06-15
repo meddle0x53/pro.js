@@ -84,4 +84,12 @@ describe('Pro.ObjectProperty', function () {
     expect(obj.ap).toEqual(obj.a + obj.op.b);
   });
 
+  it ('it can be set to an empty object', function () {
+    var objectProperty = new Pro.ObjectProperty(obj, 'op')
+    obj.op;
+
+    obj.op = {};
+    expect(obj.op.b).not.toBeDefined();
+  });
+
 });

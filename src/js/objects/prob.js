@@ -1,13 +1,13 @@
 Pro.prob = function (object, meta) {
-  if (object === null || (!Pro.U.isObject(object) && !Pro.U.isArray(object))) {
-    return new Pro.Val(object);
-  }
-
   var property,
       conf = Pro.Configuration,
       keyprops = conf.keyprops,
       keypropList = conf.keypropList
       isAr = Pro.Utils.isArray;
+
+  if (object === null || (!Pro.U.isObject(object) && !isAr(object))) {
+    return new Pro.Val(object);
+  }
 
   if (isAr(object)) {
     return new Pro.Array(object);
@@ -18,7 +18,7 @@ Pro.prob = function (object, meta) {
       enumerable: false,
       configurable: false,
       writeble: false,
-      value: {}
+      value: {properties: {}}
     });
 
     object.__pro__.state = Pro.States.init;
@@ -60,7 +60,7 @@ Pro.makeProp = function (object, property) {
     return;
   }
 
-  if (object.hasOwnProperty(property) && object[property] === null) {
+  if (object.hasOwnProperty(property) && (object[property] === null || object[property] === undefined)) {
     new Pro.NullProperty(object, property);
   } else if (object.hasOwnProperty(property) && !isF(object[property]) && !isA(object[property]) && !isO(object[property])) {
     new Pro.Property(object, property);
