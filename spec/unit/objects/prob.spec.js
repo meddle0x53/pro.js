@@ -37,11 +37,11 @@ describe('Pro.prob', function () {
     expect(val.v).toBe(null);
   });
 
-  it ('turns undefined to a Pro.Val with value null', function () {
+  it ('turns undefined to a Pro.Val with value undefined', function () {
     var val = Pro.prob(undefined);
 
     expect(Pro.Utils.isProVal(val)).toBe(true);
-    expect(val.v).toBe(null);
+    expect(val.v).toBe(undefined);
   });
 
   it('makes normal object with simple properties a Pro object.', function () {

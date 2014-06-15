@@ -14,7 +14,7 @@ describe('Pro.Val', function () {
       var val = new Pro.Val();
 
       expect(Pro.Utils.isProObject(val)).toBe(true);
-      expect(val.v).toBe(null);
+      expect(val.v).toBe(undefined);
     });
   });
 

@@ -1,8 +1,5 @@
 Pro.prob = function (object, meta) {
   var property,
-      conf = Pro.Configuration,
-      keyprops = conf.keyprops,
-      keypropList = conf.keypropList
       isAr = Pro.Utils.isArray;
 
   if (object === null || (!Pro.U.isObject(object) && !isAr(object))) {
@@ -13,68 +10,14 @@ Pro.prob = function (object, meta) {
     return new Pro.Array(object);
   }
 
-  try {
-    Object.defineProperty(object, '__pro__', {
-      enumerable: false,
-      configurable: false,
-      writeble: false,
-      value: {properties: {}}
-    });
+  Object.defineProperty(object, '__pro__', {
+    enumerable: false,
+    configurable: false,
+    writeble: false,
+    value: new Pro.Core(object)
+  });
 
-    object.__pro__.state = Pro.States.init;
-
-    for (property in object) {
-      Pro.makeProp(object, property);
-    }
-
-    if (keyprops && keypropList.indexOf('p') !== -1) {
-      Object.defineProperty(object, 'p', {
-        enumerable: false,
-        configurable: false,
-        writeble: false,
-        value: function (p) {
-          return this.__pro__.properties[p];
-        }
-      });
-    }
-
-    object.__pro__.state = Pro.States.ready;
-  } catch (e) {
-    object.__pro__.state = Pro.States.error;
-    throw e;
-  }
+  object.__pro__.prob();
 
   return object;
-};
-
-Pro.makeProp = function (object, property, listeners) {
-  var conf = Pro.Configuration,
-      keyprops = conf.keyprops,
-      keypropList = conf.keypropList,
-      isF = Pro.Utils.isFunction,
-      isA = Pro.Utils.isArrayObject,
-      isO = Pro.Utils.isObject, result;
-
-  if (keyprops && keypropList.indexOf(property) !== -1) {
-    throw Error('The property name ' + property + ' is a key word for pro objects! Objects passed to Pro.prob can not contain properties named as keyword properties.');
-    return;
-  }
-
-  if (object.hasOwnProperty(property) && (object[property] === null || object[property] === undefined)) {
-    result = new Pro.NullProperty(object, property);
-  } else if (object.hasOwnProperty(property) && !isF(object[property]) && !isA(object[property]) && !isO(object[property])) {
-    result = new Pro.Property(object, property);
-  } else if (object.hasOwnProperty(property) && isF(object[property])) {
-    result = new Pro.AutoProperty(object, property);
-  } else if (object.hasOwnProperty(property) && isA(object[property])) {
-    result = new Pro.ArrayProperty(object, property);
-  } else if (object.hasOwnProperty(property) && isO(object[property])) {
-    result = new Pro.ObjectProperty(object, property);
-  }
-
-  if (listeners) {
-    object.__pro__.properties[property].listeners = object.__pro__.properties[property].listeners.concat(listeners);
-  }
-
-  return result;
 };

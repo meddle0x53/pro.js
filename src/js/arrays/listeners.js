@@ -1,8 +1,8 @@
-Pro.Array.Listeners = Pro.Array.Listeners || {};
-
-Pro.Array.Listeners.check = function(event) {
-  if (event.type !== Pro.Event.Types.array) {
-    throw Error('Not implemented for non array events');
+Pro.Array.Listeners = Pro.Array.Listeners || {
+  check: function(event) {
+    if (event.type !== Pro.Event.Types.array) {
+      throw Error('Not implemented for non array events');
+    }
   }
 };
 

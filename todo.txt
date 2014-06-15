@@ -1,8 +1,3 @@
 [4mRunning "todo:src" (todo) task[24m
 
-src/js/flow/flow.js
-
-	line 102  TODO  From error streams!
-	line 107  TODO  From error streams!
-
 [32mDone, without errors.[39m

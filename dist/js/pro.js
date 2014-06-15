@@ -1432,11 +1432,11 @@
 	  return JSON.stringify(this._array);
 	};
 	
-	Pro.Array.Listeners = Pro.Array.Listeners || {};
-	
-	Pro.Array.Listeners.check = function(event) {
-	  if (event.type !== Pro.Event.Types.array) {
-	    throw Error('Not implemented for non array events');
+	Pro.Array.Listeners = Pro.Array.Listeners || {
+	  check: function(event) {
+	    if (event.type !== Pro.Event.Types.array) {
+	      throw Error('Not implemented for non array events');
+	    }
 	  }
 	};
 	
@@ -1998,7 +1998,7 @@
 	        l = property.listeners;
 	
 	    property.destroy();
-	    return Pro.makeProp(po, p, l);
+	    return po.__pro__.makeProp(p, l);
 	  }
 	});
 	
@@ -2326,57 +2326,133 @@
 	  afterInit: function () {}
 	});
 	
+	Pro.Core = function (object) {
+	  this.object = object;
+	  this.properties = {};
+	  this.state = Pro.States.init;
+	};
+	
+	Pro.U.ex(Pro.Core.prototype, {
+	  prob: function () {
+	    var _this = this, object = this.object,
+	        conf = Pro.Configuration,
+	        keyprops = conf.keyprops,
+	        keypropList = conf.keypropList;
+	
+	    try {
+	      for (property in object) {
+	        this.makeProp(property);
+	      }
+	
+	      if (keyprops && keypropList.indexOf('p') !== -1) {
+	        Object.defineProperty(object, 'p', {
+	          enumerable: false,
+	          configurable: false,
+	          writeble: false,
+	          value: function (p) {
+	            if (!p || p === '*') {
+	              return _this;
+	            }
+	
+	            return _this.properties[p];
+	          }
+	        });
+	      }
+	
+	      this.state = Pro.States.ready;
+	    } catch (e) {
+	      this.state = Pro.States.error;
+	      throw e;
+	    }
+	  },
+	  makeProp: function (property, listeners) {
+	    var object = this.object,
+	        conf = Pro.Configuration,
+	        keyprops = conf.keyprops,
+	        keypropList = conf.keypropList,
+	        isF = Pro.Utils.isFunction,
+	        isA = Pro.Utils.isArrayObject,
+	        isO = Pro.Utils.isObject, result;
+	
+	    if (keyprops && keypropList.indexOf(property) !== -1) {
+	      throw Error('The property name ' + property + ' is a key word for pro objects! Objects passed to Pro.prob can not contain properties named as keyword properties.');
+	      return;
+	    }
+	
+	    if (object.hasOwnProperty(property) && (object[property] === null || object[property] === undefined)) {
+	      result = new Pro.NullProperty(object, property);
+	    } else if (object.hasOwnProperty(property) && !isF(object[property]) && !isA(object[property]) && !isO(object[property])) {
+	      result = new Pro.Property(object, property);
+	    } else if (object.hasOwnProperty(property) && isF(object[property])) {
+	      result = new Pro.AutoProperty(object, property);
+	    } else if (object.hasOwnProperty(property) && isA(object[property])) {
+	      result = new Pro.ArrayProperty(object, property);
+	    } else if (object.hasOwnProperty(property) && isO(object[property])) {
+	      result = new Pro.ObjectProperty(object, property);
+	    }
+	
+	    if (listeners) {
+	      this.properties[property].listeners = this.properties[property].listeners.concat(listeners);
+	    }
+	
+	    return result;
+	  },
+	  set: function (property, value) {
+	    var object = this.object;
+	
+	    object[property] = value;
+	    if (this.properties[property]) {
+	      return;
+	    }
+	
+	    this.makeProp(property);
+	  }
+	});
+	
 	Pro.Val = function (val) {
 	  this.v = val;
-	  if (this.v === undefined) {
-	    this.v = null;
-	  }
 	
 	  Pro.prob(this);
 	};
 	
-	Pro.Val.prototype.type = function () {
-	  return this.__pro__.properties.v.type();
-	};
-	
-	Pro.Val.prototype.on = function (listener) {
-	  this.__pro__.properties.v.on(listener);
-	  return this;
-	};
-	
-	Pro.Val.prototype.addTransformator = function (transformator) {
-	  this.__pro__.properties.v.addTransformator(transformator);
-	  return this;
-	};
-	
-	Pro.Val.prototype.off = function (listener) {
-	  this.__pro__.properties.v.off(listener);
-	  return this;
-	};
-	
-	Pro.Val.prototype.into = function (observable) {
-	  this.__pro__.properties.v.into(observable);
-	  return this;
-	};
-	
-	Pro.Val.prototype.willUpdate = function (source) {
-	  this.__pro__.properties.v.willUpdate(source);
-	  return this;
-	};
-	
-	Pro.Val.prototype.valueOf = function () {
-	  return this.__pro__.properties.v.val;
-	};
-	
-	Pro.Val.prototype.toString = function () {
-	  return this.valueOf().toString();
-	};
+	Pro.U.ex(Pro.Val.prototype, {
+	  type: function () {
+	    return this.__pro__.properties.v.type();
+	  },
+	  on: function (action, listener) {
+	    this.__pro__.properties.v.on(action, listener);
+	    return this;
+	  },
+	  off: function (action, listener) {
+	    this.__pro__.properties.v.off(action, listener);
+	    return this;
+	  },
+	  addTransformator: function (transformator) {
+	    this.__pro__.properties.v.addTransformator(transformator);
+	    return this;
+	  },
+	  into: function (observable) {
+	    this.__pro__.properties.v.into(observable);
+	    return this;
+	  },
+	  update: function (source) {
+	    this.__pro__.properties.v.update(source);
+	    return this;
+	  },
+	  willUpdate: function (source) {
+	    this.__pro__.properties.v.willUpdate(source);
+	    return this;
+	  },
+	  valueOf: function () {
+	    return this.__pro__.properties.v.val;
+	  },
+	  toString: function () {
+	    return this.valueOf().toString();
+	  }
+	});
 	
 	Pro.prob = function (object, meta) {
 	  var property,
-	      conf = Pro.Configuration,
-	      keyprops = conf.keyprops,
-	      keypropList = conf.keypropList
 	      isAr = Pro.Utils.isArray;
 	
 	  if (object === null || (!Pro.U.isObject(object) && !isAr(object))) {
@@ -2387,70 +2463,16 @@
 	    return new Pro.Array(object);
 	  }
 	
-	  try {
-	    Object.defineProperty(object, '__pro__', {
-	      enumerable: false,
-	      configurable: false,
-	      writeble: false,
-	      value: {properties: {}}
-	    });
+	  Object.defineProperty(object, '__pro__', {
+	    enumerable: false,
+	    configurable: false,
+	    writeble: false,
+	    value: new Pro.Core(object)
+	  });
 	
-	    object.__pro__.state = Pro.States.init;
-	
-	    for (property in object) {
-	      Pro.makeProp(object, property);
-	    }
-	
-	    if (keyprops && keypropList.indexOf('p') !== -1) {
-	      Object.defineProperty(object, 'p', {
-	        enumerable: false,
-	        configurable: false,
-	        writeble: false,
-	        value: function (p) {
-	          return this.__pro__.properties[p];
-	        }
-	      });
-	    }
-	
-	    object.__pro__.state = Pro.States.ready;
-	  } catch (e) {
-	    object.__pro__.state = Pro.States.error;
-	    throw e;
-	  }
+	  object.__pro__.prob();
 	
 	  return object;
-	};
-	
-	Pro.makeProp = function (object, property, listeners) {
-	  var conf = Pro.Configuration,
-	      keyprops = conf.keyprops,
-	      keypropList = conf.keypropList,
-	      isF = Pro.Utils.isFunction,
-	      isA = Pro.Utils.isArrayObject,
-	      isO = Pro.Utils.isObject, result;
-	
-	  if (keyprops && keypropList.indexOf(property) !== -1) {
-	    throw Error('The property name ' + property + ' is a key word for pro objects! Objects passed to Pro.prob can not contain properties named as keyword properties.');
-	    return;
-	  }
-	
-	  if (object.hasOwnProperty(property) && (object[property] === null || object[property] === undefined)) {
-	    result = new Pro.NullProperty(object, property);
-	  } else if (object.hasOwnProperty(property) && !isF(object[property]) && !isA(object[property]) && !isO(object[property])) {
-	    result = new Pro.Property(object, property);
-	  } else if (object.hasOwnProperty(property) && isF(object[property])) {
-	    result = new Pro.AutoProperty(object, property);
-	  } else if (object.hasOwnProperty(property) && isA(object[property])) {
-	    result = new Pro.ArrayProperty(object, property);
-	  } else if (object.hasOwnProperty(property) && isO(object[property])) {
-	    result = new Pro.ObjectProperty(object, property);
-	  }
-	
-	  if (listeners) {
-	    object.__pro__.properties[property].listeners = object.__pro__.properties[property].listeners.concat(listeners);
-	  }
-	
-	  return result;
 	};
 	
 	return Pro;

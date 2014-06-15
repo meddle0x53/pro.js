@@ -103,7 +103,7 @@ Pro.U.ex(Pro.Property, {
         l = property.listeners;
 
     property.destroy();
-    return Pro.makeProp(po, p, l);
+    return po.__pro__.makeProp(p, l);
   }
 });
 
