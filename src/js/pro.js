@@ -52,10 +52,10 @@ Pro.Utils = Pro.U = {
     return Pro.U.isArray(property) || Pro.U.isProArray(property);
   },
   isProObject: function (property) {
-    return Pro.U.isObject(property) && property.__pro__ !== undefined && Pro.U.isObject(property.__pro__.properties);
+    return property && Pro.U.isObject(property) && property.__pro__ !== undefined && Pro.U.isObject(property.__pro__.properties);
   },
   isProVal: function (property) {
-    return this.isProObject(property) && property.__pro__.properties.v !== undefined;
+    return Pro.U.isProObject(property) && property.__pro__.properties.v !== undefined;
   },
   ex: function(destination, source) {
     var p;

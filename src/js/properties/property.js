@@ -81,6 +81,11 @@ Pro.U.ex(Pro.Property, {
         property.val = Pro.Property.transform(property, newVal);
       }
 
+      if (property.val === null || property.val === undefined) {
+        Pro.Property.reProb(property).update();
+        return;
+      }
+
       property.update();
     };
   },
@@ -91,6 +96,14 @@ Pro.U.ex(Pro.Property, {
       enumerable: true,
       configurable: true
     });
+  },
+  reProb: function (property) {
+    var po = property.proObject,
+        p = property.property,
+        l = property.listeners;
+
+    property.destroy();
+    return Pro.makeProp(po, p, l);
   }
 });
 

@@ -16,6 +16,11 @@ Pro.ArrayProperty = function (proObject, property) {
           _this.oldVal = _this.val;
           _this.val = newVal;
 
+          if (_this.val === null || _this.val === undefined) {
+            Pro.Property.reProb(_this).update();
+            return _this;
+          }
+
           if (!Pro.Utils.isProArray(_this.val)) {
             _this.val = new Pro.Array(_this.val);
           }
@@ -69,11 +74,10 @@ Pro.ArrayProperty = function (proObject, property) {
   Pro.Property.call(this, proObject, property, getter, function () {});
 };
 
-Pro.ArrayProperty.prototype = Object.create(Pro.Property.prototype);
-Pro.ArrayProperty.prototype.constructor = Pro.ArrayProperty;
-
-Pro.ArrayProperty.prototype.type = function () {
-  return Pro.Property.Types.array;
-};
-
-Pro.ArrayProperty.prototype.afterInit = function () {};
+Pro.ArrayProperty.prototype = Pro.U.ex(Object.create(Pro.Property.prototype), {
+  constructor: Pro.ArrayProperty,
+  type: function () {
+    return Pro.Property.Types.array;
+  },
+  afterInit: function () {}
+});

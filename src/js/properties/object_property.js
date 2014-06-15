@@ -16,6 +16,11 @@ Pro.ObjectProperty = function (proObject, property) {
           _this.oldVal = _this.val;
           _this.val = newVal;
 
+          if (_this.val === null || _this.val === undefined) {
+            Pro.Property.reProb(_this).update();
+            return _this;
+          }
+
           if (_this.oldVal) {
             if (!_this.val.__pro__) {
               Pro.prob(_this.val);

@@ -59,10 +59,10 @@
 	    return Pro.U.isArray(property) || Pro.U.isProArray(property);
 	  },
 	  isProObject: function (property) {
-	    return Pro.U.isObject(property) && property.__pro__ !== undefined && Pro.U.isObject(property.__pro__.properties);
+	    return property && Pro.U.isObject(property) && property.__pro__ !== undefined && Pro.U.isObject(property.__pro__.properties);
 	  },
 	  isProVal: function (property) {
-	    return this.isProObject(property) && property.__pro__.properties.v !== undefined;
+	    return Pro.U.isProObject(property) && property.__pro__.properties.v !== undefined;
 	  },
 	  ex: function(destination, source) {
 	    var p;
@@ -1976,6 +1976,11 @@
 	        property.val = Pro.Property.transform(property, newVal);
 	      }
 	
+	      if (property.val === null || property.val === undefined) {
+	        Pro.Property.reProb(property).update();
+	        return;
+	      }
+	
 	      property.update();
 	    };
 	  },
@@ -1986,6 +1991,14 @@
 	      enumerable: true,
 	      configurable: true
 	    });
+	  },
+	  reProb: function (property) {
+	    var po = property.proObject,
+	        p = property.property,
+	        l = property.listeners;
+	
+	    property.destroy();
+	    return Pro.makeProp(po, p, l);
 	  }
 	});
 	
@@ -2063,15 +2076,10 @@
 	      setter = function (newVal) {
 	        var result = set.call(_this.proObject, newVal),
 	            types = Pro.Property.Types,
-	            type = types.type(result),
-	            po = _this.proObject,
-	            p = _this.property,
-	            l = _this.listeners;
+	            type = types.type(result);
 	
 	        if (type !== types.nil) {
-	          _this.destroy();
-	          Pro.makeProp(po, p);
-	          po.__pro__.properties[p].listeners = po.__pro__.properties[p].listeners.concat(l);
+	          Pro.Property.reProb(_this);
 	        }
 	
 	        return result;
@@ -2164,6 +2172,11 @@
 	          _this.oldVal = _this.val;
 	          _this.val = newVal;
 	
+	          if (_this.val === null || _this.val === undefined) {
+	            Pro.Property.reProb(_this).update();
+	            return _this;
+	          }
+	
 	          if (_this.oldVal) {
 	            if (!_this.val.__pro__) {
 	              Pro.prob(_this.val);
@@ -2247,6 +2260,11 @@
 	          _this.oldVal = _this.val;
 	          _this.val = newVal;
 	
+	          if (_this.val === null || _this.val === undefined) {
+	            Pro.Property.reProb(_this).update();
+	            return _this;
+	          }
+	
 	          if (!Pro.Utils.isProArray(_this.val)) {
 	            _this.val = new Pro.Array(_this.val);
 	          }
@@ -2300,14 +2318,13 @@
 	  Pro.Property.call(this, proObject, property, getter, function () {});
 	};
 	
-	Pro.ArrayProperty.prototype = Object.create(Pro.Property.prototype);
-	Pro.ArrayProperty.prototype.constructor = Pro.ArrayProperty;
-	
-	Pro.ArrayProperty.prototype.type = function () {
-	  return Pro.Property.Types.array;
-	};
-	
-	Pro.ArrayProperty.prototype.afterInit = function () {};
+	Pro.ArrayProperty.prototype = Pro.U.ex(Object.create(Pro.Property.prototype), {
+	  constructor: Pro.ArrayProperty,
+	  type: function () {
+	    return Pro.Property.Types.array;
+	  },
+	  afterInit: function () {}
+	});
 	
 	Pro.Val = function (val) {
 	  this.v = val;
@@ -2404,13 +2421,13 @@
 	  return object;
 	};
 	
-	Pro.makeProp = function (object, property) {
+	Pro.makeProp = function (object, property, listeners) {
 	  var conf = Pro.Configuration,
 	      keyprops = conf.keyprops,
-	      keypropList = conf.keypropList
+	      keypropList = conf.keypropList,
 	      isF = Pro.Utils.isFunction,
 	      isA = Pro.Utils.isArrayObject,
-	      isO = Pro.Utils.isObject;
+	      isO = Pro.Utils.isObject, result;
 	
 	  if (keyprops && keypropList.indexOf(property) !== -1) {
 	    throw Error('The property name ' + property + ' is a key word for pro objects! Objects passed to Pro.prob can not contain properties named as keyword properties.');
@@ -2418,16 +2435,22 @@
 	  }
 	
 	  if (object.hasOwnProperty(property) && (object[property] === null || object[property] === undefined)) {
-	    new Pro.NullProperty(object, property);
+	    result = new Pro.NullProperty(object, property);
 	  } else if (object.hasOwnProperty(property) && !isF(object[property]) && !isA(object[property]) && !isO(object[property])) {
-	    new Pro.Property(object, property);
+	    result = new Pro.Property(object, property);
 	  } else if (object.hasOwnProperty(property) && isF(object[property])) {
-	    new Pro.AutoProperty(object, property);
+	    result = new Pro.AutoProperty(object, property);
 	  } else if (object.hasOwnProperty(property) && isA(object[property])) {
-	    new Pro.ArrayProperty(object, property);
+	    result = new Pro.ArrayProperty(object, property);
 	  } else if (object.hasOwnProperty(property) && isO(object[property])) {
-	    new Pro.ObjectProperty(object, property);
+	    result = new Pro.ObjectProperty(object, property);
 	  }
+	
+	  if (listeners) {
+	    object.__pro__.properties[property].listeners = object.__pro__.properties[property].listeners.concat(listeners);
+	  }
+	
+	  return result;
 	};
 	
 	return Pro;

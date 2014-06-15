@@ -4,15 +4,10 @@ Pro.NullProperty = function (proObject, property) {
       setter = function (newVal) {
         var result = set.call(_this.proObject, newVal),
             types = Pro.Property.Types,
-            type = types.type(result),
-            po = _this.proObject,
-            p = _this.property,
-            l = _this.listeners;
+            type = types.type(result);
 
         if (type !== types.nil) {
-          _this.destroy();
-          Pro.makeProp(po, p);
-          po.__pro__.properties[p].listeners = po.__pro__.properties[p].listeners.concat(l);
+          Pro.Property.reProb(_this);
         }
 
         return result;

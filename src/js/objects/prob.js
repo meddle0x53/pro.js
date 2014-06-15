@@ -47,13 +47,13 @@ Pro.prob = function (object, meta) {
   return object;
 };
 
-Pro.makeProp = function (object, property) {
+Pro.makeProp = function (object, property, listeners) {
   var conf = Pro.Configuration,
       keyprops = conf.keyprops,
-      keypropList = conf.keypropList
+      keypropList = conf.keypropList,
       isF = Pro.Utils.isFunction,
       isA = Pro.Utils.isArrayObject,
-      isO = Pro.Utils.isObject;
+      isO = Pro.Utils.isObject, result;
 
   if (keyprops && keypropList.indexOf(property) !== -1) {
     throw Error('The property name ' + property + ' is a key word for pro objects! Objects passed to Pro.prob can not contain properties named as keyword properties.');
@@ -61,14 +61,20 @@ Pro.makeProp = function (object, property) {
   }
 
   if (object.hasOwnProperty(property) && (object[property] === null || object[property] === undefined)) {
-    new Pro.NullProperty(object, property);
+    result = new Pro.NullProperty(object, property);
   } else if (object.hasOwnProperty(property) && !isF(object[property]) && !isA(object[property]) && !isO(object[property])) {
-    new Pro.Property(object, property);
+    result = new Pro.Property(object, property);
   } else if (object.hasOwnProperty(property) && isF(object[property])) {
-    new Pro.AutoProperty(object, property);
+    result = new Pro.AutoProperty(object, property);
   } else if (object.hasOwnProperty(property) && isA(object[property])) {
-    new Pro.ArrayProperty(object, property);
+    result = new Pro.ArrayProperty(object, property);
   } else if (object.hasOwnProperty(property) && isO(object[property])) {
-    new Pro.ObjectProperty(object, property);
+    result = new Pro.ObjectProperty(object, property);
   }
+
+  if (listeners) {
+    object.__pro__.properties[property].listeners = object.__pro__.properties[property].listeners.concat(listeners);
+  }
+
+  return result;
 };
