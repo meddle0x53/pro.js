@@ -124,8 +124,8 @@ module.exports = function(grunt) {
         configFile: 'spec/config/karma.integration.conf.js',
         keepalive: true
       },
-      travis: {
-        configFile: 'spec/config/karma.travis.conf.js',
+      coverage: {
+        configFile: 'spec/config/karma.coverage.conf.js',
         singleRun: true,
         browsers: ['PhantomJS']
       }
