@@ -36,12 +36,12 @@
     "load-grunt-tasks": "~0.1.0",
     "phantomjs": "~1.9.1-0",
     "grunt-karma": "~0.5",
-    "karma": "~0.9",
-    "karma-chrome-launcher": "0.0.2",
-    "karma-script-launcher": "0.0.1",
-    "karma-firefox-launcher": "0.0.2",
-    "karma-jasmine": "0.0.1",
-    "karma-phantomjs-launcher": "0.0.2",
+    "karma": "~0.10",
+    "karma-chrome-launcher": "~0.1",
+    "karma-script-launcher": "~0.1",
+    "karma-firefox-launcher": "~0.1",
+    "karma-jasmine": "~0.1.0",
+    "karma-phantomjs-launcher": "~0.1",
     "grunt-jsdoc": "~0.5.1"
   }
 }
