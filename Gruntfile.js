@@ -125,7 +125,7 @@ module.exports = function(grunt) {
         keepalive: true
       },
       travis: {
-        configFile: 'config/karma.integration.conf.js',
+        configFile: 'spec/config/karma.travis.conf.js',
         singleRun: true,
         browsers: ['PhantomJS']
       }

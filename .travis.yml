@@ -4,5 +4,5 @@ node_js:
 before_install:
   - "npm install"
 script:
-  - grunt build
+  - grunt build && grunt karma:travis
 
