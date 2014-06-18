@@ -123,6 +123,11 @@ module.exports = function(grunt) {
       integration: {
         configFile: 'spec/config/karma.integration.conf.js',
         keepalive: true
+      },
+      travis: {
+        configFile: 'config/karma.integration.conf.js',
+        singleRun: true,
+        browsers: ['PhantomJS']
       }
     }
   });
