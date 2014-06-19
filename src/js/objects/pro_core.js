@@ -1,7 +1,8 @@
-Pro.Core = function (object) {
+Pro.Core = function (object, meta) {
   this.object = object;
   this.properties = {};
   this.state = Pro.States.init;
+  this.meta = meta || {};
 };
 
 Pro.U.ex(Pro.Core.prototype, {
@@ -13,7 +14,7 @@ Pro.U.ex(Pro.Core.prototype, {
 
     try {
       for (property in object) {
-        this.makeProp(property);
+        this.makeProp(property, null, this.meta[property]);
       }
 
       if (keyprops && keypropList.indexOf('p') !== -1) {
@@ -31,8 +32,10 @@ Pro.U.ex(Pro.Core.prototype, {
       this.state = Pro.States.error;
       throw e;
     }
+
+    return this;
   },
-  makeProp: function (property, listeners) {
+  makeProp: function (property, listeners, meta) {
     var object = this.object,
         conf = Pro.Configuration,
         keyprops = conf.keyprops,
@@ -40,6 +43,10 @@ Pro.U.ex(Pro.Core.prototype, {
         isF = Pro.Utils.isFunction,
         isA = Pro.Utils.isArrayObject,
         isO = Pro.Utils.isObject, result;
+
+    if (meta && (meta === 'noprop' || (meta.indexOf && meta.indexOf('noprop') >= 0))) {
+      return;
+    }
 
     if (keyprops && keypropList.indexOf(property) !== -1) {
       throw Error('The property name ' + property + ' is a key word for pro objects! Objects passed to Pro.prob can not contain properties named as keyword properties.');

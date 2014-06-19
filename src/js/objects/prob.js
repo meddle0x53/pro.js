@@ -10,7 +10,7 @@ Pro.prob = function (object, meta) {
     return new Pro.Array(object);
   }
 
-  core = new Pro.Core(object);
+  core = new Pro.Core(object, meta);
   Object.defineProperty(object, '__pro__', {
     enumerable: false,
     configurable: false,
@@ -18,7 +18,7 @@ Pro.prob = function (object, meta) {
     value: core
   });
 
-  core.prob(meta);
+  core.prob();
 
   return object;
 };

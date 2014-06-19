@@ -1,6 +1,12 @@
 'use strict';
 
 describe('Pro.Core', function () {
+  describe('#prob', function () {
+    it ('is chainable', function () {
+      var core = new Pro.Core({});
+      expect(core.prob()).toBe(core);
+    });
+  });
   describe('#set', function () {
     it ('sets present properties to new values', function () {
       var obj = {
@@ -36,6 +42,30 @@ describe('Pro.Core', function () {
 
       obj.a = 6;
       expect(obj.c).toEqual(9);
+    });
+  });
+
+  describe('#makeProp', function () {
+    describe('meta', function () {
+      it ('@noprop leaves a property as it is', function () {
+        var obj = {
+              a: 'boo',
+              sayA: function () {
+                return 'Saying ' + this.a;
+              }
+            },
+            core = new Pro.Core(obj, {
+              a: ['noprop'],
+              sayA: 'noprop'
+            }).prob();
+
+        expect(core.properties.a).not.toBeDefined;
+        expect(core.properties.sayA).not.toBeDefined;
+        expect(core.properties).toEqual({});
+
+        expect(typeof obj.sayA).toEqual('function');
+        expect(obj.sayA()).toEqual('Saying ' + obj.a);
+      });
     });
   });
 });
