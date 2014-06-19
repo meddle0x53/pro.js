@@ -21,23 +21,16 @@ describe('Pro.Registry', function () {
         expect(reg.get('s:test').sources[0]).toBe(source);
       });
 
-      it ('creates a simple stream with source - another registered stream.', function () {
-        reg.makeStream('source');
-        reg.makeStream('test', 's:source');
-
-        expect(reg.get('s:test').sources[0]).toBe(reg.stream('source'));
-      });
-
       it ('creates a simple stream with source - another registered stream using object options.', function () {
         reg.makeStream('source');
-        reg.makeStream('test', {from: 's:source'});
+        reg.makeStream('test', {into: 's:source'});
 
         expect(reg.get('s:test').sources[0]).toBe(reg.stream('source'));
       });
 
       it ('creates a simple stream with source - another stream using object options.', function () {
         reg.makeStream('source');
-        reg.makeStream('test', {from: reg.s('source')});
+        reg.makeStream('test', {into: reg.s('source')});
 
         expect(reg.get('s:test').sources[0]).toBe(reg.stream('source'));
       });

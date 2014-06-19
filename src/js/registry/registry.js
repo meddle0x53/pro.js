@@ -24,7 +24,7 @@ Pro.Registry.prototype = rProto = {
       return this.getStream(name.substring(2));
     }
   },
-  from: function (data) {
+  toObject: function (data) {
     if (data instanceof Pro.Observable) {
       return data;
     }
@@ -35,21 +35,27 @@ Pro.Registry.prototype = rProto = {
   },
   makeStream: function (name, options) {
     var isS = Pro.U.isString,
-        source;
+        source, opType, stream;
 
     if (options && isS(options)) {
       options = this.optionsFromString(options);
     }
 
     if (options instanceof Pro.Observable) {
-      source = options;
-    } else if (options && options.from) {
-      source = this.from(options.from);
+      options = {into: options};
     }
 
-    this.streams[name] = new Pro.Stream(source);
+    this.streams[name] = stream = new Pro.Stream();
 
-    return this.streams[name];
+    for (opType in Pro.DSL.ops) {
+      if (options && options[opType]) {
+        options[opType] = this.toObject(options[opType]);
+      }
+      opType = Pro.DSL.ops[opType];
+      opType.action(stream, options);
+    }
+
+    return stream;
   },
   make: function (name, options) {
     var type = name.charAt(0);
@@ -62,15 +68,19 @@ Pro.Registry.prototype = rProto = {
       return {from: optionString};
     }
 
-    return this.optionsFromArray(optionString.split(Pro.R.separator));
+    return this.optionsFromArray(optionString.split(Pro.DSL.separator));
   },
   optionsFromArray: function (optionArray) {
     var result = {}, i, ln = optionArray.length,
-        ops = Pro.R.ops, op;
+        ops = Pro.R.ops, op, opType;
     for (i = 0; i < ln; i++) {
       op = optionArray[i];
-      if (op.substring(0, 2) === ops.into) {
-        result.from = op.substring(2);
+      for (opType in Pro.DSL.ops) {
+        opType = Pro.DSL.ops[opType];
+        if (opType.match(op)) {
+          opType.toOptions(result, op);
+          break;
+        }
       }
     }
 

@@ -159,6 +159,7 @@ module.exports = function(grunt) {
           'objects/pro_val',
           'objects/prob',
           'registry/registry',
+          'registry/dsl',
         ],
         args = this.args, customFiles = [], index, i = -1;
 
