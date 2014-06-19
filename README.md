@@ -1,4 +1,4 @@
-# pro.js (0.3.0) [![Build Status](https://travis-ci.org/meddle0x53/pro.js.svg?branch=master)](https://travis-ci.org/meddle0x53/pro.js)
+# pro.js [![GitHub version](https://badge.fury.io/gh/meddle0x53%2Fpro.js.svg)](http://badge.fury.io/gh/meddle0x53%2Fpro.js) [![Build Status](https://travis-ci.org/meddle0x53/pro.js.svg?branch=master)](https://travis-ci.org/meddle0x53/pro.js)
 
 ## Download
  * [Development](https://raw.github.com/meddle0x53/pro.js/master/dist/js/pro.js)
