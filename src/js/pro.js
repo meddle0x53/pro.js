@@ -22,7 +22,9 @@ var Pro = {},
     toString = arrayProto.toString,
     unshift = arrayProto.unshift,
     pArray, pArrayOps, pArrayProto, pArrayLs,
-    rProto;
+    rProto,
+    dslOps,
+    opStoreAll;
 
 Pro.States = {
   init: 1,

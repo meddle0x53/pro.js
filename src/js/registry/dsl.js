@@ -1,21 +1,33 @@
-Pro.DSL = {
-  separator: '|',
-  ops: {
-    into: {
-      sym: '<<',
-      match: function (op) {
-        return op.substring(0, 2) === Pro.DSL.ops.into.sym;
-      },
-      toOptions: function (actionObject, op) {
-        actionObject.into = op.substring(2);
-      },
-      action: function (object, actionObject) {
-        if (!actionObject || !actionObject.into) {
-          return object;
-        }
+Pro.OpStore = {
+  all: {
+    simpleOp: function(name, sym) {
+      return {
+        sym: sym,
+        match: function (op) {
+          return op.substring(0, sym.length) === dslOps[name].sym;
+        },
+        toOptions: function (actionObject, op) {
+          actionObject[name] = op.substring(sym.length);
+        },
+        action: function (object, actionObject) {
+          if (!actionObject || !actionObject[name]) {
+            return object;
+          }
 
-        return object.into(actionObject.into);
-      }
+          return object[name].call(object, actionObject[name]);
+        }
+      };
     }
   }
 };
+opStoreAll = Pro.OpStore.all;
+
+Pro.DSL = {
+  separator: '|',
+  ops: {
+    into: opStoreAll.simpleOp('into', '<<'),
+    out: opStoreAll.simpleOp('out', '>>')  
+  }
+};
+
+dslOps = Pro.DSL.ops;

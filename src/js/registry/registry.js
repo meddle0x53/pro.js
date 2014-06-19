@@ -1,17 +1,8 @@
 Pro.Registry = Pro.R = function () {
   this.streams = {};
   this.objects = {};
+  this.lamdas = {};
 };
-
-Pro.U.ex(Pro.Registry, {
-  separator: '|',
-  ops: {
-    into: '<<',
-    out: '>>',
-    map: '<map>',
-    add: '+',
-  }
-});
 
 Pro.Registry.prototype = rProto = {
   constructor: Pro.Registry,
