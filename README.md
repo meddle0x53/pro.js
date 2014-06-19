@@ -26,7 +26,7 @@ or
   <!-- Pro will be global object -->
 ```
 
-### Use as Node.js module
+### Use as Node.js module [![NPM version](https://badge.fury.io/js/pro.js.svg)](http://badge.fury.io/js/pro.js)
 ```
   npm install pro.js
 ```
