@@ -133,6 +133,18 @@
 	    }
 	
 	    return diff;
+	  },
+	  defValProp: function (obj, prop, enumerable, configurable, writable, val) {
+	    try {
+	      Object.defineProperty(obj, prop, {
+	        enumerable: enumerable,
+	        configurable: configurable,
+	        writable: writable,
+	        value: val
+	      });
+	    } catch (e) {
+	      obj[prop] = val;
+	    }
 	  }
 	};
 	
@@ -2296,17 +2308,12 @@
 	      }
 	
 	      if (keyprops && keypropList.indexOf('p') !== -1) {
-	        Object.defineProperty(object, 'p', {
-	          enumerable: false,
-	          configurable: false,
-	          writeble: false,
-	          value: function (p) {
-	            if (!p || p === '*') {
-	              return _this;
-	            }
-	
-	            return _this.properties[p];
+	        Pro.U.defValProp(object, 'p', false, false, false, function (p) {
+	          if (!p || p === '*') {
+	            return _this;
 	          }
+	
+	          return _this.properties[p];
 	        });
 	      }
 	
@@ -2403,7 +2410,7 @@
 	});
 	
 	Pro.prob = function (object, meta) {
-	  var property,
+	  var core, property,
 	      isAr = Pro.Utils.isArray;
 	
 	  if (object === null || (!Pro.U.isObject(object) && !isAr(object))) {
@@ -2414,14 +2421,15 @@
 	    return new Pro.Array(object);
 	  }
 	
+	  core = new Pro.Core(object);
 	  Object.defineProperty(object, '__pro__', {
 	    enumerable: false,
 	    configurable: false,
 	    writeble: false,
-	    value: new Pro.Core(object)
+	    value: core
 	  });
 	
-	  object.__pro__.prob();
+	  core.prob(meta);
 	
 	  return object;
 	};

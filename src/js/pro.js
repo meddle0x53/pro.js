@@ -126,6 +126,18 @@ Pro.Utils = Pro.U = {
     }
 
     return diff;
+  },
+  defValProp: function (obj, prop, enumerable, configurable, writable, val) {
+    try {
+      Object.defineProperty(obj, prop, {
+        enumerable: enumerable,
+        configurable: configurable,
+        writable: writable,
+        value: val
+      });
+    } catch (e) {
+      obj[prop] = val;
+    }
   }
 };
 

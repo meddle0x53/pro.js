@@ -17,17 +17,12 @@ Pro.U.ex(Pro.Core.prototype, {
       }
 
       if (keyprops && keypropList.indexOf('p') !== -1) {
-        Object.defineProperty(object, 'p', {
-          enumerable: false,
-          configurable: false,
-          writeble: false,
-          value: function (p) {
-            if (!p || p === '*') {
-              return _this;
-            }
-
-            return _this.properties[p];
+        Pro.U.defValProp(object, 'p', false, false, false, function (p) {
+          if (!p || p === '*') {
+            return _this;
           }
+
+          return _this.properties[p];
         });
       }
 

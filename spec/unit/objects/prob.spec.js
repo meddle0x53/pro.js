@@ -267,4 +267,22 @@ describe('Pro.prob', function () {
     expect(proArray.valueOf()).toEqual([1, '2', 3.0, true, null]);
   });
 
+  it ('the Pro.Core of property objects created by it can be retrieved through object#p()', function () {
+    var obj = Pro.prob({
+      a: 1,
+      b: 3
+    });
+
+    expect(obj.p()).toBe(obj.__pro__)
+  });
+
+  it ('the Pro.Core of property objects created by it can be retrieved through object#p("*")', function () {
+    var obj = Pro.prob({
+      a: 1,
+      b: 3
+    });
+
+    expect(obj.p('*')).toBe(obj.__pro__)
+  });
+
 });

@@ -1,5 +1,5 @@
 Pro.prob = function (object, meta) {
-  var property,
+  var core, property,
       isAr = Pro.Utils.isArray;
 
   if (object === null || (!Pro.U.isObject(object) && !isAr(object))) {
@@ -10,14 +10,15 @@ Pro.prob = function (object, meta) {
     return new Pro.Array(object);
   }
 
+  core = new Pro.Core(object);
   Object.defineProperty(object, '__pro__', {
     enumerable: false,
     configurable: false,
     writeble: false,
-    value: new Pro.Core(object)
+    value: core
   });
 
-  object.__pro__.prob();
+  core.prob(meta);
 
   return object;
 };
