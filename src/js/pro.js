@@ -21,7 +21,8 @@ var Pro = {},
     toLocaleString = arrayProto.toLocaleString,
     toString = arrayProto.toString,
     unshift = arrayProto.unshift,
-    pArray, pArrayOps, pArrayProto, pArrayLs;
+    pArray, pArrayOps, pArrayProto, pArrayLs,
+    rProto;
 
 Pro.States = {
   init: 1,

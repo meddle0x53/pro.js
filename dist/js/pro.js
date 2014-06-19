@@ -2289,10 +2289,11 @@
 	  afterInit: function () {}
 	});
 	
-	Pro.Core = function (object) {
+	Pro.Core = function (object, meta) {
 	  this.object = object;
 	  this.properties = {};
 	  this.state = Pro.States.init;
+	  this.meta = meta || {};
 	};
 	
 	Pro.U.ex(Pro.Core.prototype, {
@@ -2304,7 +2305,7 @@
 	
 	    try {
 	      for (property in object) {
-	        this.makeProp(property);
+	        this.makeProp(property, null, this.meta[property]);
 	      }
 	
 	      if (keyprops && keypropList.indexOf('p') !== -1) {
@@ -2322,8 +2323,10 @@
 	      this.state = Pro.States.error;
 	      throw e;
 	    }
+	
+	    return this;
 	  },
-	  makeProp: function (property, listeners) {
+	  makeProp: function (property, listeners, meta) {
 	    var object = this.object,
 	        conf = Pro.Configuration,
 	        keyprops = conf.keyprops,
@@ -2331,6 +2334,10 @@
 	        isF = Pro.Utils.isFunction,
 	        isA = Pro.Utils.isArrayObject,
 	        isO = Pro.Utils.isObject, result;
+	
+	    if (meta && (meta === 'noprop' || (meta.indexOf && meta.indexOf('noprop') >= 0))) {
+	      return;
+	    }
 	
 	    if (keyprops && keypropList.indexOf(property) !== -1) {
 	      throw Error('The property name ' + property + ' is a key word for pro objects! Objects passed to Pro.prob can not contain properties named as keyword properties.');
@@ -2421,7 +2428,7 @@
 	    return new Pro.Array(object);
 	  }
 	
-	  core = new Pro.Core(object);
+	  core = new Pro.Core(object, meta);
 	  Object.defineProperty(object, '__pro__', {
 	    enumerable: false,
 	    configurable: false,
@@ -2429,9 +2436,26 @@
 	    value: core
 	  });
 	
-	  core.prob(meta);
+	  core.prob();
 	
 	  return object;
+	};
+	
+	Pro.Registry = function () {
+	  this.streams = {};
+	  this.objects = {};
+	};
+	
+	Pro.Registry.prototype = {
+	  constructor: Pro.Registry,
+	  makeStream: function (name, options) {
+	  },
+	  make: function (name, options) {
+	    var type = name.charAt(0);
+	    if (type === 's') {
+	      return this.makeStream(name.substring(2), options);
+	    }
+	  }
 	};
 	
 	return Pro;

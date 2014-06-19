@@ -26,6 +26,7 @@ module.exports = function(karma) {
       'src/js/objects/pro_core.js',
       'src/js/objects/pro_val.js',
       'src/js/objects/prob.js',
+      'src/js/objects/registry.js',
       'spec/spec_helper.js',
       'spec/unit/**/*.spec.js'
     ],
