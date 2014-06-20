@@ -37,9 +37,48 @@ describe('Pro.Registry', function () {
 
       it ('creates a simple stream with source source stream defined with the proRegQl', function () {
         reg.makeStream('source');
-        reg.makeStream('test', '<<s:source');
+        reg.makeStream('test', '<<(s:source)');
 
         expect(reg.get('s:test').sources[0]).toBe(reg.stream('source'));
+      });
+    });
+
+    describe('on', function () {
+      it ('creates a stream with callback on trigger if passed "on" of type @($1)', function () {
+        var res = [];
+        reg.makeStream('test', '@($1)', function (e) {
+          res.push(e);
+        });
+
+        reg.get('s:test').trigger('hey');
+        expect(res.length).toBe(1);
+        expect(res).toEqual(['hey']);
+      });
+
+      it ('creates a stream with callback on trigger if passed "on" of type @(f:fun)', function () {
+        var res = [];
+        reg.make('f:fun', function (e) {
+          res.push(e);
+        });
+        reg.makeStream('test', '@(f:fun)');
+
+        reg.get('s:test').trigger('hey');
+        expect(res.length).toBe(1);
+        expect(res).toEqual(['hey']);
+      });
+
+      it ('creates a stream with a source with callback on trigger if passed "on" of type @(f:fun)', function () {
+        var res = [];
+        reg.make('f:fun', function (e) {
+          res.push(e);
+        });
+        reg.make('s:source');
+        reg.make('s:dest', '@(f:fun)');
+        reg.makeStream('test', '<<(s:source)|@(f:fun)|>>(s:dest)');
+
+        reg.get('s:source').trigger('hey');
+        expect(res.length).toBe(2);
+        expect(res).toEqual(['hey', 'hey']);
       });
     });
   });

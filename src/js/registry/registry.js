@@ -9,27 +9,46 @@ Pro.Registry.prototype = rProto = {
   getStream: function (name) {
     return this.streams[name];
   },
+  getLambda: function (name) {
+    return this.lamdas[name];
+  },
   get: function (name) {
     var type = name.charAt(0);
     if (type === 's') {
       return this.getStream(name.substring(2));
     }
+
+    if (type === 'l' || type === 'f') {
+      return this.getLambda(name.substring(2));
+    }
+  },
+  toObjectArray: function (array) {
+    var _this = this;
+    if (!Pro.U.isArray(array)) {
+      return this.toObject(array);
+    }
+    return map.call(array, function (el) {
+      return _this.toObject(el);
+    });
   },
   toObject: function (data) {
-    if (data instanceof Pro.Observable) {
-      return data;
-    }
-
     if (Pro.U.isString(data)) {
       return this.get(data);
     }
+
+    return data;
+  },
+  makeLambda: function (name, body) {
+    this.lamdas[name] = body;
+    return this.lamdas[name];
   },
   makeStream: function (name, options) {
     var isS = Pro.U.isString,
-        source, opType, stream;
+        source, opType, stream,
+        args = slice.call(arguments, 2);
 
     if (options && isS(options)) {
-      options = this.optionsFromString(options);
+      options = this.optionsFromString.apply(this, [options].concat(args));
     }
 
     if (options instanceof Pro.Observable) {
@@ -40,7 +59,7 @@ Pro.Registry.prototype = rProto = {
 
     for (opType in Pro.DSL.ops) {
       if (options && options[opType]) {
-        options[opType] = this.toObject(options[opType]);
+        options[opType] = this.toObjectArray(options[opType]);
       }
       opType = Pro.DSL.ops[opType];
       opType.action(stream, options);
@@ -53,13 +72,17 @@ Pro.Registry.prototype = rProto = {
     if (type === 's') {
       return this.makeStream(name.substring(2), options);
     }
+
+    if (type === 'l' || type === 'f') {
+      return this.makeLambda(name.substring(2), options);
+    }
   },
   optionsFromString: function (optionString) {
     if (optionString.indexOf(Pro.R.separator) < 0 && optionString.charAt(1) === ':') {
       return {from: optionString};
     }
 
-    return this.optionsFromArray(optionString.split(Pro.DSL.separator));
+    return this.optionsFromArray.apply(this, [optionString.split(Pro.DSL.separator)].concat(slice.call(arguments, 1)));
   },
   optionsFromArray: function (optionArray) {
     var result = {}, i, ln = optionArray.length,
@@ -69,7 +92,7 @@ Pro.Registry.prototype = rProto = {
       for (opType in Pro.DSL.ops) {
         opType = Pro.DSL.ops[opType];
         if (opType.match(op)) {
-          opType.toOptions(result, op);
+          opType.toOptions.apply(opType, [result, op].concat(slice.call(arguments, 1)));
           break;
         }
       }
