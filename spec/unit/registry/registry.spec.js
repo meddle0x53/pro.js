@@ -42,8 +42,5 @@ describe('Pro.Registry', function () {
         expect(reg.get('s:test').sources[0]).toBe(reg.stream('source'));
       });
     });
-
-    describe('map', function () {
-    });
   });
 });
