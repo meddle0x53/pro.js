@@ -81,5 +81,20 @@ describe('Pro.Registry', function () {
         expect(res).toEqual(['hey', 'hey']);
       });
     });
+
+    describe('map', function () {
+      it ('creates a stream with mapping, transforming its value, passed with map($1)', function () {
+        var res = [];
+        reg.makeStream('test', '@($2)|map($1)', function (val) {
+          return val + ' meddle!';
+        }, function (el) {
+          res.push(el);
+        });
+
+        reg.get('s:test').trigger('hey');
+        expect(res.length).toBe(1);
+        expect(res).toEqual(['hey meddle!']);
+      });
+    });
   });
 });

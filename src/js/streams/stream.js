@@ -44,6 +44,9 @@ Pro.Stream.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
     }
   },
   trigger: function (event, useTransformations) {
+    if (useTransformations === undefined) {
+      useTransformations = true;
+    }
     return this.go(event, useTransformations);
   },
   triggerErr: function (err) {

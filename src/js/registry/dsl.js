@@ -54,7 +54,8 @@ Pro.DSL = {
   ops: {
     into: opStoreAll.simpleOp('into', '<<'),
     out: opStoreAll.simpleOp('out', '>>'),
-    on: opStoreAll.simpleOp('on', '@')
+    on: opStoreAll.simpleOp('on', '@'),
+    mapping: opStoreAll.simpleOp('mapping', 'map')
   }
 };
 
