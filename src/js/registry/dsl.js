@@ -55,7 +55,9 @@ Pro.DSL = {
     into: opStoreAll.simpleOp('into', '<<'),
     out: opStoreAll.simpleOp('out', '>>'),
     on: opStoreAll.simpleOp('on', '@'),
-    mapping: opStoreAll.simpleOp('mapping', 'map')
+    mapping: opStoreAll.simpleOp('mapping', 'map'),
+    filtering: opStoreAll.simpleOp('filtering', 'filter'),
+    accumulation: opStoreAll.simpleOp('accumulation', 'acc')
   }
 };
 
