@@ -29,7 +29,9 @@
 	    toString = arrayProto.toString,
 	    unshift = arrayProto.unshift,
 	    pArray, pArrayOps, pArrayProto, pArrayLs,
-	    rProto;
+	    rProto,
+	    dslOps,
+	    opStoreAll;
 	
 	Pro.States = {
 	  init: 1,
@@ -529,14 +531,31 @@
 	  }
 	});
 	
-	Pro.Observable = function () {
+	Pro.Observable = function (transforms) {
 	  this.listeners = [];
 	  this.errListeners = [];
 	  this.sources = [];
 	
 	  this.listener = null;
 	  this.errListener = null;
+	
+	  this.transforms = transforms ? transforms : [];
 	};
+	
+	Pro.U.ex(Pro.Observable, {
+	  BadValue: {},
+	  transform: function (observable, val) {
+	    var i, t = observable.transforms, ln = t.length;
+	    for (i = 0; i < ln; i++) {
+	      val = t[i].call(observable, val);
+	      if (val === Pro.Stream.BadValue) {
+	        break;
+	      }
+	    }
+	
+	    return val;
+	  }
+	});
 	
 	Pro.Observable.prototype = {
 	  constructor: Pro.Observable,
@@ -619,6 +638,12 @@
 	    return this;
 	  },
 	
+	  transform: function (transformation) {
+	    this.transforms.push(transformation);
+	
+	    return this;
+	  },
+	
 	  map: Pro.N,
 	
 	  update: function (source, callbacks) {
@@ -675,16 +700,12 @@
 	};
 	
 	Pro.Stream = function (source, transforms) {
-	  this.transforms = transforms ? transforms : [];
-	
-	  Pro.Observable.call(this);
+	  Pro.Observable.call(this, transforms);
 	
 	  if (source) {
 	    this.into(source);
 	  }
 	};
-	
-	Pro.Stream.BadValue = {};
 	
 	Pro.Stream.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
 	  constructor: Pro.Stream,
@@ -734,16 +755,14 @@
 	
 	    if (useTransformations) {
 	      try {
-	        for (i = 0; i < ln; i++) {
-	          event = tr[i].call(this, event);
-	        }
+	        event = Pro.Observable.transform(this, event);
 	      } catch (e) {
 	        this.triggerErr(e);
 	        return this;
 	      }
 	    }
 	
-	    if (event === Pro.Stream.BadValue) {
+	    if (event === Pro.Observable.BadValue) {
 	      return this;
 	    }
 	
@@ -759,7 +778,7 @@
 	      if (f.call(_this, val)) {
 	        return val;
 	      }
-	      return Pro.Stream.BadValue;
+	      return Pro.Observable.BadValue;
 	    };
 	    return new Pro.Stream(this, [filter]);
 	  },
@@ -1879,7 +1898,6 @@
 	
 	  this.oldVal = null;
 	  this.val = proObject[property];
-	  this.transformators = [];
 	
 	  this.state = Pro.States.init;
 	  this.g = this.get;
@@ -1912,14 +1930,6 @@
 	      }
 	    }
 	  },
-	  transform: function (property, val) {
-	    var i, t = property.transformators, ln = t.length;
-	    for (i = 0; i < ln; i++) {
-	      val = t[i].call(property, val);
-	    }
-	
-	    return val;
-	  },
 	  DEFAULT_GETTER: function (property) {
 	    return function () {
 	      property.addCaller();
@@ -1937,7 +1947,7 @@
 	      if (setter) {
 	        property.val = setter.call(property.proObject, newVal);
 	      } else {
-	        property.val = Pro.Property.transform(property, newVal);
+	        property.val = Pro.Observable.transform(property, newVal);
 	      }
 	
 	      if (property.val === null || property.val === undefined) {
@@ -1978,7 +1988,7 @@
 	        property: _this,
 	        call: function (newVal) {
 	          _this.oldVal = _this.val;
-	          _this.val = Pro.Property.transform(_this, newVal);
+	          _this.val = Pro.Observable.transform(_this, newVal);
 	        }
 	      };
 	    }
@@ -2023,11 +2033,6 @@
 	    this.g = this.s = undefined;
 	    this.val = undefined;
 	    this.state = Pro.States.destroyed;
-	  },
-	  addTransformator: function (transformator) {
-	    this.transformators.push(transformator);
-	
-	    return this;
 	  },
 	  toString: function () {
 	    return this.val;
@@ -2089,7 +2094,7 @@
 	
 	        _this.state = Pro.States.ready;
 	
-	        _this.val = Pro.Property.transform(_this, _this.val);
+	        _this.val = Pro.Observable.transform(_this, _this.val);
 	        return _this.val;
 	      };
 	
@@ -2108,7 +2113,7 @@
 	        property: _this,
 	        call: function () {
 	          _this.oldVal = _this.val;
-	          _this.val = Pro.Property.transform(_this, _this.func.call(_this.proObject));
+	          _this.val = Pro.Observable.transform(_this, _this.func.call(_this.proObject));
 	        }
 	      };
 	    }
@@ -2445,44 +2450,54 @@
 	Pro.Registry = Pro.R = function () {
 	  this.streams = {};
 	  this.objects = {};
+	  this.lamdas = {};
 	};
-	
-	Pro.U.ex(Pro.Registry, {
-	  separator: '|',
-	  ops: {
-	    into: '<<',
-	    out: '>>',
-	    map: '<map>',
-	    add: '+',
-	  }
-	});
 	
 	Pro.Registry.prototype = rProto = {
 	  constructor: Pro.Registry,
 	  getStream: function (name) {
 	    return this.streams[name];
 	  },
+	  getLambda: function (name) {
+	    return this.lamdas[name];
+	  },
 	  get: function (name) {
 	    var type = name.charAt(0);
 	    if (type === 's') {
 	      return this.getStream(name.substring(2));
 	    }
+	
+	    if (type === 'l' || type === 'f') {
+	      return this.getLambda(name.substring(2));
+	    }
+	  },
+	  toObjectArray: function (array) {
+	    var _this = this;
+	    if (!Pro.U.isArray(array)) {
+	      return this.toObject(array);
+	    }
+	    return map.call(array, function (el) {
+	      return _this.toObject(el);
+	    });
 	  },
 	  toObject: function (data) {
-	    if (data instanceof Pro.Observable) {
-	      return data;
-	    }
-	
 	    if (Pro.U.isString(data)) {
 	      return this.get(data);
 	    }
+	
+	    return data;
+	  },
+	  makeLambda: function (name, body) {
+	    this.lamdas[name] = body;
+	    return this.lamdas[name];
 	  },
 	  makeStream: function (name, options) {
 	    var isS = Pro.U.isString,
-	        source, opType, stream;
+	        source, opType, stream,
+	        args = slice.call(arguments, 2);
 	
 	    if (options && isS(options)) {
-	      options = this.optionsFromString(options);
+	      options = this.optionsFromString.apply(this, [options].concat(args));
 	    }
 	
 	    if (options instanceof Pro.Observable) {
@@ -2493,7 +2508,7 @@
 	
 	    for (opType in Pro.DSL.ops) {
 	      if (options && options[opType]) {
-	        options[opType] = this.toObject(options[opType]);
+	        options[opType] = this.toObjectArray(options[opType]);
 	      }
 	      opType = Pro.DSL.ops[opType];
 	      opType.action(stream, options);
@@ -2506,13 +2521,13 @@
 	    if (type === 's') {
 	      return this.makeStream(name.substring(2), options);
 	    }
+	
+	    if (type === 'l' || type === 'f') {
+	      return this.makeLambda(name.substring(2), options);
+	    }
 	  },
 	  optionsFromString: function (optionString) {
-	    if (optionString.indexOf(Pro.R.separator) < 0 && optionString.charAt(1) === ':') {
-	      return {from: optionString};
-	    }
-	
-	    return this.optionsFromArray(optionString.split(Pro.DSL.separator));
+	    return this.optionsFromArray.apply(this, [optionString.split(Pro.DSL.separator)].concat(slice.call(arguments, 1)));
 	  },
 	  optionsFromArray: function (optionArray) {
 	    var result = {}, i, ln = optionArray.length,
@@ -2522,7 +2537,7 @@
 	      for (opType in Pro.DSL.ops) {
 	        opType = Pro.DSL.ops[opType];
 	        if (opType.match(op)) {
-	          opType.toOptions(result, op);
+	          opType.toOptions.apply(opType, [result, op].concat(slice.call(arguments, 1)));
 	          break;
 	        }
 	      }
@@ -2534,27 +2549,67 @@
 	
 	rProto.stream = rProto.s = rProto.getStream;
 	
-	Pro.DSL = {
-	  separator: '|',
-	  ops: {
-	    into: {
-	      sym: '<<',
-	      match: function (op) {
-	        return op.substring(0, 2) === Pro.DSL.ops.into.sym;
-	      },
-	      toOptions: function (actionObject, op) {
-	        actionObject.into = op.substring(2);
-	      },
-	      action: function (object, actionObject) {
-	        if (!actionObject || !actionObject.into) {
-	          return object;
-	        }
+	Pro.OpStore = {
+	  all: {
+	    simpleOp: function(name, sym) {
+	      return {
+	        sym: sym,
+	        match: function (op) {
+	          return op.substring(0, sym.length) === sym;
+	        },
+	        toOptions: function (actionObject, op) {
+	          var reg = new RegExp(dslOps[name].sym + "(\\w*)\\(([\\s\\S]*)\\)"),
+	              matched = reg.exec(op),
+	              action = matched[1], args = matched[2],
+	              opArguments = [],
+	              realArguments = slice.call(arguments, 2),
+	              arg, i , ln;
+	          if (action) {
+	            opArguments.push(action);
+	          }
 	
-	        return object.into(actionObject.into);
-	      }
+	          if (args) {
+	            args = args.split(',');
+	            ln = args.length;
+	            for (i = 0; i < ln; i++) {
+	              arg = args[i].trim();
+	              if (arg.charAt(0) === '$') {
+	                arg = realArguments[parseInt(arg.substring(1), 10) - 1];
+	              }
+	              opArguments.push(arg);
+	            }
+	          }
+	
+	          actionObject[name] = opArguments;
+	        },
+	        action: function (object, actionObject) {
+	          if (!actionObject || !actionObject[name]) {
+	            return object;
+	          }
+	
+	          var args = actionObject[name];
+	          if (!Pro.U.isArray(args)) {
+	            args = [args];
+	          }
+	
+	          return object[name].apply(object, args);
+	        }
+	      };
 	    }
 	  }
 	};
+	opStoreAll = Pro.OpStore.all;
+	
+	Pro.DSL = {
+	  separator: '|',
+	  ops: {
+	    into: opStoreAll.simpleOp('into', '<<'),
+	    out: opStoreAll.simpleOp('out', '>>'),
+	    on: opStoreAll.simpleOp('on', '@')
+	  }
+	};
+	
+	dslOps = Pro.DSL.ops;
 	
 	return Pro;
 }));

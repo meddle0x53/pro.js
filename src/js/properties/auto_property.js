@@ -27,7 +27,7 @@ Pro.AutoProperty = function (proObject, property) {
 
         _this.state = Pro.States.ready;
 
-        _this.val = Pro.Property.transform(_this, _this.val);
+        _this.val = Pro.Observable.transform(_this, _this.val);
         return _this.val;
       };
 
@@ -46,7 +46,7 @@ Pro.AutoProperty.prototype = Pro.U.ex(Object.create(Pro.Property.prototype), {
         property: _this,
         call: function () {
           _this.oldVal = _this.val;
-          _this.val = Pro.Property.transform(_this, _this.func.call(_this.proObject));
+          _this.val = Pro.Observable.transform(_this, _this.func.call(_this.proObject));
         }
       };
     }

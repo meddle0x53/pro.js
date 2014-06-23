@@ -1,14 +1,10 @@
 Pro.Stream = function (source, transforms) {
-  this.transforms = transforms ? transforms : [];
-
-  Pro.Observable.call(this);
+  Pro.Observable.call(this, transforms);
 
   if (source) {
     this.into(source);
   }
 };
-
-Pro.Stream.BadValue = {};
 
 Pro.Stream.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
   constructor: Pro.Stream,
@@ -58,16 +54,14 @@ Pro.Stream.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
 
     if (useTransformations) {
       try {
-        for (i = 0; i < ln; i++) {
-          event = tr[i].call(this, event);
-        }
+        event = Pro.Observable.transform(this, event);
       } catch (e) {
         this.triggerErr(e);
         return this;
       }
     }
 
-    if (event === Pro.Stream.BadValue) {
+    if (event === Pro.Observable.BadValue) {
       return this;
     }
 
@@ -83,7 +77,7 @@ Pro.Stream.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
       if (f.call(_this, val)) {
         return val;
       }
-      return Pro.Stream.BadValue;
+      return Pro.Observable.BadValue;
     };
     return new Pro.Stream(this, [filter]);
   },

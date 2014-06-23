@@ -20,7 +20,6 @@ Pro.Property = function (proObject, property, getter, setter) {
 
   this.oldVal = null;
   this.val = proObject[property];
-  this.transformators = [];
 
   this.state = Pro.States.init;
   this.g = this.get;
@@ -53,14 +52,6 @@ Pro.U.ex(Pro.Property, {
       }
     }
   },
-  transform: function (property, val) {
-    var i, t = property.transformators, ln = t.length;
-    for (i = 0; i < ln; i++) {
-      val = t[i].call(property, val);
-    }
-
-    return val;
-  },
   DEFAULT_GETTER: function (property) {
     return function () {
       property.addCaller();
@@ -78,7 +69,7 @@ Pro.U.ex(Pro.Property, {
       if (setter) {
         property.val = setter.call(property.proObject, newVal);
       } else {
-        property.val = Pro.Property.transform(property, newVal);
+        property.val = Pro.Observable.transform(property, newVal);
       }
 
       if (property.val === null || property.val === undefined) {
@@ -119,7 +110,7 @@ Pro.Property.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
         property: _this,
         call: function (newVal) {
           _this.oldVal = _this.val;
-          _this.val = Pro.Property.transform(_this, newVal);
+          _this.val = Pro.Observable.transform(_this, newVal);
         }
       };
     }
@@ -164,11 +155,6 @@ Pro.Property.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
     this.g = this.s = undefined;
     this.val = undefined;
     this.state = Pro.States.destroyed;
-  },
-  addTransformator: function (transformator) {
-    this.transformators.push(transformator);
-
-    return this;
   },
   toString: function () {
     return this.val;

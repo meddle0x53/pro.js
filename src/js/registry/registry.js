@@ -78,10 +78,6 @@ Pro.Registry.prototype = rProto = {
     }
   },
   optionsFromString: function (optionString) {
-    if (optionString.indexOf(Pro.R.separator) < 0 && optionString.charAt(1) === ':') {
-      return {from: optionString};
-    }
-
     return this.optionsFromArray.apply(this, [optionString.split(Pro.DSL.separator)].concat(slice.call(arguments, 1)));
   },
   optionsFromArray: function (optionArray) {

@@ -1,11 +1,28 @@
-Pro.Observable = function () {
+Pro.Observable = function (transforms) {
   this.listeners = [];
   this.errListeners = [];
   this.sources = [];
 
   this.listener = null;
   this.errListener = null;
+
+  this.transforms = transforms ? transforms : [];
 };
+
+Pro.U.ex(Pro.Observable, {
+  BadValue: {},
+  transform: function (observable, val) {
+    var i, t = observable.transforms, ln = t.length;
+    for (i = 0; i < ln; i++) {
+      val = t[i].call(observable, val);
+      if (val === Pro.Stream.BadValue) {
+        break;
+      }
+    }
+
+    return val;
+  }
+});
 
 Pro.Observable.prototype = {
   constructor: Pro.Observable,
@@ -84,6 +101,12 @@ Pro.Observable.prototype = {
     Pro.U.remove(this.sources, source);
     source.off(this.listener);
     source.offErr(this.errListener);
+
+    return this;
+  },
+
+  transform: function (transformation) {
+    this.transforms.push(transformation);
 
     return this;
   },

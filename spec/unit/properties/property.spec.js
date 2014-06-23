@@ -102,9 +102,9 @@ describe('Pro.Property', function () {
     });
 
     describe('transformators', function () {
-      it('transformator added with #addTransformator is always applied', function () {
+      it('transformator added with #transform is always applied', function () {
         var property = new Pro.Property(obj, 'a');
-        property.addTransformator(function (val) {
+        property.transform(function (val) {
           return val * val;
         });
 
@@ -114,13 +114,13 @@ describe('Pro.Property', function () {
 
       it('chained transformations work', function () {
         var property = new Pro.Property(obj, 'a');
-        property.addTransformator(function (val) {
+        property.transform(function (val) {
           return val * val;
         });
-        property.addTransformator(function (val) {
+        property.transform(function (val) {
           return val - 1;
         });
-        property.addTransformator(function (val) {
+        property.transform(function (val) {
           return val / 3;
         });
 
