@@ -83,10 +83,15 @@ Pro.Observable.prototype = {
     return this.off(action, callback, this.errListeners);
   },
 
-  into: function (source) {
-    this.sources.push(source);
-    source.on(this.makeListener());
-    source.onErr(this.makeErrListener());
+  into: function () {
+    var args = slice.call(arguments),
+        ln = args.length, i, source;
+    for (i = 0; i < ln; i++) {
+      source = args[i];
+      this.sources.push(source);
+      source.on(this.makeListener());
+      source.onErr(this.makeErrListener());
+    }
 
     return this;
   },
@@ -107,11 +112,38 @@ Pro.Observable.prototype = {
 
   transform: function (transformation) {
     this.transforms.push(transformation);
-
     return this;
   },
 
+  mapping: function (f) {
+    return this.transform(f)
+  },
+
+  filtering: function(f) {
+    var _this = this;
+    return this.transform(function (val) {
+      if (f.call(_this, val)) {
+        return val;
+      }
+      return Pro.Observable.BadValue;
+    });
+  },
+
+  accumulation: function (initVal, f) {
+    var _this = this, val = initVal;
+    return this.transform(function (newVal) {
+      val = f.call(_this, val, newVal)
+      return val;
+    });
+  },
+
   map: Pro.N,
+  filter: Pro.N,
+  accumulate: Pro.N,
+
+  reduce: function (initVal, f) {
+    return new Pro.Val(initVal).into(this.accumulate(initVal, f));
+  },
 
   update: function (source, callbacks) {
     var observable = this;

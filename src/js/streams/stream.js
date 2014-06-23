@@ -68,34 +68,16 @@ Pro.Stream.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
     return this.update(event);
   },
   map: function (f) {
-    return new Pro.Stream(this, [f]);
+    return new Pro.Stream(this).mapping(f);
   },
   filter: function (f) {
-    var _this = this, filter;
-
-    filter = function (val) {
-      if (f.call(_this, val)) {
-        return val;
-      }
-      return Pro.Observable.BadValue;
-    };
-    return new Pro.Stream(this, [filter]);
+    return new Pro.Stream(this).filtering(f);
   },
   accumulate: function (initVal, f) {
-    var _this = this, accumulator, val = initVal;
-
-    accumulator = function (newVal) {
-      val = f.call(_this, val, newVal)
-      return val;
-    };
-
-    return new Pro.Stream(this, [accumulator]);
-  },
-  reduce: function (initVal, f) {
-    return new Pro.Val(initVal).into(this.accumulate(initVal, f));
+    return new Pro.Stream(this).accumulation(initVal, f);
   },
   merge: function (stream) {
-    return new Pro.Stream(this).into(stream);
+    return new Pro.Stream().into(this, stream);
   }
 });
 
