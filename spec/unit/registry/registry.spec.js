@@ -1,13 +1,19 @@
 'use strict';
 
 describe('Pro.Registry.StreamProvider', function () {
-  var reg;
+  var reg, res, listener;
   beforeEach(function () {
     var fProvider = new Pro.Registry.FunctionProvider();
+
+    res = [];
+
     reg = new Pro.Registry()
             .register('s', new Pro.Registry.StreamProvider())
             .register('l', fProvider)
             .register('f', fProvider);
+    listener = function (el) {
+      res.push(el);
+    };
   });
   describe('Pro.Registry.StreamProvider', function () {
     describe('#make', function () {
@@ -50,7 +56,6 @@ describe('Pro.Registry.StreamProvider', function () {
 
       describe('on', function () {
         it ('creates a stream with callback on trigger if passed "on" of type @($1)', function () {
-          var res = [];
           reg.make('s:test', '@($1)', function (e) {
             res.push(e);
           });
@@ -61,7 +66,6 @@ describe('Pro.Registry.StreamProvider', function () {
         });
 
         it ('creates a stream with callback on trigger if passed "on" of type @(f:fun)', function () {
-          var res = [];
           reg.store('f:fun', function (e) {
             res.push(e);
           });
@@ -73,7 +77,6 @@ describe('Pro.Registry.StreamProvider', function () {
         });
 
         it ('creates a stream with a source with callback on trigger if passed "on" of type @(f:fun)', function () {
-          var res = [];
           reg.store('f:fun', function (e) {
             res.push(e);
           });
@@ -89,7 +92,6 @@ describe('Pro.Registry.StreamProvider', function () {
 
       describe('map', function () {
         it ('creates a stream with mapping, transforming its value, passed with map($1)', function () {
-          var res = [];
           reg.make('s:test', '@($2)|map($1)', function (val) {
             return val + ' meddle!';
           }, function (el) {
@@ -102,23 +104,31 @@ describe('Pro.Registry.StreamProvider', function () {
         });
 
         it ('creates a stream with mapping, transforming its value, passed with map(f:mapper)', function () {
-          var res = [];
           reg.store('f:mapper', function (val) {
             return val + ' ' + val;
           });
-          reg.make('s:test', '@($1)|map(f:mapper)', function (el) {
-            res.push(el);
-          });
+          reg.make('s:test', '@($1)|map(f:mapper)', listener);
 
           reg.get('s:test').trigger('hey');
           expect(res.length).toBe(1);
           expect(res).toEqual(['hey hey']);
         });
+
+        it ('can use predefined mapping functions', function () {
+          reg.make('s:test', '@($1)|map(-)', listener).trigger(4).trigger(-5);
+
+          expect(res).toEqual([-4, 5]);
+        });
+
+        it ('can use complex predefined mapping expressions', function () {
+          reg.make('s:test', '@($1)|map(&:&bau)', listener).trigger({bau: function () {return 5}});
+
+          expect(res).toEqual([5]);
+        });
       });
 
       describe('filter', function () {
         it ('creates a stream with filtering, filtering its value, using function passed with filter($1)', function () {
-          var res = [];
           reg.make('s:test', '@($1)|filter($2)', function (el) {
             res.push(el);
           }, function (val) {
@@ -131,7 +141,6 @@ describe('Pro.Registry.StreamProvider', function () {
         });
 
         it ('creates a stream with filtering, filtering its values, using filter(f:filter)', function () {
-          var res = [];
           reg.store('f:filter', function (val) {
             return val.indexOf('s') !== -1;
           });
@@ -147,7 +156,6 @@ describe('Pro.Registry.StreamProvider', function () {
 
       describe('acc', function () {
         it ('creates a stream with accumulation, using function passed through acc($1, $2)', function () {
-          var res = [];
           reg.make('s:test', '@($1)|acc($2, $3)', function (el) {
             res.push(el);
           }, 0, function (x, y) {
@@ -160,7 +168,6 @@ describe('Pro.Registry.StreamProvider', function () {
         });
 
         it ('creates a accumulationg stream using acc($1, f:acc)', function () {
-          var res = [];
           reg.store('f:acc', function (x, y) {
             return x * y;
           });
@@ -176,7 +183,6 @@ describe('Pro.Registry.StreamProvider', function () {
 
       describe('order of operations', function () {
         it ('is retrieved by the "order" property in the meta object', function () {
-          var res = [];
           reg.make('s:test', {
             mapping: function (el) {
               return -el;
@@ -224,7 +230,6 @@ describe('Pro.Registry.StreamProvider', function () {
         });
 
         it ('is retrieved by the "order" in wich functions are ordered', function () {
-          var res = [];
           reg.make('s:test', 'map($1)|filter($2)|acc($3, $4)|@($5)',
             function (el) {
               return -el;

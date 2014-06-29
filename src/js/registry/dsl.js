@@ -12,7 +12,8 @@ Pro.OpStore = {
               action = matched[1], args = matched[2],
               opArguments = [],
               realArguments = slice.call(arguments, 2),
-              arg, i , ln;
+              predefined = dsl.predefined[name],
+              arg, i , ln, k;
           if (action) {
             opArguments.push(action);
           }
@@ -24,6 +25,14 @@ Pro.OpStore = {
               arg = args[i].trim();
               if (arg.charAt(0) === '$') {
                 arg = realArguments[parseInt(arg.substring(1), 10) - 1];
+              } else if (predefined && arg.charAt(0) === '&') {
+                i = arg.lastIndexOf('&');
+                k = arg.substring(0, i);
+                if (predefined[k]) {
+                  arg = predefined[k].call(null, arg.substring(i + 1));
+                }
+              } else if (predefined && predefined[arg]) {
+                arg = predefined[arg];
               }
               opArguments.push(arg);
             }
@@ -61,6 +70,37 @@ Pro.DSL = {
     mapping: opStoreAll.simpleOp('mapping', 'map'),
     filtering: opStoreAll.simpleOp('filtering', 'filter'),
     accumulation: opStoreAll.simpleOp('accumulation', 'acc')
+  },
+  predefined: {
+    mapping: {
+      '-': function (el) { return -el; },
+      'pow': function (el) { return el * el; },
+      'sqrt': function (el) { return Math.sqrt(el); },
+      'int': function (el) { return parseInt(el, 10); },
+      '&:': function (arg) {
+        return function (el) {
+          var p = el[arg];
+          if (!p) {
+            return el;
+          } else if (Pro.U.isFunction(p)) {
+            return p.call(el);
+          } else {
+            return p;
+          }
+        };
+      }
+    },
+    filtering: {
+      'odd': function (el) { return el % 2 !== 0; },
+      'even': function (el) { return el % 2 === 0; },
+      '+': function (el) { return el >= 0; },
+      '-': function (el) { return el <= 0; }
+    },
+    accumulation: {
+      '+': [0, function (x, y) { return x + y; }],
+      '*': [1, function (x, y) { return x * y; }],
+      '+str': ['', function (x, y) { return x + y; }],
+    }
   },
   optionsFromString: function (optionString) {
     return dsl.optionsFromArray.apply(null, [optionString.split(dsl.separator)].concat(slice.call(arguments, 1)));
