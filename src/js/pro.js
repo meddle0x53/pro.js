@@ -23,7 +23,7 @@ var Pro = {},
     unshift = arrayProto.unshift,
     pArray, pArrayOps, pArrayProto, pArrayLs,
     rProto,
-    dslOps,
+    dsl, dslOps,
     opStoreAll;
 
 Pro.States = {
@@ -70,15 +70,13 @@ Pro.Utils = Pro.U = {
     }
     return destination;
   },
+  bind: function (ctx, func) {
+    return function () {
+      return func.apply(ctx, arguments);
+    };
+  },
   contains: function (array, value) {
-    var i = array.length;
-    while (i--) {
-      if (array[i] === value) {
-        return true;
-      }
-    }
-
-    return false;
+    array.indexOf(value) !== -1;
   },
   remove: function (array, value) {
     var i = array.indexOf(value);

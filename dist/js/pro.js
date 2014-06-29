@@ -30,7 +30,7 @@
 	    unshift = arrayProto.unshift,
 	    pArray, pArrayOps, pArrayProto, pArrayLs,
 	    rProto,
-	    dslOps,
+	    dsl, dslOps,
 	    opStoreAll;
 	
 	Pro.States = {
@@ -77,15 +77,13 @@
 	    }
 	    return destination;
 	  },
+	  bind: function (ctx, func) {
+	    return function () {
+	      return func.apply(ctx, arguments);
+	    };
+	  },
 	  contains: function (array, value) {
-	    var i = array.length;
-	    while (i--) {
-	      if (array[i] === value) {
-	        return true;
-	      }
-	    }
-	
-	    return false;
+	    array.indexOf(value) !== -1;
 	  },
 	  remove: function (array, value) {
 	    var i = array.indexOf(value);
@@ -2465,28 +2463,53 @@
 	};
 	
 	Pro.Registry = Pro.R = function () {
-	  this.streams = {};
-	  this.objects = {};
-	  this.lamdas = {};
+	  this.providers = {};
 	};
 	
 	Pro.Registry.prototype = rProto = {
 	  constructor: Pro.Registry,
-	  getStream: function (name) {
-	    return this.streams[name];
+	  register: function (namespace, provider) {
+	    if (this.providers[namespace]) {
+	      throw new Error(namespace + 'is already registered in this registry.');
+	    }
+	    this.providers[namespace] = provider;
+	    if (provider.registered) {
+	      provider.registered(this);
+	    }
+	    return this;
 	  },
-	  getLambda: function (name) {
-	    return this.lamdas[name];
+	  make: function (name, options) {
+	    var args = slice.call(arguments, 2),
+	        p = this.getProviderByName(name),
+	        observable;
+	
+	    if (p[0]) {
+	      observable = p[0].make.apply(p[0], [p[1], p[2]].concat(args));
+	      return dsl.run.apply(null, [observable, options, this].concat(args));
+	    }
+	    return null;
+	  },
+	  store: function (name, object, options) {
+	    var args = slice.call(arguments, 2),
+	        p = this.getProviderByName(name);
+	
+	    if (p[0]) {
+	      return p[0].store.apply(p[0], [p[1], object, p[2]].concat(args));
+	    }
+	    return null;
 	  },
 	  get: function (name) {
-	    var type = name.charAt(0);
-	    if (type === 's') {
-	      return this.getStream(name.substring(2));
-	    }
+	    var p = this.getProviderByName(name);
 	
-	    if (type === 'l' || type === 'f') {
-	      return this.getLambda(name.substring(2));
+	    if (p[0]) {
+	      return p[0].get(p[1]);
 	    }
+	    return null;
+	  },
+	  getProviderByName: function (name) {
+	    var parts = name.split(':');
+	
+	    return [this.providers[parts[0]], parts[1], parts.slice(2)];
 	  },
 	  toObjectArray: function (array) {
 	    var _this = this;
@@ -2504,82 +2527,49 @@
 	    }
 	
 	    return data;
-	  },
-	  makeLambda: function (name, body) {
-	    this.lamdas[name] = body;
-	    return this.lamdas[name];
-	  },
-	  makeStream: function (name, options) {
-	    var isS = Pro.U.isString,
-	        source, opType, stream,
-	        ops = Pro.DSL.ops,
-	        args = slice.call(arguments, 2),
-	        option, i, ln;
-	
-	    if (options && isS(options)) {
-	      options = this.optionsFromString.apply(this, [options].concat(args));
-	    }
-	
-	    if (options && options instanceof Pro.Observable) {
-	      options = {into: options};
-	    }
-	
-	    this.streams[name] = stream = new Pro.Stream();
-	
-	    if (options && options.order) {
-	      ln = options.order.length;
-	      for (i = 0; i < ln; i++) {
-	        option = options.order[i];
-	        if (opType = ops[option]) {
-	          options[option] = this.toObjectArray(options[option]);
-	
-	          opType.action(stream, options);
-	          delete options[option];
-	        }
-	      }
-	    }
-	
-	    for (opType in ops) {
-	      if (options && (option = options[opType])) {
-	        options[opType] = this.toObjectArray(option);
-	      }
-	      opType = ops[opType];
-	      opType.action(stream, options);
-	    }
-	
-	    return stream;
-	  },
-	  make: function (name, options) {
-	    var type = name.charAt(0);
-	    if (type === 's') {
-	      return this.makeStream(name.substring(2), options);
-	    }
-	
-	    if (type === 'l' || type === 'f') {
-	      return this.makeLambda(name.substring(2), options);
-	    }
-	  },
-	  optionsFromString: function (optionString) {
-	    return this.optionsFromArray.apply(this, [optionString.split(Pro.DSL.separator)].concat(slice.call(arguments, 1)));
-	  },
-	  optionsFromArray: function (optionArray) {
-	    var result = {}, i, ln = optionArray.length,
-	        ops = Pro.R.ops, op, opType;
-	    for (i = 0; i < ln; i++) {
-	      op = optionArray[i];
-	      for (opType in Pro.DSL.ops) {
-	        opType = Pro.DSL.ops[opType];
-	        if (opType.match(op)) {
-	          opType.toOptions.apply(opType, [result, op].concat(slice.call(arguments, 1)));
-	          break;
-	        }
-	      }
-	    }
-	    return result;
 	  }
 	};
 	
-	rProto.stream = rProto.s = rProto.getStream;
+	Pro.U.ex(Pro.Registry, {
+	  Provider: function () {
+	    this.stored = {};
+	  },
+	  StreamProvider: function () {
+	    Pro.Registry.Provider.call(this);
+	  },
+	  FunctionProvider: function () {
+	    Pro.Registry.Provider.call(this);
+	  }
+	});
+	
+	Pro.Registry.Provider.prototype = {
+	  constructor: Pro.Registry.Provider,
+	  make: function (key, options) { throw new Error('Abstract!'); },
+	  store: function (key, func, options) { return this.stored[key] = func; },
+	  get: function (key) { return this.stored[key]; },
+	  del: function(key) {
+	    var deleted = this.get(key);
+	    delete this.stored[key];
+	    return deleted;
+	  },
+	  registered: function (registry) {}
+	};
+	
+	Pro.Registry.StreamProvider.prototype = Pro.U.ex(Object.create(Pro.Registry.Provider.prototype), {
+	  constructor: Pro.Registry.StreamProvider,
+	  make: function (key, options) {
+	    var stream;
+	    this.stored[key] = stream = new Pro.Stream();
+	    return stream;
+	  },
+	  registered: function (registry) {
+	    registry.s = registry.stream = Pro.U.bind(this, this.get);
+	  }
+	});
+	
+	Pro.Registry.FunctionProvider.prototype = Pro.U.ex(Object.create(Pro.Registry.Provider.prototype), {
+	  constructor: Pro.Registry.FunctionProvider
+	});
 	
 	Pro.OpStore = {
 	  all: {
@@ -2644,10 +2634,67 @@
 	    mapping: opStoreAll.simpleOp('mapping', 'map'),
 	    filtering: opStoreAll.simpleOp('filtering', 'filter'),
 	    accumulation: opStoreAll.simpleOp('accumulation', 'acc')
+	  },
+	  optionsFromString: function (optionString) {
+	    return dsl.optionsFromArray.apply(null, [optionString.split(dsl.separator)].concat(slice.call(arguments, 1)));
+	  },
+	  optionsFromArray: function (optionArray) {
+	    var result = {}, i, ln = optionArray.length,
+	        ops = Pro.R.ops, op, opType;
+	    for (i = 0; i < ln; i++) {
+	      op = optionArray[i];
+	      for (opType in Pro.DSL.ops) {
+	        opType = Pro.DSL.ops[opType];
+	        if (opType.match(op)) {
+	          opType.toOptions.apply(opType, [result, op].concat(slice.call(arguments, 1)));
+	          break;
+	        }
+	      }
+	    }
+	    return result;
+	  },
+	  run: function (observable, options, registry) {
+	    var isS = Pro.U.isString,
+	        args = slice.call(arguments, 3),
+	        option, i, ln, opType;
+	
+	    if (options && isS(options)) {
+	      options = dsl.optionsFromString.apply(null, [options].concat(args));
+	    }
+	
+	    if (options && options instanceof Pro.Observable) {
+	      options = {into: options};
+	    }
+	
+	    if (options && options.order) {
+	      ln = options.order.length;
+	      for (i = 0; i < ln; i++) {
+	        option = options.order[i];
+	        if (opType = dslOps[option]) {
+	          if (registry) {
+	            options[option] = registry.toObjectArray(options[option]);
+	          }
+	
+	          opType.action(observable, options);
+	          delete options[option];
+	        }
+	      }
+	    }
+	
+	    for (opType in dslOps) {
+	      if (options && (option = options[opType])) {
+	        options[opType] = registry.toObjectArray(option);
+	      }
+	      opType = dslOps[opType];
+	      opType.action(observable, options);
+	    }
+	
+	    return observable;
 	  }
 	};
 	
-	dslOps = Pro.DSL.ops;
+	dsl = Pro.DSL;
+	dslOps = dsl.ops;
 	
 	return Pro;
 }));

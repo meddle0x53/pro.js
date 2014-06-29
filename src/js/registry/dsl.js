@@ -61,7 +61,64 @@ Pro.DSL = {
     mapping: opStoreAll.simpleOp('mapping', 'map'),
     filtering: opStoreAll.simpleOp('filtering', 'filter'),
     accumulation: opStoreAll.simpleOp('accumulation', 'acc')
+  },
+  optionsFromString: function (optionString) {
+    return dsl.optionsFromArray.apply(null, [optionString.split(dsl.separator)].concat(slice.call(arguments, 1)));
+  },
+  optionsFromArray: function (optionArray) {
+    var result = {}, i, ln = optionArray.length,
+        ops = Pro.R.ops, op, opType;
+    for (i = 0; i < ln; i++) {
+      op = optionArray[i];
+      for (opType in Pro.DSL.ops) {
+        opType = Pro.DSL.ops[opType];
+        if (opType.match(op)) {
+          opType.toOptions.apply(opType, [result, op].concat(slice.call(arguments, 1)));
+          break;
+        }
+      }
+    }
+    return result;
+  },
+  run: function (observable, options, registry) {
+    var isS = Pro.U.isString,
+        args = slice.call(arguments, 3),
+        option, i, ln, opType;
+
+    if (options && isS(options)) {
+      options = dsl.optionsFromString.apply(null, [options].concat(args));
+    }
+
+    if (options && options instanceof Pro.Observable) {
+      options = {into: options};
+    }
+
+    if (options && options.order) {
+      ln = options.order.length;
+      for (i = 0; i < ln; i++) {
+        option = options.order[i];
+        if (opType = dslOps[option]) {
+          if (registry) {
+            options[option] = registry.toObjectArray(options[option]);
+          }
+
+          opType.action(observable, options);
+          delete options[option];
+        }
+      }
+    }
+
+    for (opType in dslOps) {
+      if (options && (option = options[opType])) {
+        options[opType] = registry.toObjectArray(option);
+      }
+      opType = dslOps[opType];
+      opType.action(observable, options);
+    }
+
+    return observable;
   }
 };
 
-dslOps = Pro.DSL.ops;
+dsl = Pro.DSL;
+dslOps = dsl.ops;
