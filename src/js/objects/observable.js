@@ -15,7 +15,7 @@ Pro.U.ex(Pro.Observable, {
     var i, t = observable.transforms, ln = t.length;
     for (i = 0; i < ln; i++) {
       val = t[i].call(observable, val);
-      if (val === Pro.Stream.BadValue) {
+      if (val === Pro.Observable.BadValue) {
         break;
       }
     }

@@ -30,6 +30,9 @@ Pro.OpStore = {
           }
 
           actionObject[name] = opArguments;
+
+          actionObject.order = actionObject.order || [];
+          actionObject.order.push(name);
         },
         action: function (object, actionObject) {
           if (!actionObject || !actionObject[name]) {

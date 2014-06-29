@@ -168,5 +168,104 @@ describe('Pro.Registry', function () {
         expect(res).toEqual([1, 2, 6, 24]);
       });
     });
+
+    describe('order of operations', function () {
+      it ('is retrieved by the "order" property in the meta object', function () {
+        var res = [];
+        reg.makeStream('test', {
+          mapping: function (el) {
+            return -el;
+          },
+          filtering: function (el) {
+            return el >= 0;
+          },
+          accumulation: ['', function (i, x) {
+            if (i === '') {
+              return x + '';
+            }
+            return i + ":" + x;
+          }],
+          order: ['filtering', 'mapping', 'accumulation'],
+          on: function (el) {
+            res.push(el);
+          }
+        });
+
+        reg.get('s:test').trigger(1).trigger(-1).trigger(2).trigger(-1);
+        expect(['-1', '-1:-2']).toEqual(res);
+
+        res = [];
+        reg.makeStream('test2', {
+          mapping: function (el) {
+            return -el;
+          },
+          filtering: function (el) {
+            return el >= 0;
+          },
+          accumulation: ['', function (i, x) {
+            if (i === '') {
+              return x + '';
+            }
+            return i + ":" + x;
+          }],
+          order: ['mapping', 'filtering', 'accumulation'],
+          on: function (el) {
+            res.push(el);
+          }
+        });
+
+        reg.get('s:test2').trigger(1).trigger(-1).trigger(2).trigger(-1);
+        expect(['1', '1:1']).toEqual(res);
+      });
+
+      it ('is retrieved by the "order" in wich functions are ordered', function () {
+        var res = [];
+        reg.makeStream('test', 'map($1)|filter($2)|acc($3, $4)|@($5)',
+          function (el) {
+            return -el;
+          },
+          function (el) {
+            return el >= 0;
+          },
+          '',
+          function (i, x) {
+            if (i === '') {
+              return x + '';
+            }
+            return i + ":" + x;
+          },
+          function (el) {
+            res.push(el);
+          }
+        );
+
+        reg.get('s:test').trigger(1).trigger(-1).trigger(2).trigger(-1);
+        expect(['1', '1:1']).toEqual(res);
+
+        res = [];
+        reg.makeStream('test2', 'filter($2)|map($1)|acc($3, $4)|@($5)',
+          function (el) {
+            return -el;
+          },
+          function (el) {
+            return el >= 0;
+          },
+          '',
+          function (i, x) {
+            if (i === '') {
+              return x + '';
+            }
+            return i + ":" + x;
+          },
+          function (el) {
+            res.push(el);
+          }
+        );
+
+        reg.get('s:test2').trigger(1).trigger(-1).trigger(2).trigger(-1);
+        expect(['-1', '-1:-2']).toEqual(res);
+      });
+    });
+
   });
 });

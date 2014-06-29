@@ -548,7 +548,7 @@
 	    var i, t = observable.transforms, ln = t.length;
 	    for (i = 0; i < ln; i++) {
 	      val = t[i].call(observable, val);
-	      if (val === Pro.Stream.BadValue) {
+	      if (val === Pro.Observable.BadValue) {
 	        break;
 	      }
 	    }
@@ -2499,7 +2499,8 @@
 	  },
 	  toObject: function (data) {
 	    if (Pro.U.isString(data)) {
-	      return this.get(data);
+	      var result = this.get(data);
+	      return result ? result : data;
 	    }
 	
 	    return data;
@@ -2511,23 +2512,38 @@
 	  makeStream: function (name, options) {
 	    var isS = Pro.U.isString,
 	        source, opType, stream,
-	        args = slice.call(arguments, 2);
+	        ops = Pro.DSL.ops,
+	        args = slice.call(arguments, 2),
+	        option, i, ln;
 	
 	    if (options && isS(options)) {
 	      options = this.optionsFromString.apply(this, [options].concat(args));
 	    }
 	
-	    if (options instanceof Pro.Observable) {
+	    if (options && options instanceof Pro.Observable) {
 	      options = {into: options};
 	    }
 	
 	    this.streams[name] = stream = new Pro.Stream();
 	
-	    for (opType in Pro.DSL.ops) {
-	      if (options && options[opType]) {
-	        options[opType] = this.toObjectArray(options[opType]);
+	    if (options && options.order) {
+	      ln = options.order.length;
+	      for (i = 0; i < ln; i++) {
+	        option = options.order[i];
+	        if (opType = ops[option]) {
+	          options[option] = this.toObjectArray(options[option]);
+	
+	          opType.action(stream, options);
+	          delete options[option];
+	        }
 	      }
-	      opType = Pro.DSL.ops[opType];
+	    }
+	
+	    for (opType in ops) {
+	      if (options && (option = options[opType])) {
+	        options[opType] = this.toObjectArray(option);
+	      }
+	      opType = ops[opType];
 	      opType.action(stream, options);
 	    }
 	
@@ -2559,7 +2575,6 @@
 	        }
 	      }
 	    }
-	
 	    return result;
 	  }
 	};
@@ -2598,6 +2613,9 @@
 	          }
 	
 	          actionObject[name] = opArguments;
+	
+	          actionObject.order = actionObject.order || [];
+	          actionObject.order.push(name);
 	        },
 	        action: function (object, actionObject) {
 	          if (!actionObject || !actionObject[name]) {
