@@ -17,6 +17,39 @@ describe('Pro.Registry.StreamProvider', function () {
   });
   describe('Pro.Registry.StreamProvider', function () {
     describe('#make', function () {
+      describe('stream types', function () {
+        it ('creates a delayed buffered sream if using name as s:test:delayed({delay})', function () {
+          var stream = reg.make('s:test:delayed(300)');
+
+          expect(stream instanceof Pro.Stream).toBe(true);
+          expect(stream instanceof Pro.DelayedStream).toBe(true);
+          expect(reg.get('s:test')).toBe(stream);
+        });
+
+        it ('creates a size buffered sream if using name as s:test:size({size})', function () {
+          var stream = reg.make('s:test:size(5)');
+
+          expect(stream instanceof Pro.Stream).toBe(true);
+          expect(stream instanceof Pro.SizeBufferedStream).toBe(true);
+          expect(reg.get('s:test')).toBe(stream);
+        });
+
+        it ('creates a debouncing buffered sream if using name as s:test:debouncing({delay})', function () {
+          var stream = reg.make('s:test:debouncing(300)');
+
+          expect(stream instanceof Pro.Stream).toBe(true);
+          expect(stream instanceof Pro.DebouncingStream).toBe(true);
+          expect(reg.get('s:test')).toBe(stream);
+        });
+
+        it ('creates a throttling buffered sream if using name as s:test:throttling({delay})', function () {
+          var stream = reg.make('s:test:throttling(300)');
+
+          expect(stream instanceof Pro.Stream).toBe(true);
+          expect(stream instanceof Pro.ThrottlingStream).toBe(true);
+          expect(reg.get('s:test')).toBe(stream);
+        });
+      });
       describe('source', function () {
         it ('creates a simple stream that can be retrieved after that and used.', function () {
           var stream = reg.make('s:test');
@@ -121,7 +154,7 @@ describe('Pro.Registry.StreamProvider', function () {
         });
 
         it ('can use complex predefined mapping expressions', function () {
-          reg.make('s:test', '@($1)|map(&:&bau)', listener).trigger({bau: function () {return 5}});
+          reg.make('s:test', '@($1)|map(&.&bau)', listener).trigger({bau: function () {return 5}});
 
           expect(res).toEqual([5]);
         });

@@ -77,7 +77,7 @@ Pro.DSL = {
       'pow': function (el) { return el * el; },
       'sqrt': function (el) { return Math.sqrt(el); },
       'int': function (el) { return parseInt(el, 10); },
-      '&:': function (arg) {
+      '&.': function (arg) {
         return function (el) {
           var p = el[arg];
           if (!p) {
