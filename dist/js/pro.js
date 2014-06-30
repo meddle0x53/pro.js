@@ -903,9 +903,10 @@
 	  },
 	  setDelay: function (delay) {
 	    this.delay = delay;
+	    this.cancelDelay();
 	
 	    if (!this.delay) {
-	      throw new Error('DelayedStream must contain delay!');
+	      return;
 	    }
 	
 	    var _this = this;
@@ -2544,7 +2545,11 @@
 	
 	Pro.Registry.Provider.prototype = {
 	  constructor: Pro.Registry.Provider,
-	  make: function (key, options) { throw new Error('Abstract!'); },
+	  make: function (key, options) {
+	    var stream;
+	    this.stored[key] = stream = this.provide(options);
+	    return stream;
+	  },
 	  store: function (key, func, options) { return this.stored[key] = func; },
 	  get: function (key) { return this.stored[key]; },
 	  del: function(key) {
@@ -2552,18 +2557,40 @@
 	    delete this.stored[key];
 	    return deleted;
 	  },
-	  registered: function (registry) {}
+	  registered: function (registry) {},
+	  types: {
+	    basic: function () { throw new Error('Abstract: implement!'); }
+	  },
+	  provide: function (options) {
+	    var type = options[0], regexp, matched, args;
+	    if (type) {
+	      regexp = new RegExp("(\\w*)\\(([\\s\\S]*)\\)");
+	      matched = regexp.exec(type);
+	      args = matched[2];
+	      if (args) {
+	        args = args.split(',');
+	      }
+	      type = matched[1];
+	      if (type && this.types[type]) {
+	        return this.types[type].call(this, args);
+	      }
+	    }
+	
+	    return this.types.basic(options);
+	  }
 	};
 	
 	Pro.Registry.StreamProvider.prototype = Pro.U.ex(Object.create(Pro.Registry.Provider.prototype), {
 	  constructor: Pro.Registry.StreamProvider,
-	  make: function (key, options) {
-	    var stream;
-	    this.stored[key] = stream = new Pro.Stream();
-	    return stream;
-	  },
 	  registered: function (registry) {
 	    registry.s = registry.stream = Pro.U.bind(this, this.get);
+	  },
+	  types: {
+	    basic: function () { return new Pro.Stream(); },
+	    delayed: function (args) { return new Pro.DelayedStream(parseInt(args[0], 10)); },
+	    size: function (args) { return new Pro.SizeBufferedStream(parseInt(args[0], 10)); },
+	    debouncing: function (args) { return new Pro.DebouncingStream(parseInt(args[0], 10)); },
+	    throttling: function (args) { return new Pro.ThrottlingStream(parseInt(args[0], 10)); }
 	  }
 	});
 	
@@ -2650,7 +2677,7 @@
 	      'pow': function (el) { return el * el; },
 	      'sqrt': function (el) { return Math.sqrt(el); },
 	      'int': function (el) { return parseInt(el, 10); },
-	      '&:': function (arg) {
+	      '&.': function (arg) {
 	        return function (el) {
 	          var p = el[arg];
 	          if (!p) {
