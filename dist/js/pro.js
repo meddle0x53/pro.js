@@ -538,6 +538,8 @@
 	  this.errListener = null;
 	
 	  this.transforms = transforms ? transforms : [];
+	
+	  this.parent = null;
 	};
 	
 	Pro.U.ex(Pro.Observable, {
@@ -702,6 +704,11 @@
 	        listener.property.willUpdate(event);
 	      }
 	    }
+	
+	    if (this.parent) {
+	      this.defer(event, this.parent);
+	    }
+	
 	    return this;
 	  },
 	
@@ -1920,6 +1927,7 @@
 	  this.s = this.set;
 	
 	  Pro.Observable.call(this); // Super!
+	  this.parent = this.proObject.__pro__;
 	
 	  this.init();
 	};
@@ -2039,6 +2047,7 @@
 	    delete this.proObject['__pro__'].properties[this.property];
 	    this.listeners = undefined;
 	    this.oldVal = undefined;
+	    this.parent = undefined;
 	
 	    Object.defineProperty(this.proObject, this.property, {
 	      value: this.val,
@@ -2347,6 +2356,9 @@
 	    }
 	
 	    return this;
+	  },
+	  call: function (event) {
+	    // notify
 	  },
 	  makeProp: function (property, listeners, meta) {
 	    var object = this.object,

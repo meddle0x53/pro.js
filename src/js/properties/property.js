@@ -26,6 +26,7 @@ Pro.Property = function (proObject, property, getter, setter) {
   this.s = this.set;
 
   Pro.Observable.call(this); // Super!
+  this.parent = this.proObject.__pro__;
 
   this.init();
 };
@@ -145,6 +146,7 @@ Pro.Property.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
     delete this.proObject['__pro__'].properties[this.property];
     this.listeners = undefined;
     this.oldVal = undefined;
+    this.parent = undefined;
 
     Object.defineProperty(this.proObject, this.property, {
       value: this.val,

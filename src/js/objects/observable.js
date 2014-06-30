@@ -7,6 +7,8 @@ Pro.Observable = function (transforms) {
   this.errListener = null;
 
   this.transforms = transforms ? transforms : [];
+
+  this.parent = null;
 };
 
 Pro.U.ex(Pro.Observable, {
@@ -171,6 +173,11 @@ Pro.Observable.prototype = {
         listener.property.willUpdate(event);
       }
     }
+
+    if (this.parent) {
+      this.defer(event, this.parent);
+    }
+
     return this;
   },
 

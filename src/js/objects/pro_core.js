@@ -35,6 +35,9 @@ Pro.U.ex(Pro.Core.prototype, {
 
     return this;
   },
+  call: function (event) {
+    // notify
+  },
   makeProp: function (property, listeners, meta) {
     var object = this.object,
         conf = Pro.Configuration,
