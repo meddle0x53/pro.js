@@ -3,9 +3,12 @@ Pro.Core = function (object, meta) {
   this.properties = {};
   this.state = Pro.States.init;
   this.meta = meta || {};
+
+  Pro.Observable.call(this); // Super!
 };
 
-Pro.U.ex(Pro.Core.prototype, {
+Pro.Core.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
+  constructor: Pro.Core,
   prob: function () {
     var _this = this, object = this.object,
         conf = Pro.Configuration,
@@ -36,7 +39,7 @@ Pro.U.ex(Pro.Core.prototype, {
     return this;
   },
   call: function (event) {
-    // notify
+    this.update(event);
   },
   makeProp: function (property, listeners, meta) {
     var object = this.object,

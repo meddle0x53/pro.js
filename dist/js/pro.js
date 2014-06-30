@@ -679,6 +679,10 @@
 	  },
 	
 	  update: function (source, callbacks) {
+	    if (this.listeners.length === 0 && this.errListeners.length === 0 && this.parent === null) {
+	      return this;
+	    }
+	
 	    var observable = this;
 	    if (!Pro.flow.isRunning()) {
 	      Pro.flow.run(function () {
@@ -705,7 +709,7 @@
 	      }
 	    }
 	
-	    if (this.parent) {
+	    if (this.parent && this.parent.call) {
 	      this.defer(event, this.parent);
 	    }
 	
@@ -2325,9 +2329,12 @@
 	  this.properties = {};
 	  this.state = Pro.States.init;
 	  this.meta = meta || {};
+	
+	  Pro.Observable.call(this); // Super!
 	};
 	
-	Pro.U.ex(Pro.Core.prototype, {
+	Pro.Core.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
+	  constructor: Pro.Core,
 	  prob: function () {
 	    var _this = this, object = this.object,
 	        conf = Pro.Configuration,
@@ -2358,7 +2365,7 @@
 	    return this;
 	  },
 	  call: function (event) {
-	    // notify
+	    this.update(event);
 	  },
 	  makeProp: function (property, listeners, meta) {
 	    var object = this.object,

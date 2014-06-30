@@ -1,6 +1,30 @@
 'use strict';
 
 describe('Pro.Core', function () {
+  it ('is observable for all the properties it manages', function () {
+      var obj = {
+            a:1,
+            b:2
+          },
+          count = 0,
+          core = new Pro.Core(obj);
+
+      obj.__pro__ = core;
+      core.makeProp('a');
+      core.makeProp('b');
+
+      core.on(function () {
+        count = count + 1;
+      });
+
+      expect(count).toEqual(0);
+
+      obj.a = 10;
+      expect(count).toEqual(1);
+
+      obj.b = 20;
+      expect(count).toEqual(2);
+  });
   describe('#prob', function () {
     it ('is chainable', function () {
       var core = new Pro.Core({});

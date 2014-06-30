@@ -148,6 +148,10 @@ Pro.Observable.prototype = {
   },
 
   update: function (source, callbacks) {
+    if (this.listeners.length === 0 && this.errListeners.length === 0 && this.parent === null) {
+      return this;
+    }
+
     var observable = this;
     if (!Pro.flow.isRunning()) {
       Pro.flow.run(function () {
@@ -174,7 +178,7 @@ Pro.Observable.prototype = {
       }
     }
 
-    if (this.parent) {
+    if (this.parent && this.parent.call) {
       this.defer(event, this.parent);
     }
 

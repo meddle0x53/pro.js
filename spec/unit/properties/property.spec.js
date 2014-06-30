@@ -95,6 +95,7 @@ describe('Pro.Property', function () {
 
     it('notifies the listeners of the property', function () {
       var property = new Pro.Property(obj, 'a');
+      property.on('change', function () {});
       spyOn(property, 'willUpdate');
       property.set(3);
 
