@@ -299,4 +299,19 @@ describe('Pro.prob', function () {
     expect(obj.a).toEqual(2);
   });
 
+  it ('can use the meta to set mapping using map(?) syntax', function () {
+    var obj = Pro.prob({
+          b: 0,
+          a: function () {
+            return '(' + this.b + ')';
+          }
+        }, {
+          b: ['map(-)']
+        });
+
+    obj.b = 1;
+
+    expect(obj.a).toEqual('(-1)');
+  });
+
 });
