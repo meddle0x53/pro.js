@@ -104,12 +104,19 @@ Pro.Property.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
   type: function () {
     return Pro.Property.Types.simple;
   },
+  makeEvent: function (source) {
+    return new Pro.Event(source, this.property, Pro.Event.Types.value, this.proObject, this.oldVal, this.val);
+  },
   makeListener: function () {
     if (!this.listener) {
       var _this = this;
       this.listener = {
         property: _this,
         call: function (newVal) {
+          if (newVal && newVal.type !== undefined && newVal.type === Pro.Event.Types.value && newVal.args.length === 3 && newVal.target) {
+            newVal = newVal.args[0][newVal.target];
+          }
+
           _this.oldVal = _this.val;
           _this.val = Pro.Observable.transform(_this, newVal);
         }

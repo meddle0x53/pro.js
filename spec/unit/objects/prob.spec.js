@@ -285,4 +285,18 @@ describe('Pro.prob', function () {
     expect(obj.p('*')).toBe(obj.__pro__)
   });
 
+  it ('can use the meta to set sources of properties using the <<($n) syntax', function () {
+    var source = Pro.prob({a: 1}),
+        obj = Pro.prob({
+          a:1
+        }, {
+          a: ['<<($1)', source.p('a')]
+        });
+
+    expect(obj.a).toEqual(1);
+
+    source.a = 2;
+    expect(obj.a).toEqual(2);
+  });
+
 });

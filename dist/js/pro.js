@@ -31,7 +31,8 @@
 	    pArray, pArrayOps, pArrayProto, pArrayLs,
 	    rProto,
 	    dsl, dslOps,
-	    opStoreAll;
+	    opStoreAll,
+	    streamProvider, functionProvider;
 	
 	Pro.States = {
 	  init: 1,
@@ -699,6 +700,7 @@
 	        listeners = Pro.U.isArray(callbacks) ? callbacks : this.listeners,
 	        length = listeners.length,
 	        event = this.makeEvent(source);
+	
 	    for (i = 0; i < length; i++) {
 	      listener = listeners[i];
 	
@@ -2009,12 +2011,19 @@
 	  type: function () {
 	    return Pro.Property.Types.simple;
 	  },
+	  makeEvent: function (source) {
+	    return new Pro.Event(source, this.property, Pro.Event.Types.value, this.proObject, this.oldVal, this.val);
+	  },
 	  makeListener: function () {
 	    if (!this.listener) {
 	      var _this = this;
 	      this.listener = {
 	        property: _this,
 	        call: function (newVal) {
+	          if (newVal && newVal.type !== undefined && newVal.type === Pro.Event.Types.value && newVal.args.length === 3 && newVal.target) {
+	            newVal = newVal.args[0][newVal.target];
+	          }
+	
 	          _this.oldVal = _this.val;
 	          _this.val = Pro.Observable.transform(_this, newVal);
 	        }
@@ -2401,6 +2410,14 @@
 	      this.properties[property].listeners = this.properties[property].listeners.concat(listeners);
 	    }
 	
+	    if (meta && Pro.registry) {
+	      if (!Pro.U.isArray(meta)) {
+	        meta = [meta];
+	      }
+	
+	      Pro.registry.setup.apply(Pro.registry, [result].concat(meta));
+	    }
+	
 	    return result;
 	  },
 	  set: function (property, value) {
@@ -2505,9 +2522,12 @@
 	
 	    if (p[0]) {
 	      observable = p[0].make.apply(p[0], [p[1], p[2]].concat(args));
-	      return dsl.run.apply(null, [observable, options, this].concat(args));
+	      return this.setup(observable, options, args);
 	    }
 	    return null;
+	  },
+	  setup: function (object, options, args) {
+	    return dsl.run.apply(null, [object, options, this].concat(args));
 	  },
 	  store: function (name, object, options) {
 	    var args = slice.call(arguments, 2),
@@ -2616,6 +2636,14 @@
 	Pro.Registry.FunctionProvider.prototype = Pro.U.ex(Object.create(Pro.Registry.Provider.prototype), {
 	  constructor: Pro.Registry.FunctionProvider
 	});
+	
+	streamProvider = new Pro.Registry.StreamProvider();
+	functionProvider = new Pro.Registry.FunctionProvider();
+	
+	Pro.registry = new Pro.Registry()
+	  .register('s', streamProvider)
+	  .register('f', functionProvider)
+	  .register('l', functionProvider);
 	
 	Pro.OpStore = {
 	  all: {

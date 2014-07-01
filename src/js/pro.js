@@ -24,7 +24,8 @@ var Pro = {},
     pArray, pArrayOps, pArrayProto, pArrayLs,
     rProto,
     dsl, dslOps,
-    opStoreAll;
+    opStoreAll,
+    streamProvider, functionProvider;
 
 Pro.States = {
   init: 1,

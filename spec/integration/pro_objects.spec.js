@@ -38,6 +38,29 @@ describe('Pro', function () {
       array[2] = 30;
       expect(joined.v).toEqual('1-2-30-4-5');
     });
+
+    describe('meta & dsl', function () {
+      it ('uses property metadata to configure its properties', function () {
+        var stream = new Pro.Stream(),
+          proObj = Pro.prob({
+          counter: 0,
+          renderCounter: function () {
+            return 'Hey, we have ' + this.counter + ' counts';
+          },
+          counterPow: function () {
+            return this.counter * this.counter;
+          }
+        },
+        {
+          counter: ['<<($1)', stream],
+          renderCounter: 'map(-)',
+          counterPow: 'noprop'
+        });
+
+        stream.trigger(-1);
+        expect(proObj.counter).toEqual(-1);
+      });
+    });
   });
 
 });

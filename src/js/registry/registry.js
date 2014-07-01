@@ -21,9 +21,12 @@ Pro.Registry.prototype = rProto = {
 
     if (p[0]) {
       observable = p[0].make.apply(p[0], [p[1], p[2]].concat(args));
-      return dsl.run.apply(null, [observable, options, this].concat(args));
+      return this.setup(observable, options, args);
     }
     return null;
+  },
+  setup: function (object, options, args) {
+    return dsl.run.apply(null, [object, options, this].concat(args));
   },
   store: function (name, object, options) {
     var args = slice.call(arguments, 2),
@@ -132,3 +135,11 @@ Pro.Registry.StreamProvider.prototype = Pro.U.ex(Object.create(Pro.Registry.Prov
 Pro.Registry.FunctionProvider.prototype = Pro.U.ex(Object.create(Pro.Registry.Provider.prototype), {
   constructor: Pro.Registry.FunctionProvider
 });
+
+streamProvider = new Pro.Registry.StreamProvider();
+functionProvider = new Pro.Registry.FunctionProvider();
+
+Pro.registry = new Pro.Registry()
+  .register('s', streamProvider)
+  .register('f', functionProvider)
+  .register('l', functionProvider);

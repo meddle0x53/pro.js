@@ -149,10 +149,10 @@ describe('Pro.Property', function () {
 
         expect(event instanceof Pro.Event).toBe(true);
         expect(event.source).toBeUndefined();
-        expect(event.target).toBe(property);
+        expect(event.target).toBe(property.property);
         expect(event.type).toBe(Pro.Event.Types.value);
 
-        expect(event.args.length).toBe(0);
+        expect(event.args.length).toBe(3);
       });
 
       property.oldVal = property.val;
@@ -182,10 +182,10 @@ describe('Pro.Property', function () {
         expect(event instanceof Pro.Event).toBe(true);
         expect(event.source).not.toBeUndefined();
         expect(event.source).toBe(ev);
-        expect(event.target).toBe(propertyB);
+        expect(event.target).toBe(propertyB.property);
         expect(event.type).toBe(Pro.Event.Types.value);
 
-        expect(event.args.length).toBe(0);
+        expect(event.args.length).toBe(3);
       });
 
       propertyA.oldVal = propertyA.val;

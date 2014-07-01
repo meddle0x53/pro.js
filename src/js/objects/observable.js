@@ -168,6 +168,7 @@ Pro.Observable.prototype = {
         listeners = Pro.U.isArray(callbacks) ? callbacks : this.listeners,
         length = listeners.length,
         event = this.makeEvent(source);
+
     for (i = 0; i < length; i++) {
       listener = listeners[i];
 

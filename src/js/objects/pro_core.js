@@ -75,6 +75,14 @@ Pro.Core.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
       this.properties[property].listeners = this.properties[property].listeners.concat(listeners);
     }
 
+    if (meta && Pro.registry) {
+      if (!Pro.U.isArray(meta)) {
+        meta = [meta];
+      }
+
+      Pro.registry.setup.apply(Pro.registry, [result].concat(meta));
+    }
+
     return result;
   },
   set: function (property, value) {
