@@ -44,6 +44,15 @@ Pro.Utils = Pro.U = {
   isObject: function (property) {
     return typeof(property) === 'object';
   },
+  isEmptyObject: function (object) {
+    var property;
+    for (property in object) {
+      if (object.hasOwnProperty(property)) {
+        return false;
+      }
+    }
+    return true;
+  },
   isError: function (property) {
     return property !== null && Pro.U.isObject(property) && property.message && Object.prototype.toString.apply(property) === '[object Error]';
   },

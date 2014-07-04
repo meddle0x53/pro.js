@@ -99,6 +99,21 @@ Pro.Array.prototype = pArrayProto = Pro.U.ex(Object.create(arrayProto), {
       this.indexListeners.push(listener);
     }
   },
+  off: function (action, listener) {
+    if (!Pro.U.isString(action)) {
+      listener = action;
+      action = 'change';
+    }
+
+    if (action === 'change') {
+      Pro.U.remove(listener, this.lengthListeners);
+      Pro.U.remove(listener, this.indexListeners);
+    } else if (action === 'lengthChange') {
+      Pro.U.remove(listener, this.lengthListeners);
+    } else if (action === 'indexChange') {
+      Pro.U.remove(listener, this.indexListeners);
+    }
+  },
   addCaller: function (type) {
     if (!type) {
       this.addCaller('index');

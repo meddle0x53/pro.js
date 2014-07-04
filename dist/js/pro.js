@@ -51,6 +51,15 @@
 	  isObject: function (property) {
 	    return typeof(property) === 'object';
 	  },
+	  isEmptyObject: function (object) {
+	    var property;
+	    for (property in object) {
+	      if (object.hasOwnProperty(property)) {
+	        return false;
+	      }
+	    }
+	    return true;
+	  },
 	  isError: function (property) {
 	    return property !== null && Pro.U.isObject(property) && property.message && Object.prototype.toString.apply(property) === '[object Error]';
 	  },
@@ -1073,6 +1082,21 @@
 	      this.lengthListeners.push(listener);
 	    } else if (action === 'indexChange') {
 	      this.indexListeners.push(listener);
+	    }
+	  },
+	  off: function (action, listener) {
+	    if (!Pro.U.isString(action)) {
+	      listener = action;
+	      action = 'change';
+	    }
+	
+	    if (action === 'change') {
+	      Pro.U.remove(listener, this.lengthListeners);
+	      Pro.U.remove(listener, this.indexListeners);
+	    } else if (action === 'lengthChange') {
+	      Pro.U.remove(listener, this.lengthListeners);
+	    } else if (action === 'indexChange') {
+	      Pro.U.remove(listener, this.indexListeners);
 	    }
 	  },
 	  addCaller: function (type) {
@@ -2438,7 +2462,7 @@
 	  Pro.prob(this);
 	};
 	
-	Pro.U.ex(Pro.Val.prototype, {
+	Pro.Val.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
 	  type: function () {
 	    return this.__pro__.properties.v.type();
 	  },
@@ -2450,12 +2474,24 @@
 	    this.__pro__.properties.v.off(action, listener);
 	    return this;
 	  },
-	  addTransformator: function (transformator) {
-	    this.__pro__.properties.v.addTransformator(transformator);
+	  onErr: function (action, listener) {
+	    this.__pro__.properties.v.onErr(action, listener);
+	    return this;
+	  },
+	  offErr: function (action, listener) {
+	    this.__pro__.properties.v.offErr(action, listener);
+	    return this;
+	  },
+	  transform: function (transformation) {
+	    this.__pro__.properties.v.transform(transformation);
 	    return this;
 	  },
 	  into: function (observable) {
 	    this.__pro__.properties.v.into(observable);
+	    return this;
+	  },
+	  out: function (observable) {
+	    this.__pro__.properties.v.out(observable);
 	    return this;
 	  },
 	  update: function (source) {
