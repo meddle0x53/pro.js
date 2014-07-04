@@ -123,3 +123,4 @@ This can be accomplished by adding listeners to a property too:
 
 Here is an example for implementation of click counter using Pro.Val and streams for click events:
 [fiddle](http://jsfiddle.net/meddle/2Wrfq/)
+
