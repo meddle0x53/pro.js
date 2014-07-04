@@ -112,6 +112,7 @@ module.exports = function(grunt) {
         'src/js/arrays/pro_array.js',
         'src/js/arrays/listeners.js',
         'src/js/properties/property.js',
+        'src/js/registry/registry.js'
       ]
     },
 
@@ -157,6 +158,8 @@ module.exports = function(grunt) {
           'objects/pro_core',
           'objects/pro_val',
           'objects/prob',
+          'registry/registry',
+          'registry/dsl',
         ],
         args = this.args, customFiles = [], index, i = -1;
 

@@ -95,6 +95,7 @@ describe('Pro.Property', function () {
 
     it('notifies the listeners of the property', function () {
       var property = new Pro.Property(obj, 'a');
+      property.on('change', function () {});
       spyOn(property, 'willUpdate');
       property.set(3);
 
@@ -102,9 +103,9 @@ describe('Pro.Property', function () {
     });
 
     describe('transformators', function () {
-      it('transformator added with #addTransformator is always applied', function () {
+      it('transformator added with #transform is always applied', function () {
         var property = new Pro.Property(obj, 'a');
-        property.addTransformator(function (val) {
+        property.transform(function (val) {
           return val * val;
         });
 
@@ -114,13 +115,13 @@ describe('Pro.Property', function () {
 
       it('chained transformations work', function () {
         var property = new Pro.Property(obj, 'a');
-        property.addTransformator(function (val) {
+        property.transform(function (val) {
           return val * val;
         });
-        property.addTransformator(function (val) {
+        property.transform(function (val) {
           return val - 1;
         });
-        property.addTransformator(function (val) {
+        property.transform(function (val) {
           return val / 3;
         });
 
@@ -148,10 +149,10 @@ describe('Pro.Property', function () {
 
         expect(event instanceof Pro.Event).toBe(true);
         expect(event.source).toBeUndefined();
-        expect(event.target).toBe(property);
+        expect(event.target).toBe(property.property);
         expect(event.type).toBe(Pro.Event.Types.value);
 
-        expect(event.args.length).toBe(0);
+        expect(event.args.length).toBe(3);
       });
 
       property.oldVal = property.val;
@@ -181,10 +182,10 @@ describe('Pro.Property', function () {
         expect(event instanceof Pro.Event).toBe(true);
         expect(event.source).not.toBeUndefined();
         expect(event.source).toBe(ev);
-        expect(event.target).toBe(propertyB);
+        expect(event.target).toBe(propertyB.property);
         expect(event.type).toBe(Pro.Event.Types.value);
 
-        expect(event.args.length).toBe(0);
+        expect(event.args.length).toBe(3);
       });
 
       propertyA.oldVal = propertyA.val;

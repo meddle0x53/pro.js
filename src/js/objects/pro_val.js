@@ -4,7 +4,7 @@ Pro.Val = function (val) {
   Pro.prob(this);
 };
 
-Pro.U.ex(Pro.Val.prototype, {
+Pro.Val.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
   type: function () {
     return this.__pro__.properties.v.type();
   },
@@ -16,12 +16,24 @@ Pro.U.ex(Pro.Val.prototype, {
     this.__pro__.properties.v.off(action, listener);
     return this;
   },
-  addTransformator: function (transformator) {
-    this.__pro__.properties.v.addTransformator(transformator);
+  onErr: function (action, listener) {
+    this.__pro__.properties.v.onErr(action, listener);
+    return this;
+  },
+  offErr: function (action, listener) {
+    this.__pro__.properties.v.offErr(action, listener);
+    return this;
+  },
+  transform: function (transformation) {
+    this.__pro__.properties.v.transform(transformation);
     return this;
   },
   into: function (observable) {
     this.__pro__.properties.v.into(observable);
+    return this;
+  },
+  out: function (observable) {
+    this.__pro__.properties.v.out(observable);
     return this;
   },
   update: function (source) {

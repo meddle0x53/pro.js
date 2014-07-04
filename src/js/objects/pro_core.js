@@ -1,10 +1,14 @@
-Pro.Core = function (object) {
+Pro.Core = function (object, meta) {
   this.object = object;
   this.properties = {};
   this.state = Pro.States.init;
+  this.meta = meta || {};
+
+  Pro.Observable.call(this); // Super!
 };
 
-Pro.U.ex(Pro.Core.prototype, {
+Pro.Core.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
+  constructor: Pro.Core,
   prob: function () {
     var _this = this, object = this.object,
         conf = Pro.Configuration,
@@ -13,21 +17,16 @@ Pro.U.ex(Pro.Core.prototype, {
 
     try {
       for (property in object) {
-        this.makeProp(property);
+        this.makeProp(property, null, this.meta[property]);
       }
 
       if (keyprops && keypropList.indexOf('p') !== -1) {
-        Object.defineProperty(object, 'p', {
-          enumerable: false,
-          configurable: false,
-          writeble: false,
-          value: function (p) {
-            if (!p || p === '*') {
-              return _this;
-            }
-
-            return _this.properties[p];
+        Pro.U.defValProp(object, 'p', false, false, false, function (p) {
+          if (!p || p === '*') {
+            return _this;
           }
+
+          return _this.properties[p];
         });
       }
 
@@ -36,8 +35,13 @@ Pro.U.ex(Pro.Core.prototype, {
       this.state = Pro.States.error;
       throw e;
     }
+
+    return this;
   },
-  makeProp: function (property, listeners) {
+  call: function (event) {
+    this.update(event);
+  },
+  makeProp: function (property, listeners, meta) {
     var object = this.object,
         conf = Pro.Configuration,
         keyprops = conf.keyprops,
@@ -45,6 +49,10 @@ Pro.U.ex(Pro.Core.prototype, {
         isF = Pro.Utils.isFunction,
         isA = Pro.Utils.isArrayObject,
         isO = Pro.Utils.isObject, result;
+
+    if (meta && (meta === 'noprop' || (meta.indexOf && meta.indexOf('noprop') >= 0))) {
+      return;
+    }
 
     if (keyprops && keypropList.indexOf(property) !== -1) {
       throw Error('The property name ' + property + ' is a key word for pro objects! Objects passed to Pro.prob can not contain properties named as keyword properties.');
@@ -65,6 +73,14 @@ Pro.U.ex(Pro.Core.prototype, {
 
     if (listeners) {
       this.properties[property].listeners = this.properties[property].listeners.concat(listeners);
+    }
+
+    if (meta && Pro.registry) {
+      if (!Pro.U.isArray(meta)) {
+        meta = [meta];
+      }
+
+      Pro.registry.setup.apply(Pro.registry, [result].concat(meta));
     }
 
     return result;

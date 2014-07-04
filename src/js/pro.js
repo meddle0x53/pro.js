@@ -1,26 +1,31 @@
 var Pro = {},
-    array_proto = Array.prototype,
-    concat = array_proto.concat,
-    every = array_proto.every,
-    filter = array_proto.filter,
-    forEach = array_proto.forEach,
-    indexOf = array_proto.indexOf,
-    join = array_proto.join,
-    lastIndexOf = array_proto.lastIndexOf,
-    map = array_proto.map,
-    pop = array_proto.pop,
-    push = array_proto.push,
-    reduce = array_proto.reduce,
-    reduceRight = array_proto.reduceRight,
-    reverse = array_proto.reverse,
-    shift = array_proto.shift,
-    slice = array_proto.slice,
-    some = array_proto.some,
-    sort = array_proto.sort,
-    splice = array_proto.splice,
-    toLocaleString = array_proto.toLocaleString,
-    toString = array_proto.toString,
-    unshift = array_proto.unshift;
+    arrayProto = Array.prototype,
+    concat = arrayProto.concat,
+    every = arrayProto.every,
+    filter = arrayProto.filter,
+    forEach = arrayProto.forEach,
+    indexOf = arrayProto.indexOf,
+    join = arrayProto.join,
+    lastIndexOf = arrayProto.lastIndexOf,
+    map = arrayProto.map,
+    pop = arrayProto.pop,
+    push = arrayProto.push,
+    reduce = arrayProto.reduce,
+    reduceRight = arrayProto.reduceRight,
+    reverse = arrayProto.reverse,
+    shift = arrayProto.shift,
+    slice = arrayProto.slice,
+    some = arrayProto.some,
+    sort = arrayProto.sort,
+    splice = arrayProto.splice,
+    toLocaleString = arrayProto.toLocaleString,
+    toString = arrayProto.toString,
+    unshift = arrayProto.unshift,
+    pArray, pArrayOps, pArrayProto, pArrayLs,
+    rProto,
+    dsl, dslOps,
+    opStoreAll,
+    streamProvider, functionProvider;
 
 Pro.States = {
   init: 1,
@@ -38,6 +43,15 @@ Pro.Utils = Pro.U = {
   },
   isObject: function (property) {
     return typeof(property) === 'object';
+  },
+  isEmptyObject: function (object) {
+    var property;
+    for (property in object) {
+      if (object.hasOwnProperty(property)) {
+        return false;
+      }
+    }
+    return true;
   },
   isError: function (property) {
     return property !== null && Pro.U.isObject(property) && property.message && Object.prototype.toString.apply(property) === '[object Error]';
@@ -66,15 +80,13 @@ Pro.Utils = Pro.U = {
     }
     return destination;
   },
+  bind: function (ctx, func) {
+    return function () {
+      return func.apply(ctx, arguments);
+    };
+  },
   contains: function (array, value) {
-    var i = array.length;
-    while (i--) {
-      if (array[i] === value) {
-        return true;
-      }
-    }
-
-    return false;
+    array.indexOf(value) !== -1;
   },
   remove: function (array, value) {
     var i = array.indexOf(value);
@@ -125,6 +137,18 @@ Pro.Utils = Pro.U = {
     }
 
     return diff;
+  },
+  defValProp: function (obj, prop, enumerable, configurable, writable, val) {
+    try {
+      Object.defineProperty(obj, prop, {
+        enumerable: enumerable,
+        configurable: configurable,
+        writable: writable,
+        value: val
+      });
+    } catch (e) {
+      obj[prop] = val;
+    }
   }
 };
 

@@ -24,9 +24,10 @@ Pro.DelayedStream.prototype = Pro.U.ex(Object.create(Pro.BufferedStream.prototyp
   },
   setDelay: function (delay) {
     this.delay = delay;
+    this.cancelDelay();
 
     if (!this.delay) {
-      throw new Error('DelayedStream must contain delay!');
+      return;
     }
 
     var _this = this;

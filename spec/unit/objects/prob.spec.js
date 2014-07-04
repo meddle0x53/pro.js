@@ -267,4 +267,51 @@ describe('Pro.prob', function () {
     expect(proArray.valueOf()).toEqual([1, '2', 3.0, true, null]);
   });
 
+  it ('the Pro.Core of property objects created by it can be retrieved through object#p()', function () {
+    var obj = Pro.prob({
+      a: 1,
+      b: 3
+    });
+
+    expect(obj.p()).toBe(obj.__pro__)
+  });
+
+  it ('the Pro.Core of property objects created by it can be retrieved through object#p("*")', function () {
+    var obj = Pro.prob({
+      a: 1,
+      b: 3
+    });
+
+    expect(obj.p('*')).toBe(obj.__pro__)
+  });
+
+  it ('can use the meta to set sources of properties using the <<($n) syntax', function () {
+    var source = Pro.prob({a: 1}),
+        obj = Pro.prob({
+          a:1
+        }, {
+          a: ['<<($1)', source.p('a')]
+        });
+
+    expect(obj.a).toEqual(1);
+
+    source.a = 2;
+    expect(obj.a).toEqual(2);
+  });
+
+  it ('can use the meta to set mapping using map(?) syntax', function () {
+    var obj = Pro.prob({
+          b: 0,
+          a: function () {
+            return '(' + this.b + ')';
+          }
+        }, {
+          b: ['map(-)']
+        });
+
+    obj.b = 1;
+
+    expect(obj.a).toEqual('(-1)');
+  });
+
 });

@@ -20,13 +20,13 @@ Pro.Property = function (proObject, property, getter, setter) {
 
   this.oldVal = null;
   this.val = proObject[property];
-  this.transformators = [];
 
   this.state = Pro.States.init;
   this.g = this.get;
   this.s = this.set;
 
   Pro.Observable.call(this); // Super!
+  this.parent = this.proObject.__pro__;
 
   this.init();
 };
@@ -53,14 +53,6 @@ Pro.U.ex(Pro.Property, {
       }
     }
   },
-  transform: function (property, val) {
-    var i, t = property.transformators, ln = t.length;
-    for (i = 0; i < ln; i++) {
-      val = t[i].call(property, val);
-    }
-
-    return val;
-  },
   DEFAULT_GETTER: function (property) {
     return function () {
       property.addCaller();
@@ -78,7 +70,7 @@ Pro.U.ex(Pro.Property, {
       if (setter) {
         property.val = setter.call(property.proObject, newVal);
       } else {
-        property.val = Pro.Property.transform(property, newVal);
+        property.val = Pro.Observable.transform(property, newVal);
       }
 
       if (property.val === null || property.val === undefined) {
@@ -112,14 +104,21 @@ Pro.Property.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
   type: function () {
     return Pro.Property.Types.simple;
   },
+  makeEvent: function (source) {
+    return new Pro.Event(source, this.property, Pro.Event.Types.value, this.proObject, this.oldVal, this.val);
+  },
   makeListener: function () {
     if (!this.listener) {
       var _this = this;
       this.listener = {
         property: _this,
         call: function (newVal) {
+          if (newVal && newVal.type !== undefined && newVal.type === Pro.Event.Types.value && newVal.args.length === 3 && newVal.target) {
+            newVal = newVal.args[0][newVal.target];
+          }
+
           _this.oldVal = _this.val;
-          _this.val = Pro.Property.transform(_this, newVal);
+          _this.val = Pro.Observable.transform(_this, newVal);
         }
       };
     }
@@ -154,6 +153,7 @@ Pro.Property.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
     delete this.proObject['__pro__'].properties[this.property];
     this.listeners = undefined;
     this.oldVal = undefined;
+    this.parent = undefined;
 
     Object.defineProperty(this.proObject, this.property, {
       value: this.val,
@@ -164,11 +164,6 @@ Pro.Property.prototype = Pro.U.ex(Object.create(Pro.Observable.prototype), {
     this.g = this.s = undefined;
     this.val = undefined;
     this.state = Pro.States.destroyed;
-  },
-  addTransformator: function (transformator) {
-    this.transformators.push(transformator);
-
-    return this;
   },
   toString: function () {
     return this.val;

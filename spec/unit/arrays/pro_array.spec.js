@@ -117,7 +117,7 @@ describe('Pro.Array', function () {
     var array = new Pro.Array(1, 2, 3, 4, 5),
         op, i, ov, nv;
 
-    array.addIndexListener(function (event) {
+    array.on('indexChange', function (event) {
       op = event.args[0];
       i = event.args[1];
       ov = event.args[2];
@@ -1427,7 +1427,7 @@ describe('Pro.Array', function () {
     var array = new Pro.Array(4, 1, 2, 3, 5),
         i, ov, nv, stack = [];
 
-    array.addIndexListener(function (event) {
+    array.on('indexChange', function (event) {
       expect(event.args[0]).toBe(Pro.Array.Operations.splice);
       i = event.args[1];
       ov = event.args[2];
@@ -1435,7 +1435,7 @@ describe('Pro.Array', function () {
       stack.push('index');
     });
 
-    array.addLengthListener(function (event) {
+    array.on('lengthChange', function (event) {
       expect(event.args[0]).toBe(Pro.Array.Operations.splice);
       i = event.args[1];
       ov = event.args[2];
@@ -1480,7 +1480,7 @@ describe('Pro.Array', function () {
     var array = new Pro.Array(1, 2, 3, 4, 5),
         o, i, ov, nv, stack = [];
 
-    array.addIndexListener(function (event) {
+    array.on('indexChange', function (event) {
       o = event.args[0];
       i = event.args[1];
       ov = event.args[2];
@@ -1488,7 +1488,7 @@ describe('Pro.Array', function () {
       stack.push('index');
     });
 
-    array.addLengthListener(function (event) {
+    array.on('lengthChange', function (event) {
       o = event.args[0];
       i = event.args[1];
       ov = event.args[2];

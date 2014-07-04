@@ -1,11 +1,30 @@
-Pro.Observable = function () {
+Pro.Observable = function (transforms) {
   this.listeners = [];
   this.errListeners = [];
   this.sources = [];
 
   this.listener = null;
   this.errListener = null;
+
+  this.transforms = transforms ? transforms : [];
+
+  this.parent = null;
 };
+
+Pro.U.ex(Pro.Observable, {
+  BadValue: {},
+  transform: function (observable, val) {
+    var i, t = observable.transforms, ln = t.length;
+    for (i = 0; i < ln; i++) {
+      val = t[i].call(observable, val);
+      if (val === Pro.Observable.BadValue) {
+        break;
+      }
+    }
+
+    return val;
+  }
+});
 
 Pro.Observable.prototype = {
   constructor: Pro.Observable,
@@ -66,10 +85,15 @@ Pro.Observable.prototype = {
     return this.off(action, callback, this.errListeners);
   },
 
-  into: function (source) {
-    this.sources.push(source);
-    source.on(this.makeListener());
-    source.onErr(this.makeErrListener());
+  into: function () {
+    var args = slice.call(arguments),
+        ln = args.length, i, source;
+    for (i = 0; i < ln; i++) {
+      source = args[i];
+      this.sources.push(source);
+      source.on(this.makeListener());
+      source.onErr(this.makeErrListener());
+    }
 
     return this;
   },
@@ -88,9 +112,46 @@ Pro.Observable.prototype = {
     return this;
   },
 
+  transform: function (transformation) {
+    this.transforms.push(transformation);
+    return this;
+  },
+
+  mapping: function (f) {
+    return this.transform(f)
+  },
+
+  filtering: function(f) {
+    var _this = this;
+    return this.transform(function (val) {
+      if (f.call(_this, val)) {
+        return val;
+      }
+      return Pro.Observable.BadValue;
+    });
+  },
+
+  accumulation: function (initVal, f) {
+    var _this = this, val = initVal;
+    return this.transform(function (newVal) {
+      val = f.call(_this, val, newVal)
+      return val;
+    });
+  },
+
   map: Pro.N,
+  filter: Pro.N,
+  accumulate: Pro.N,
+
+  reduce: function (initVal, f) {
+    return new Pro.Val(initVal).into(this.accumulate(initVal, f));
+  },
 
   update: function (source, callbacks) {
+    if (this.listeners.length === 0 && this.errListeners.length === 0 && this.parent === null) {
+      return this;
+    }
+
     var observable = this;
     if (!Pro.flow.isRunning()) {
       Pro.flow.run(function () {
@@ -107,6 +168,7 @@ Pro.Observable.prototype = {
         listeners = Pro.U.isArray(callbacks) ? callbacks : this.listeners,
         length = listeners.length,
         event = this.makeEvent(source);
+
     for (i = 0; i < length; i++) {
       listener = listeners[i];
 
@@ -116,6 +178,11 @@ Pro.Observable.prototype = {
         listener.property.willUpdate(event);
       }
     }
+
+    if (this.parent && this.parent.call) {
+      this.defer(event, this.parent);
+    }
+
     return this;
   },
 

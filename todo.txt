@@ -1,3 +1,0 @@
-[4mRunning "todo:src" (todo) task[24m
-
-[32mDone, without errors.[39m

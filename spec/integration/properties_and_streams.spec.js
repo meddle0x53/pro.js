@@ -40,7 +40,7 @@ describe('Pro.Property & Pro.Stream', function () {
     obj.p('a').out(stream);
 
     stream.on(function (event) {
-      res.push(event.target.val);
+      res.push(event.args[0][event.target]);
     });
 
     obj.a = 5;
