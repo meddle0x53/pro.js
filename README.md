@@ -1,5 +1,5 @@
 # Pro.js is ProAct.js as of today - 10.07.2014!
-  The project is renames and permanently moved to https://github.com/proactjs/proactjs
+  The project is renamed and permanently moved to [https://github.com/proactjs/proactjs](https://github.com/proactjs/proactjs)
 
 ## pro.js [![GitHub version](https://badge.fury.io/gh/meddle0x53%2Fpro.js.svg)](http://badge.fury.io/gh/meddle0x53%2Fpro.js) [![Build Status](https://travis-ci.org/meddle0x53/pro.js.svg?branch=master)](https://travis-ci.org/meddle0x53/pro.js)
 
